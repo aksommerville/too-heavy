@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  wrapper.html
+  Simulates a web embedding host, eg Itch.io.
+  The proper game doesn't have any user-friendly chrome or anything, it's just a canvas.
+-->
+<html>
+<head>
+  <title>Too Heavy!</title>
+  <style>
+    html {
+      background-color: #000;
+      color: #ccc;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <h1>Too Heavy!</h1>
+  <iframe src="./www/index.html" width="640" height="360">
+  </iframe>
+</body>
+</html>
