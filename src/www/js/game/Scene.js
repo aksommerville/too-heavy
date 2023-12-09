@@ -6,6 +6,10 @@
  
 import { Injector } from "../core/Injector.js";
 import { Game } from "./Game.js";
+import { Camera } from "./Camera.js";
+import { Grid } from "./Grid.js";
+import { Sprite } from "./Sprite.js";
+import { HeroSprite } from "./sprites/HeroSprite.js";
  
 export class Scene {
   static getDependencies() {
@@ -13,9 +17,15 @@ export class Scene {
   }
   constructor(game) {
     this.game = game;
+    
+    this.backgroundColor = "#66bbff";
+    this.grid = null; // Grid
+    this.sprites = []; // Sprite
+    this.camera = new Camera(this);
   }
   
   update(elapsed, inputState) {
+    for (const sprite of this.sprites) sprite.update?.(elapsed, inputState);
   }
 }
 
@@ -29,6 +39,8 @@ export class SceneFactory {
   
   begin(sceneId) {
     const scene = this.injector.get(Scene);
+    scene.grid = new Grid();
+    scene.sprites.push(new HeroSprite(scene));
     return scene;
   }
 }

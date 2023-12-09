@@ -5,6 +5,7 @@
  
 import { Scene, SceneFactory } from "./Scene.js";
 import { InputManager } from "../core/InputManager.js";
+import { ImageService } from "../core/ImageService.js";
  
 /* The ideal update timing is 16.666 ms.
  * High-frequency monitors may run considerably shorter, and we should skip frames to accomodate, instead of burning the CPU.
@@ -16,12 +17,13 @@ const MAXIMUM_UPDATE_TIME_MS = 25;
  
 export class Game {
   static getDependencies() {
-    return [Window, SceneFactory, InputManager];
+    return [Window, SceneFactory, InputManager, ImageService];
   }
-  constructor(window, sceneFactory, inputManager) {
+  constructor(window, sceneFactory, inputManager, imageService) {
     this.window = window;
     this.sceneFactory = sceneFactory;
     this.inputManager = inputManager;
+    this.imageService = imageService;
     
     this.render = () => {}; // RootUi should set.
     
@@ -31,6 +33,7 @@ export class Game {
     this.pendingAnimationFrame = null;
     this.lastFrameTime = 0;
     this.scene = null;
+    this.graphics = null; // Image; required if loaded.
   }
   
   /* Returns a Promise that resolves when our content is all loaded and ready to go.
@@ -39,9 +42,13 @@ export class Game {
   load() {
     if (this.loadFailure) return Promise.reject(this.loadFailure);
     if (this.loaded) return Promise.resolve();
-    return Promise.resolve().then(() => {
+    return this.imageService.load("./graphics.png").then((graphics) => {
       this.loaded = true;
       this.paused = true;
+      this.graphics = graphics;
+    }).catch(e => {
+      this.loadFailure = e;
+      throw e;
     });
   }
   
