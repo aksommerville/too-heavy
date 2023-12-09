@@ -10,13 +10,19 @@ import { Camera } from "./Camera.js";
 import { Grid } from "./Grid.js";
 import { Sprite } from "./Sprite.js";
 import { HeroSprite } from "./sprites/HeroSprite.js";
+import { Physics } from "./Physics.js";
+
+const TILESIZE = 16;
  
 export class Scene {
   static getDependencies() {
-    return [Game];
+    return [Game, Physics];
   }
-  constructor(game) {
+  constructor(game, physics) {
     this.game = game;
+    this.physics = physics;
+    
+    this.physics.scene = this;
     
     this.backgroundColor = "#66bbff";
     this.grid = null; // Grid
@@ -26,6 +32,7 @@ export class Scene {
   
   update(elapsed, inputState) {
     for (const sprite of this.sprites) sprite.update?.(elapsed, inputState);
+    this.physics.update(elapsed);
   }
   
   removeSprite(sprite) {
@@ -47,6 +54,11 @@ export class SceneFactory {
     const scene = this.injector.get(Scene);
     scene.grid = new Grid();
     scene.sprites.push(new HeroSprite(scene));
+    for (const sprite of scene.grid.generateStaticSprites(scene)) {
+      scene.sprites.push(sprite);
+    }
+    scene.worldw = scene.grid.w * TILESIZE;
+    scene.worldh = scene.grid.h * TILESIZE;
     return scene;
   }
 }

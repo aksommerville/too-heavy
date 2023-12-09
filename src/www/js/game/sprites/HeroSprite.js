@@ -4,6 +4,10 @@
 import { Sprite } from "../Sprite.js";
 import * as Input from "../../core/InputManager.js";
 import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
+import { Physics } from "../Physics.js";
+
+const JUMP_LIMIT_TIME = 0.600;
+const JUMP_SPEED_MAX = 380; // px/sec
 
 export class HeroSprite extends Sprite {
   constructor(scene) {
@@ -16,15 +20,22 @@ export class HeroSprite extends Sprite {
     this.vh = 29;
     this.vx = this.vw >> 1; // (x,y) at bottom center of decal.
     this.vy = this.vh;
-    this.pw = this.vw; // for now, physical bounds match render bounds exactly
-    this.ph = this.vh;
-    this.px = this.vx;
-    this.py = this.vy;
+    Physics.prepareSprite(this);
+    this.ph.w = this.vw;
+    this.ph.h = this.vh;
+    this.ph.pleft = -this.vx;
+    this.ph.ptop = -this.vy;
+    this.ph.invmass = 0.5;
+    this.ph.edges = true;//XXX TEMP
     
     this.pvinput = 0;
     this.walkdx = 0; // -1,0,1
     this.walkDuration = 0; // sec, how long have we been walking this direction. Counts when not walking too.
     this.walkHistory = []; // [dx,duration] for the last few (walkdx) states. For triggering dash and such. Reverse chronological order.
+    this.jumping = false;
+    this.jumpDuration = 0;
+    this.footState = false; // True if we're on the ground.
+    this.footClock = 0; // How long since footState changed.
   }
   
   update(elapsed, inputState) {
@@ -34,10 +45,25 @@ export class HeroSprite extends Sprite {
         case Input.BTN_RIGHT: this.walkBegin(1); break;
         default: this.walkEnd(); break;
       }
+      if ((inputState & Input.BTN_JUMP) && !(this.pvinput & Input.BTN_JUMP)) {
+        this.jumpBegin();
+      } else if (!(inputState & Input.BTN_JUMP) && (this.pvinput & Input.BTN_JUMP)) {
+        this.jumpAbort();
+      }
+      if ((inputState & Input.BTN_ACTION) && !(this.pvinput & Input.BTN_ACTION)) {
+        this.actionBegin();
+      } else if (!(inputState & Input.BTN_ACTION) && (this.pvinput & Input.BTN_ACTION)) {
+        this.actionEnd();
+      }
       this.pvinput = inputState;
     }
+    this.jumpUpdate(elapsed);
     this.walkUpdate(elapsed);
+    this.actionUpdate(elapsed);
   }
+  
+  /* Walk.
+   ************************************************************************/
   
   walkBegin(dx) {
     if (dx<0) this.flop = false;
@@ -81,6 +107,9 @@ export class HeroSprite extends Sprite {
     if (this.walkHistory.length > 5) this.walkHistory.splice(5, this.walkHistory.length - 5);
   }
   
+  /* Dash.
+   **************************************************************************/
+  
   shouldDash(dx) {
     if (this.walkHistory.length < 2) return false;
     const prev = this.walkHistory[0];
@@ -94,11 +123,23 @@ export class HeroSprite extends Sprite {
   
   dash(dx) {
     const DASH_DISTANCE = 32;
-    //TODO Confirm the new position is tenable, don't depend on generic reconciliation.
     this.x += DASH_DISTANCE * dx;
+    const overlaptitude = this.scene.physics.testSpritePosition(this);
     this.walkdx = dx;
-    this.walkDuration = 0;
+    // Set walkDuration somewhat positive. Two effects: 
+    //  (1) dash twice requires two strokes per dash, can't chain them.
+    //  (2) no ramp-up time for walk speed after dashing.
+    this.walkDuration = 0.150;
     this.walkHistory = [];
+    if (overlaptitude >= 0.250) {
+      this.x -= DASH_DISTANCE * dx;
+      const freedom = this.scene.physics.measureFreedom(this, dx, 0, DASH_DISTANCE);
+      if (freedom <= 0) {
+        //TODO sound effect for dash rejection
+        return;
+      }
+      this.x += dx * freedom;
+    }
     //TODO sound effect
     const fireworks = new AnimateOnceSprite(this.scene);
     this.scene.sprites.push(fireworks);
@@ -115,5 +156,72 @@ export class HeroSprite extends Sprite {
     fireworks.srcy = 24;
     fireworks.frameDuration = 0.040;
     fireworks.frameCount = 5;
+  }
+  
+  /* Jump.
+   **************************************************************************/
+  
+  jumpBegin() {
+    if (!this.footState) {
+      if (this.footClock >= 0.050) {
+        return;
+      }
+      // Coyote time. Let her run off a cliff and jump from midair, for just a tiny fraction of a second.
+      // Otherwise one feels cheated on pressing the button a frame or two too late.
+    }
+    this.jumpDuration = 0;
+    this.jumping = true;
+    //TODO sound effect
+  }
+  
+  jumpAbort() {
+    if (!this.jumping) return;
+    this.jumping = false;
+  }
+  
+  jumpUpdate(elapsed) {
+    if (this.scene.physics.measureFreedom(this, 0, 1, 2) <= 0) {
+      if (!this.footState) {
+        this.footState = true;
+        this.footClock = 0;
+      } else {
+        this.footClock += elapsed;
+      }
+    } else if (this.footState) {
+      this.footState = false;
+      this.footClock = 0;
+    } else {
+      this.footClock += elapsed;
+    }
+    
+    if (!this.jumping) return;
+    
+    // Abort the jump if we hit the ground.
+    if ((this.jumpDuration > 0.100) && (this.ph.y > this.ph.pvy) && (this.scene.physics.measureFreedom(this, 0, 1, 2) < 2)) {
+      this.jumping = false;
+      return;
+    }
+    
+    this.jumpDuration += elapsed;
+    if (this.jumpDuration >= JUMP_LIMIT_TIME) {
+      this.jumping = false;
+    } else {
+      const speed = ((JUMP_LIMIT_TIME - this.jumpDuration) * JUMP_SPEED_MAX) / JUMP_LIMIT_TIME;
+      this.y -= elapsed * speed;
+    }
+  }
+  
+  /* Actions.
+   ********************************************************************************/
+  
+  actionBegin() {
+    console.log(`actionBegin`);
+  }
+  
+  actionEnd() {
+    console.log(`actionEnd`);
+  }
+  
+  actionUpdate(elapsed) {
   }
 }
