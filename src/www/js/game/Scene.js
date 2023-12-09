@@ -27,6 +27,12 @@ export class Scene {
   update(elapsed, inputState) {
     for (const sprite of this.sprites) sprite.update?.(elapsed, inputState);
   }
+  
+  removeSprite(sprite) {
+    const p = this.sprites.indexOf(sprite);
+    if (p < 0) return;
+    this.sprites.splice(p, 1);
+  }
 }
 
 export class SceneFactory {
