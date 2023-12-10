@@ -27,6 +27,16 @@ export class CanvasUi {
       if (this.game.scene.grid) this.renderGrid(this.game.scene.grid, worldBounds);
       this.renderSprites(this.game.scene.sprites, worldBounds);
       
+      /*XXX TEMP Show all physical borders *
+      this.context.fillStyle = "#f00";
+      this.context.globalAlpha = 0.75;
+      for (const sprite of this.game.scene.sprites) {
+        if (!sprite.ph) continue;
+        this.context.fillRect(sprite.ph.x - worldBounds.x + 1, sprite.ph.y - worldBounds.y + 1, sprite.ph.w - 2, sprite.ph.h - 2);
+      }
+      this.context.globalAlpha = 1;
+      /**/
+      
     } else {
       this.context.fillStyle = "#888";
       this.context.fillRect(0, 0, this.element.width, this.element.height);

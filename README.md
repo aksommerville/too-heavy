@@ -11,7 +11,7 @@ Submission for the 2023-4 GDEX Winter Game Jam.
 - [x] Physics.
 - [x] Dash: If rejected due to overlap, do move as far as we can for free.
 - [x] Gravity.
-- [ ] Scrolling camera.
+- [x] Scrolling camera.
 - [x] Duck.
 - [x] Jump.
 - [ ] Triple Jump.

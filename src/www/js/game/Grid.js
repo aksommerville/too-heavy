@@ -75,6 +75,7 @@ export class Grid {
           }
           if (!allsolid) break;
           h++;
+          subp += this.w;
         }
         this.clearRect(v, this.w, col, row, w, h);
         const sprite = new Sprite(scene);
