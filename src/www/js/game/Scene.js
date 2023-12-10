@@ -11,16 +11,18 @@ import { Grid } from "./Grid.js";
 import { Sprite } from "./Sprite.js";
 import { HeroSprite } from "./sprites/HeroSprite.js";
 import { Physics } from "./Physics.js";
+import { DataService } from "./DataService.js";
 
 const TILESIZE = 16;
  
 export class Scene {
   static getDependencies() {
-    return [Game, Physics];
+    return [Game, Physics, DataService];
   }
-  constructor(game, physics) {
+  constructor(game, physics, dataService) {
     this.game = game;
     this.physics = physics;
+    this.dataService = dataService;
     
     this.physics.scene = this;
     
@@ -44,15 +46,16 @@ export class Scene {
 
 export class SceneFactory {
   static getDependencies() {
-    return [Injector];
+    return [Injector, DataService];
   }
-  constructor(injector) {
+  constructor(injector, dataService) {
     this.injector = injector;
+    this.dataService = dataService;
   }
   
   begin(sceneId) {
     const scene = this.injector.get(Scene);
-    scene.grid = new Grid();
+    if (!(scene.grid = this.dataService.getResourceSync("map", 1))) throw new Error(`Failed to load map:1`);
     scene.sprites.push(new HeroSprite(scene));
     for (const sprite of scene.grid.generateStaticSprites(scene)) {
       scene.sprites.push(sprite);

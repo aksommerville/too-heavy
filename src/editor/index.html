@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Editor</title>
+  <script type="module">
+    import { Injector } from "./js/core/Injector.js";
+    import { Dom } from "./js/core/Dom.js";
+    import { RootUi } from "./js/ui/RootUi.js";
+    window.addEventListener("load", () => {
+      const injector = new Injector(window);
+      const dom = injector.get(Dom);
+      const rootUi = dom.spawnController(document.body, RootUi);
+    });
+  </script>
+  <style>
+    html {
+      background-color: #808080;
+      font-family: sans-serif;
+    }
+    body {
+      margin: 0;
+    }
+    .modalBlotter {
+      z-index: 100;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #000;
+      opacity: 0.5;
+    }
+    .modalContainer {
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .modal {
+      min-width: 100px;
+      min-height: 100px;
+      max-width: 90vw;
+      max-height: 90vh;
+      background-color: #fff;
+      color: #000;
+      border-radius: 0.5em;
+      border: 1px solid #000;
+      box-shadow: #000 0 0 1em;
+      pointer-events: initial;
+      padding: 0.5em;
+    }
+    .RootUi {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+    }
+    .RootUi > .editSpace {
+      flex: 1;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+    .RootUi > .editSpace > * {
+      flex: 1;
+    }
+    .ScrollList {
+      min-width: 200px;
+      overflow-x: hidden;
+      overflow-y: scroll;
+    }
+    .ScrollList > *:nth-child(odd) {
+      background-color: #cce;
+      cursor: pointer;
+      user-select: none;
+    }
+    .ScrollList > *:nth-child(even) {
+      background-color: #bbc;
+      cursor: pointer;
+      user-select: none;
+    }
+    .ScrollList .row.highlight {
+      background-color: #ff0;
+    }
+    .MapUi {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+    .MapToolbar {
+      border-bottom: 1px solid #000;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+    .MapToolbar .tools {
+      display: flex;
+      flex-direction: row;
+      margin-right: 1em;
+    }
+    .MapToolbar .tool {
+      cursor: pointer;
+      user-select: none;
+      border: 2px solid #888;
+    }
+    .MapToolbar .tool.effectiveLeft {
+      background-color: #ff0;
+    }
+    .MapToolbar .tool.explicitLeft {
+      border: 2px solid #ff0;
+    }
+    .MapToolbar .tool.effectiveRight {
+      background-color: #f00;
+    }
+    .MapToolbar .tool.explicitRight {
+      border: 2px solid #f00;
+    }
+    .MapToolbar .tool.effectiveLeft.effectiveRight {
+      background-color: #f80;
+    }
+    .MapToolbar .tool.explicitLeft.explicitRight {
+      border: 2px solid #f80;
+    }
+    .MapToolbar .tattle {
+      padding: 0.5em;
+      margin-right: 1em;
+      background-color: #020;
+      color: #0f0;
+      font-family: monospace;
+      white-space: pre;
+    }
+    .MapToolbar .palette {
+      width: 54px;
+      height: 54px;
+      image-rendering: pixelated;
+      cursor: pointer;
+    }
+    .PalettePicker {
+      width: 768px;
+      height: 768px;
+      image-rendering: pixelated;
+    }
+    .MapCanvas {
+      flex: 1;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+</body>
+</html>

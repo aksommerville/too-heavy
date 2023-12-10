@@ -9,27 +9,42 @@ import { Physics } from "./Physics.js";
 const TILESIZE = 16;
  
 export class Grid {
-  constructor() {
-    this.w = 20; // in tiles
-    this.h = 10; // in tiles
-    this.v = new Uint8Array(this.w * this.h); // 0..255; length is w*h; laid out LRTB
-    
-    //TODO serialize and persist grids
-    for (let x=0;x<this.w;x++) {
-      this.v[(this.h-1)*this.w+x]=0x81;
-      this.v[(this.h-2)*this.w+x]=0x01;
+  constructor(serial) {
+    const src = new TextDecoder("utf-8").decode(serial);
+    let srcp = 0;
+    this.v = [];
+    this.w = 0;
+    this.h = 0;
+    while (srcp < src.length) {
+      let nlp = src.indexOf("\n", srcp);
+      if (nlp < 0) nlp = src.length;
+      const line = src.substring(srcp, nlp).trim();
+      srcp = nlp + 1;
+      if (!line) break;
+      if (!this.w) {
+        if ((line.length < 2) || (line.length & 1)) throw new Error(`invalid map line: ${line}`);
+        this.w = line.length >> 1;
+      } else if (line.length !== this.w << 1) {
+        throw new Error(`invalid map line: ${line}`);
+      }
+      for (let linep=0; linep<line.length; linep+=2) this.v.push(parseInt(line.substring(linep, linep+2), 16));
+      this.h++;
     }
-    this.v[ 99] = 0xa3;
-    this.v[160] = 0xa3;
-    this.v[161] = 0xa3;
-    this.v[140] = 0xa3;
-    this.v[147] = 0xa3; // floating eye level
-    this.v[173] = 0xa3;
-    this.v[153] = 0xa3;
-    this.v[133] = 0xa3;
-    this.v[134] = 0xa3;
-    this.v[135] = 0xa3;
-    this.v[136] = 0xa3;
+    if ((this.w < 1) || (this.h < 1)) throw new Error(`Serial map has no cells`);
+    this.v = new Uint8Array(this.v);
+    while (srcp < src.length) {
+      let nlp = src.indexOf("\n", srcp);
+      if (nlp < 0) nlp = src.length;
+      const line = src.substring(srcp, nlp).split("#")[0].trim();
+      srcp = nlp + 1;
+      if (!line) continue;
+      const tokens = line.split(/\s+/);
+      this.receiveCommand(tokens);
+    }
+  }
+  
+  receiveCommand(tokens) {
+    console.log(`Grid.receiveCommand: ${JSON.stringify(tokens)}`);
   }
   
   /* Return an array of Sprite for our solid regions.

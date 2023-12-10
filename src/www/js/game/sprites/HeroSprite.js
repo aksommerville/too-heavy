@@ -8,6 +8,7 @@ import { Physics } from "../Physics.js";
 
 const JUMP_LIMIT_TIME = 0.600;
 const JUMP_SPEED_MAX = 380; // px/sec
+const CANNONBALL_SPEED = 100; // px/sec, but gravity does most of it.
 
 export class HeroSprite extends Sprite {
   constructor(scene) {
@@ -38,6 +39,8 @@ export class HeroSprite extends Sprite {
     this.footClock = 0; // How long since footState changed.
     this.animClock = 0;
     this.animFrame = 0;
+    this.ducking = false;
+    this.cannonball = false;
   }
   
   update(elapsed, inputState) {
@@ -65,6 +68,7 @@ export class HeroSprite extends Sprite {
       this.pvinput = inputState;
     }
     this.jumpUpdate(elapsed);
+    this.duckUpdate(elapsed);
     this.walkUpdate(elapsed);
     this.actionUpdate(elapsed);
     this.animationUpdate(elapsed);
@@ -110,11 +114,28 @@ export class HeroSprite extends Sprite {
     }
     this.ducking = true;
     this.animClock = 0;
+    if (this.scene.physics.measureFreedom(this, 0, 1, 1) >= 1) {
+      this.cannonball = true;
+    } else {
+      this.cannonball = false;
+    }
   }
   
   duckEnd() {
     this.ducking = false;
+    this.cannonball = false;
     this.animClock = 0;
+  }
+  
+  duckUpdate(elapsed) {
+    if (this.ducking && this.cannonball) {
+      this.y += elapsed * CANNONBALL_SPEED;
+    }
+  }
+  
+  executeCannonball() {
+    console.log("CANNONBALL!!");
+    //TODO check what's under us, break it, etc
   }
   
   /* Walk.
@@ -249,6 +270,10 @@ export class HeroSprite extends Sprite {
       if (!this.footState) {
         this.footState = true;
         this.footClock = 0;
+        if (this.cannonball) {
+          this.cannonball = false;
+          this.executeCannonball();
+        }
       } else {
         this.footClock += elapsed;
       }

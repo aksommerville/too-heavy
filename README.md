@@ -4,6 +4,7 @@ Submission for the 2023-4 GDEX Winter Game Jam.
 
 ## TODO
 
+- [x] Map editor.
 - [ ] Guess gamepad mapping for unknown devices.
 - [ ] Persist gamepad and keyboard mapping.
 - [ ] UI to edit mappings.
