@@ -11,7 +11,7 @@ Submission for the 2023-4 GDEX Winter Game Jam.
 - [x] Dash: If rejected due to overlap, do move as far as we can for free.
 - [x] Gravity.
 - [ ] Scrolling camera.
-- [ ] Duck.
+- [x] Duck.
 - [x] Jump.
 - [ ] Triple Jump.
 - [ ] Long Jump. (duck+forward+jump, blast forward without much elevation change)
@@ -19,6 +19,7 @@ Submission for the 2023-4 GDEX Winter Game Jam.
 - [ ] Wall Slide.
 - [ ] One-way platforms.
 - [ ] Augmented Dash. (jump immediately after dashing, blast off diagonally)
+- [ ] Cannonball.
 - [ ] Toggle fullscreen.
 - [ ] Itch page.
 - [ ] Github repo.

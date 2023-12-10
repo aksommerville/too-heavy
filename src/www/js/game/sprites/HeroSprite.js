@@ -14,9 +14,9 @@ export class HeroSprite extends Sprite {
     super(scene);
     this.x = 100;
     this.y = 144;
-    this.srcx = 305;
-    this.srcy = 2;
-    this.vw = 14;
+    this.srcx = 262;
+    this.srcy = 1;
+    this.vw = 16;
     this.vh = 29;
     this.vx = this.vw >> 1; // (x,y) at bottom center of decal.
     this.vy = this.vh;
@@ -36,10 +36,17 @@ export class HeroSprite extends Sprite {
     this.jumpDuration = 0;
     this.footState = false; // True if we're on the ground.
     this.footClock = 0; // How long since footState changed.
+    this.animClock = 0;
+    this.animFrame = 0;
   }
   
   update(elapsed, inputState) {
     if (inputState !== this.pvinput) {
+      if ((inputState & Input.BTN_DOWN) && !(this.pvinput & Input.BTN_DOWN)) {
+        this.duckBegin();
+      } else if (!(inputState & Input.BTN_DOWN) && (this.pvinput & Input.BTN_DOWN)) {
+        this.duckEnd();
+      }
       switch (inputState & (Input.BTN_LEFT | Input.BTN_RIGHT)) {
         case Input.BTN_LEFT: this.walkBegin(-1); break;
         case Input.BTN_RIGHT: this.walkBegin(1); break;
@@ -60,6 +67,54 @@ export class HeroSprite extends Sprite {
     this.jumpUpdate(elapsed);
     this.walkUpdate(elapsed);
     this.actionUpdate(elapsed);
+    this.animationUpdate(elapsed);
+  }
+  
+  /* Animation.
+   *****************************************************************/
+   
+  animationUpdate(elapsed) {
+    if ((this.animClock -= elapsed) > 0) return;
+    
+    if (this.ducking) {
+      this.animClock += 0.500;
+      this.srcx = 364;
+    
+    } else if (this.walkdx) {
+      this.animClock += 0.160;
+      if (++(this.animFrame) >= 4) this.animFrame = 0;
+      switch (this.animFrame) {
+        case 0: this.srcx = 296; break;
+        case 1: this.srcx = 313; break;
+        case 2: this.srcx = 330; break;
+        case 3: this.srcx = 313; break;
+      }
+    
+    } else {
+      if (this.srcx === 262) {
+        this.animClock = 0.200;
+        this.srcx = 279;
+      } else {
+        this.animClock = 0.500 + Math.random() * 1.500;
+        this.srcx = 262;
+      }
+    }
+  }
+  
+  /* Duck.
+   *******************************************************/
+   
+  duckBegin() {
+    if (this.walkdx) {
+      this.walkEnd();
+    }
+    this.ducking = true;
+    this.animClock = 0;
+  }
+  
+  duckEnd() {
+    this.ducking = false;
+    this.animClock = 0;
   }
   
   /* Walk.
@@ -68,7 +123,10 @@ export class HeroSprite extends Sprite {
   walkBegin(dx) {
     if (dx<0) this.flop = false;
     else this.flop = true;
+    if (this.ducking) return;
     if (dx === this.walkdx) return;
+    this.animClock = 0;
+    this.animFrame = 0;
     this.addWalkHistory();
     if (this.shouldDash(dx)) {
       this.dash(dx);
@@ -80,6 +138,8 @@ export class HeroSprite extends Sprite {
   
   walkEnd() {
     if (!this.walkdx) return;
+    this.animClock = 0;
+    this.animFrame = 0;
     this.addWalkHistory();
     this.walkdx = 0;
     this.walkDuration = 0;
@@ -152,8 +212,8 @@ export class HeroSprite extends Sprite {
     fireworks.y = ~~this.y - this.vh;
     fireworks.vw = 33;
     fireworks.vh = 29;
-    fireworks.srcx = 346;
-    fireworks.srcy = 24;
+    fireworks.srcx = 262;
+    fireworks.srcy = 31;
     fireworks.frameDuration = 0.040;
     fireworks.frameCount = 5;
   }
@@ -168,6 +228,11 @@ export class HeroSprite extends Sprite {
       }
       // Coyote time. Let her run off a cliff and jump from midair, for just a tiny fraction of a second.
       // Otherwise one feels cheated on pressing the button a frame or two too late.
+    }
+    if (this.ducking) {
+      console.log(`Jump while ducking -- this should do something else`);
+      //TODO Down one-way platforms.
+      return;
     }
     this.jumpDuration = 0;
     this.jumping = true;
