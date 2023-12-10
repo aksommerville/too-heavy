@@ -103,15 +103,18 @@ export class MapCanvas {
     
     this.context.fillStyle = "#8ac";
     this.context.fillRect(this.dstx, this.dsty, dstw, dsth);
-    
-    this.context.imageSmoothingEnabled = false;
-    const v = this.mapPaintService.map.v;
-    for (let p=0, row=0, y=this.dsty; row<this.mapPaintService.map.h; row++, y+=this.dsttilesize) {
-      for (let col=0, x=this.dstx; col<this.mapPaintService.map.w; col++, x+=this.dsttilesize, p++) {
-        if (!v[p]) continue; // Tile zero is always transparent. (game runtime does the same thing)
-        const srcx = (v[p] & 15) * TILESIZE;
-        const srcy = (v[p] >> 4) * TILESIZE;
-        this.context.drawImage(this.dataService.graphics, srcx, srcy, TILESIZE, TILESIZE, x, y, this.dsttilesize, this.dsttilesize);
+
+    const graphics = this.dataService.getFileSync("/data/image/1-main.png")?.serial;
+    if (graphics) {
+      this.context.imageSmoothingEnabled = false;
+      const v = this.mapPaintService.map.v;
+      for (let p=0, row=0, y=this.dsty; row<this.mapPaintService.map.h; row++, y+=this.dsttilesize) {
+        for (let col=0, x=this.dstx; col<this.mapPaintService.map.w; col++, x+=this.dsttilesize, p++) {
+          if (!v[p]) continue; // Tile zero is always transparent. (game runtime does the same thing)
+          const srcx = (v[p] & 15) * TILESIZE;
+          const srcy = (v[p] >> 4) * TILESIZE;
+          this.context.drawImage(graphics, srcx, srcy, TILESIZE, TILESIZE, x, y, this.dsttilesize, this.dsttilesize);
+        }
       }
     }
   }

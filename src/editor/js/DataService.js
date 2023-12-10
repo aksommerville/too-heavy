@@ -11,9 +11,8 @@ export class DataService {
   constructor(window) {
     this.window = window;
     
-    this.allFiles = null; // {path,serial,tid,rid,name}[] tid is a string
+    this.allFiles = null; // {path,serial,tid,rid,name}[] ; (tid) is string. (serial) is ArrayBuffer or Image
     this.allFilesPromise = null; // Promise if loading
-    this.graphics = null; // Image
   }
   
   getAllFiles() {
@@ -21,7 +20,6 @@ export class DataService {
     if (this.allFiles) return Promise.resolve(this.allFiles);
     return this.allFilesPromise = this.loadDirectoryRecursively("/data")
       .then(files => { this.allFiles = files; })
-      .then(() => this.loadGraphics())
       .then(() => {
         this.allFilesPromise = null;
         return this.allFiles;
@@ -66,21 +64,20 @@ export class DataService {
     });
   }
   
-  // Graphics are a single image file, not in the generic data directory.
-  // TODO Should we change this? Images are kind of special in browsers, shouldn't be treated like general data.
-  loadGraphics() {
-    return new Promise((resolve, reject) => {
-      const image = new this.window.Image();
-      image.addEventListener("load", () => {
-        this.graphics = image;
-        resolve(image);
-      });
-      image.addEventListener("error", e => reject("Failed to load image"));
-      image.src = "/www/graphics.png";
-    });
-  }
-  
   loadDirectoryRecursively(path) {
+  
+    // Let the browser's Image object handle images.
+    if (path.endsWith(".png")) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.addEventListener("load", () => {
+          resolve(this.wrapFile(image, path, "image/png"));
+        });
+        image.addEventListener("error", e => reject(`${path}: Failed to load image`));
+        image.src = path;
+      });
+    }
+  
     return this.window.fetch(path, {
       method: "GET",
       mode: "same-origin",
@@ -115,7 +112,8 @@ export class DataService {
   
   wrapFile(serial, path, contentType) {
     const { tid, rid, name } = this.parsePath(path);
-    return { path, serial, tid, rid, name };
+    const file = { path, serial, tid, rid, name };
+    return file;
   }
   
   parsePath(path) {

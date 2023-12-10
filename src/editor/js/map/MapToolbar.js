@@ -92,10 +92,11 @@ export class MapToolbar {
     context.fillStyle = "#6af";
     context.fillRect(0, 0, TILESIZE + 2, TILESIZE + 2);
     
-    if (this.dataService.graphics) {
+    const graphics = this.dataService.getFileSync("/data/image/1-main.png")?.serial;
+    if (graphics) {
       const srcx = (this.mapPaintService.paletteTile & 0x0f) * TILESIZE;
       const srcy = (this.mapPaintService.paletteTile >> 4) * TILESIZE;
-      context.drawImage(this.dataService.graphics, srcx, srcy, TILESIZE, TILESIZE, 1, 1, TILESIZE, TILESIZE);
+      context.drawImage(graphics, srcx, srcy, TILESIZE, TILESIZE, 1, 1, TILESIZE, TILESIZE);
     }
   }
   

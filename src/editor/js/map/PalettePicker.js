@@ -49,8 +49,9 @@ export class PalettePicker {
     }
     context.globalAlpha = 1;
     
-    if (this.dataService.graphics) {
-      context.drawImage(this.dataService.graphics, 0, 0, this.element.width, this.element.height, 0, 0, this.element.width, this.element.height);
+    const graphics = this.dataService.getFileSync("/data/image/1-main.png")?.serial;
+    if (graphics) {
+      context.drawImage(graphics, 0, 0, this.element.width, this.element.height, 0, 0, this.element.width, this.element.height);
     }
     
     context.beginPath();
