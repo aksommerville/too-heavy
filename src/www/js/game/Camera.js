@@ -6,10 +6,16 @@
 import { HeroSprite } from "./sprites/HeroSprite.js";
  
 const TILESIZE = 16;
+const UPDATE_LIMIT = 15; // Maximum Manhattan distance change frame to frame before we force lag.
+const LAG_SPEED = 8;
  
 export class Camera {
   constructor(scene) {
     this.scene = scene;
+    this.pvx = 0;
+    this.pvy = 0;
+    this.cutNext = true;
+    this.lagging = false;
   }
   
   getWorldBounds() {
@@ -30,6 +36,33 @@ export class Camera {
     }
     bounds.x = ~~bounds.x;
     bounds.y = ~~bounds.y;
+    
+    if (this.cutNext) {
+      this.cutNext = false;
+      this.lagging = false;
+    } else if (this.lagging) {
+      const dx = bounds.x - this.pvx;
+      const dy = bounds.y - this.pvy;
+      const dist = Math.sqrt(dx * dx + dy *dy);
+      if (dist <= LAG_SPEED) {
+        this.lagging = false;
+      } else {
+        bounds.x = Math.round(this.pvx + (dx * LAG_SPEED) / dist);
+        bounds.y = Math.round(this.pvy + (dy * LAG_SPEED) / dist);
+      }
+    } else {
+      const dx = bounds.x - this.pvx;
+      const dy = bounds.y - this.pvy;
+      const md = Math.abs(dx) + Math.abs(dy);
+      if (md > UPDATE_LIMIT) {
+        this.lagging = true;
+        bounds.x = this.pvx;
+        bounds.y = this.pvy;
+      }
+    }
+    
+    this.pvx = bounds.x;
+    this.pvy = bounds.y;
     return bounds;
   }
 }

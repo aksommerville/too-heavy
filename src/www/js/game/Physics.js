@@ -362,4 +362,14 @@ export class Physics {
     sprite.ph.pvy = sprite.ph.y;
     return true;
   }
+  
+  /* Notify physics that this sprite's position has changed artificially.
+   * Forget its history.
+   */
+  warp(sprite) {
+    sprite.ph.x = sprite.x + sprite.ph.pleft;
+    sprite.ph.y = sprite.y + sprite.ph.ptop;
+    sprite.ph.pvx = sprite.ph.x;
+    sprite.ph.pvy = sprite.ph.y;
+  }
 }

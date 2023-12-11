@@ -9,6 +9,8 @@ import { Physics } from "../Physics.js";
 const JUMP_LIMIT_TIME = 0.600;
 const JUMP_SPEED_MAX = 380; // px/sec
 const CANNONBALL_SPEED = 100; // px/sec, but gravity does most of it.
+const DEATH_COUNTDOWN_TIME = 0.500;
+const DEATH_BLACKOUT_TIME = 0.500;
 
 export class HeroSprite extends Sprite {
   constructor(scene) {
@@ -42,13 +44,47 @@ export class HeroSprite extends Sprite {
     this.animFrame = 0;
     this.ducking = false;
     this.cannonball = false;
+    this.reviveX = this.x;
+    this.reviveY = this.y;
+    this.deathCountdown = 0;
+    this.blackout = 0;
   }
   
   collideHazard(hazard) {
-    console.log(`!!!!!!!!!! HeroSprite.collideHazard !!!!!!!!!!!!`, hazard);
+    if (this.deathCountdown) return;
+    this.deathCountdown = DEATH_COUNTDOWN_TIME;
+    this.duckEnd();
+    this.jumpAbort();
+    this.actionEnd();
+    this.walkEnd();
+    this.srcx = 381;
+    this.srcy = 1;
+  }
+  
+  finishDeathCountdown() {
+    this.blackout = DEATH_BLACKOUT_TIME;
+    this.x = this.reviveX;
+    this.y = this.reviveY;
+    this.scene.physics.warp(this);
+    //TODO sound effect
+    //TODO fireworks
   }
   
   update(elapsed, inputState) {
+    if (this.deathCountdown > 0) {
+      if ((this.deathCountdown -= elapsed) <= 0) {
+        this.deathCountdown = 0;
+        this.finishDeathCountdown();
+      }
+      return;
+    }
+    if (this.blackout > 0) {
+      if ((this.blackout -= elapsed) <= 0) {
+        this.blackout = 0;
+      } else {
+        inputState = 0;
+      }
+    }
     if (inputState !== this.pvinput) {
       if ((inputState & InputBtn.DOWN) && !(this.pvinput & InputBtn.DOWN)) {
         this.duckBegin();
@@ -275,6 +311,10 @@ export class HeroSprite extends Sprite {
   
   jumpUpdate(elapsed) {
     if (this.scene.physics.measureFreedom(this, 0, 1, 2) <= 0) {
+      if (!this.walkdx) { // standing still and grounded -- mark a revive point
+        this.reviveX = this.x;
+        this.reviveY = this.y;
+      }
       if (!this.footState) {
         this.footState = true;
         this.footClock = 0;
@@ -313,11 +353,11 @@ export class HeroSprite extends Sprite {
    ********************************************************************************/
   
   actionBegin() {
-    console.log(`actionBegin`);
+    //console.log(`actionBegin`);
   }
   
   actionEnd() {
-    console.log(`actionEnd`);
+    //console.log(`actionEnd`);
   }
   
   actionUpdate(elapsed) {

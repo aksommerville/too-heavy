@@ -10,7 +10,7 @@ https://github.com/aksommerville/too-heavy
 
 - By 15 December
 - - [x] One-way platforms.
-- - [ ] Static hazards.
+- - [x] Static hazards.
 - - [ ] UI to select item.
 - - [x] Map editor: scrolling.
 - - [ ] Spawn points and doors.
