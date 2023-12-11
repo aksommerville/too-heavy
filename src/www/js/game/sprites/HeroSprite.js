@@ -2,7 +2,7 @@
  */
  
 import { Sprite } from "../Sprite.js";
-import * as Input from "../../core/InputManager.js";
+import { InputBtn } from "../../core/InputManager.js";
 import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
 import { Physics } from "../Physics.js";
 
@@ -13,8 +13,8 @@ const CANNONBALL_SPEED = 100; // px/sec, but gravity does most of it.
 export class HeroSprite extends Sprite {
   constructor(scene) {
     super(scene);
-    this.x = 100;
-    this.y = 144;
+    this.x = 400;
+    this.y = 200;
     this.srcx = 262;
     this.srcy = 1;
     this.vw = 16;
@@ -45,24 +45,24 @@ export class HeroSprite extends Sprite {
   
   update(elapsed, inputState) {
     if (inputState !== this.pvinput) {
-      if ((inputState & Input.BTN_DOWN) && !(this.pvinput & Input.BTN_DOWN)) {
+      if ((inputState & InputBtn.DOWN) && !(this.pvinput & InputBtn.DOWN)) {
         this.duckBegin();
-      } else if (!(inputState & Input.BTN_DOWN) && (this.pvinput & Input.BTN_DOWN)) {
+      } else if (!(inputState & InputBtn.DOWN) && (this.pvinput & InputBtn.DOWN)) {
         this.duckEnd();
       }
-      switch (inputState & (Input.BTN_LEFT | Input.BTN_RIGHT)) {
-        case Input.BTN_LEFT: this.walkBegin(-1); break;
-        case Input.BTN_RIGHT: this.walkBegin(1); break;
+      switch (inputState & (InputBtn.LEFT | InputBtn.RIGHT)) {
+        case InputBtn.LEFT: this.walkBegin(-1); break;
+        case InputBtn.RIGHT: this.walkBegin(1); break;
         default: this.walkEnd(); break;
       }
-      if ((inputState & Input.BTN_JUMP) && !(this.pvinput & Input.BTN_JUMP)) {
+      if ((inputState & InputBtn.JUMP) && !(this.pvinput & InputBtn.JUMP)) {
         this.jumpBegin();
-      } else if (!(inputState & Input.BTN_JUMP) && (this.pvinput & Input.BTN_JUMP)) {
+      } else if (!(inputState & InputBtn.JUMP) && (this.pvinput & InputBtn.JUMP)) {
         this.jumpAbort();
       }
-      if ((inputState & Input.BTN_ACTION) && !(this.pvinput & Input.BTN_ACTION)) {
+      if ((inputState & InputBtn.ACTION) && !(this.pvinput & InputBtn.ACTION)) {
         this.actionBegin();
-      } else if (!(inputState & Input.BTN_ACTION) && (this.pvinput & Input.BTN_ACTION)) {
+      } else if (!(inputState & InputBtn.ACTION) && (this.pvinput & InputBtn.ACTION)) {
         this.actionEnd();
       }
       this.pvinput = inputState;

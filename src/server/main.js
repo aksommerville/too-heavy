@@ -1,5 +1,13 @@
 const http = require("http");
 const fs = require("fs");
+const child_process = require("child_process");
+
+let htdocs = process.argv[2];
+if (!htdocs || (htdocs[0] === '-')) {
+  console.log(`Usage: node ${process.argv[1]} HTDOCS`);
+  process.exit(1);
+}
+const makeFirst = process.argv.includes("--make");
 
 function guessContentType(path, serial) {
   const sfx = (path.match(/.*\.([^.\/]*)$/) || ['', ''])[1].toLowerCase();
@@ -25,7 +33,7 @@ function fail(rsp, code, msg) {
 
 function serveGet(req, rsp) {
   if (req.url.indexOf('?') >= 0) return fail(rsp, 400, "GETs must not have a query string");
-  const path = "src" + req.url;
+  const path = htdocs + req.url;
   if (path.indexOf("..") >= 0) return fail(rsp, 404, "File not found");
   try {
     const st = fs.statSync(path);
@@ -35,6 +43,10 @@ function serveGet(req, rsp) {
       rsp.statusCode = 200;
       rsp.end(generateJsonDirectoryListing(path));
     } else {
+      if (makeFirst) {
+        const makeOutput = child_process.execSync(`make ${path}`);
+        console.log(makeOutput.toString("utf8").trim());
+      }
       const serial = fs.readFileSync(path);
       // Browsers are picky about Content-Type, for some things like Javascript. Highly stupid :P
       rsp.setHeader("Content-Type", guessContentType(path, serial));

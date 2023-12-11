@@ -3,17 +3,18 @@ all:
 .SECONDARY:
 PRECMD=echo "  $(@F)" ; mkdir -p $(@D) ;
 
-# Plain old http-server is fine for the game, any static HTTP server will do.
-# But for the editor we need something slightly fancier.
-#run:;http-server -a localhost -p 8080 -c-1 -s1 src
+DST_HTML:=out/web/index.html
+SRCFILES:=$(shell find src/www src/data -type f)
+$(DST_HTML):etc/tool/mkhtml.js $(SRCFILES);$(PRECMD) node $^ -o$@
+all:$(DST_HTML)
 
-run:;node src/server/main.js
+DST_WRAPPER:=out/web/wrapper.html
+DST_FAVICON:=out/web/favicon.ico
+$(DST_WRAPPER):src/wrapper.html;$(PRECMD) cp $< $@
+$(DST_FAVICON):src/favicon.ico;$(PRECMD) cp $< $@
+all:$(DST_WRAPPER) $(DST_FAVICON)
 
-# Bundle a ZIP file for Itch.io. Doesn't currently work, we need to sort out data files first.
-#ITCHPKG:=out/too-heavy-web.zip
-#WWWFILES:=$(shell find src/www -type f)
-#DATAFILES:=$(shell find src/data -type f)
-#$(ITCHPKG):$(WWWFILES) $(DATAFILES);$(PRECMD) etc/tool/mkitch.sh $(ITCHPKG)
-#itch:$(ITCHPKG)
+edit:;node src/server/main.js src
+run:$(DST_HTML) $(DST_WRAPPER) $(DST_FAVICON);node src/server/main.js out/web --make
 
 clean:;rm -rf mid out

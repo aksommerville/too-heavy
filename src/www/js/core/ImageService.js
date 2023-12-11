@@ -10,12 +10,11 @@ export class ImageService {
     this.window = window;
   }
   
-  load(url) {
-    const image = new Image();
+  load(rid) {
     return new Promise((resolve, reject) => {
-      image.addEventListener("load", () => resolve(image));
-      image.addEventListener("error", (e) => reject(`${url}: Failed to load image`));
-      image.src = url;
+      const image = this.window.document.querySelector(`img[data-rid='${rid}']`);
+      if (image) resolve(image);
+      else reject(`image ${rid} not found`);
     });
   }
   

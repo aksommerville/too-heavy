@@ -39,69 +39,19 @@ export class DataService {
   }
   
   load() {
-    if (this.loadPromise) return loadPromise;
     if (this.loaded) return Promise.resolve();
-    return this.loadPromise = this.loadDirectoryRecursively("/data")
-      .then((files) => {
-        this.files = files;
-        this.loadPromise = null;
-        this.loaded = true;
-      }).catch(e => {
-        this.loadPromise = null;
-        throw e;
+    for (const element of this.window.document.querySelectorAll("th-res")) {
+      const tid = element.getAttribute("data-tid");
+      if (!tid) continue;
+      const rid = +element.getAttribute("data-rid");
+      if (!rid) continue;
+      this.files.push({
+        tid, rid,
+        serial: element.innerText,
       });
-  }
-  
-  loadDirectoryRecursively(path) {
-    return this.window.fetch(path, {
-      method: "GET",
-      mode: "same-origin",
-      redirect: "error",
-    }).then(rsp => {
-      if (!rsp.ok) throw rsp;
-      // Our server flags directories with "X-Is-Directory: true" so we know it before finishing the response body.
-      // We absolutely depend on this behavior. But obviously it's not something we can use in real life! TODO
-      if (rsp.headers.get("X-Is-Directory") === "true") {
-        return rsp.json().then(bases => {
-          return Promise.all(bases.map(base => this.loadDirectoryRecursively(path + "/" + base)))
-            .then(responses => this.flattenArray(responses));
-        });
-      }
-      // Everything else is a file. Fetch raw content as ArrayBuffer and generate a resource record.
-      return rsp.arrayBuffer().then(serial => this.wrapFile(serial, path, rsp.headers.get("Content-Type")));
-    });
-  }
-  
-  // Flattens out one level of child arrays.
-  flattenArray(src) {
-    if (!(src instanceof Array)) return src;
-    const dst = [];
-    for (const child of src) {
-      if (child instanceof Array) {
-        for (const grandkid of child) dst.push(grandkid);
-      } else {
-        dst.push(child);
-      }
     }
-    return dst;
-  }
-  
-  wrapFile(serial, path, contentType) {
-    const { tid, rid, name } = this.parsePath(path);
-    return { path, serial, tid, rid, name };
-  }
-  
-  parsePath(path) {
-    let base = "";
-    let tid = "";
-    for (const unit of path.split("/")) {
-      if (RESTYPES.indexOf(unit) >= 0) tid = unit;
-      base = unit;
-    }
-    let [flag, rid, dummy1, name, dummy2, sfx] = base.match(/^(\d*)(-([0-9a-zA-Z_-]*))?(\.(.*))?$/) || [];
-    rid = +rid || 0;
-    if (!name) name = "";
-    return { tid, rid, name };
+    this.loaded = true;
+    return Promise.resolve();
   }
 }
 

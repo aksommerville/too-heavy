@@ -3,16 +3,17 @@
  */
 
 // The digested input state is expressed as 16 bits, of which we actually use 7.
-export const BTN_LEFT = 0x0001;
-export const BTN_RIGHT = 0x0002;
-export const BTN_UP = 0x0004;
-export const BTN_DOWN = 0x0008;
-export const BTN_JUMP = 0x0010;
-export const BTN_ACTION = 0x0020;
-export const BTN_PAUSE = 0x0040;
-
-export const BTN_HORZ = BTN_LEFT | BTN_RIGHT;
-export const BTN_VERT = BTN_UP | BTN_DOWN;
+export const InputBtn = {
+  LEFT:   0x0001,
+  RIGHT:  0x0002,
+  UP:     0x0004,
+  DOWN:   0x0008,
+  JUMP:   0x0010,
+  ACTION: 0x0020,
+  PAUSE:  0x0040,
+  HORZ:   0x0003, // composite
+  VERT:   0x000c, // composite
+};
  
 export class InputManager {
   static getDependencies() {
@@ -27,13 +28,13 @@ export class InputManager {
     
     //TODO Persist keyMap, and let the user modify it.
     this.keyMap = [
-      { code: "ArrowLeft", btnid: BTN_LEFT },
-      { code: "ArrowRight", btnid: BTN_RIGHT },
-      { code: "ArrowUp", btnid: BTN_UP },
-      { code: "ArrowDown", btnid: BTN_DOWN },
-      { code: "KeyZ", btnid: BTN_JUMP },
-      { code: "KeyX", btnid: BTN_ACTION },
-      { code: "Enter", btnid: BTN_PAUSE },
+      { code: "ArrowLeft", btnid: InputBtn.LEFT },
+      { code: "ArrowRight", btnid: InputBtn.RIGHT },
+      { code: "ArrowUp", btnid: InputBtn.UP },
+      { code: "ArrowDown", btnid: InputBtn.DOWN },
+      { code: "KeyZ", btnid: InputBtn.JUMP },
+      { code: "KeyX", btnid: InputBtn.ACTION },
+      { code: "Enter", btnid: InputBtn.PAUSE },
     ];
     
     this.window.addEventListener("keydown", e => this.onKey(e));
@@ -49,13 +50,13 @@ export class InputManager {
   
   reprState(state) {
     let dst = "";
-    if (state & BTN_LEFT) dst += "LEFT,";
-    if (state & BTN_RIGHT) dst += "RIGHT,";
-    if (state & BTN_UP) dst += "UP,";
-    if (state & BTN_DOWN) dst += "DOWN,";
-    if (state & BTN_JUMP) dst += "JUMP,";
-    if (state & BTN_ACTION) dst += "ACTION,";
-    if (state & BTN_PAUSE) dst += "PAUSE,";
+    if (state & InputBtn.LEFT) dst += "LEFT,";
+    if (state & InputBtn.RIGHT) dst += "RIGHT,";
+    if (state & InputBtn.UP) dst += "UP,";
+    if (state & InputBtn.DOWN) dst += "DOWN,";
+    if (state & InputBtn.JUMP) dst += "JUMP,";
+    if (state & InputBtn.ACTION) dst += "ACTION,";
+    if (state & InputBtn.PAUSE) dst += "PAUSE,";
     return dst;
   }
   
@@ -128,28 +129,28 @@ export class InputManager {
         axis.v = v;
         switch (axis.btnid) {
           //TODO Will need hat mapping too :(
-          case BTN_HORZ: {
+          case InputBtn.HORZ: {
               if (v < 0) {
-                this.adjustState(BTN_LEFT, 1);
-                this.adjustState(BTN_RIGHT, 0);
+                this.adjustState(InputBtn.LEFT, 1);
+                this.adjustState(InputBtn.RIGHT, 0);
               } else if (v > 0) {
-                this.adjustState(BTN_LEFT, 0);
-                this.adjustState(BTN_RIGHT, 1);
+                this.adjustState(InputBtn.LEFT, 0);
+                this.adjustState(InputBtn.RIGHT, 1);
               } else {
-                this.adjustState(BTN_LEFT, 0);
-                this.adjustState(BTN_RIGHT, 0);
+                this.adjustState(InputBtn.LEFT, 0);
+                this.adjustState(InputBtn.RIGHT, 0);
               }
             } break;
-          case BTN_VERT: {
+          case InputBtn.VERT: {
               if (v < 0) {
-                this.adjustState(BTN_UP, 1);
-                this.adjustState(BTN_RIGHT, 0);
+                this.adjustState(InputBtn.UP, 1);
+                this.adjustState(InputBtn.RIGHT, 0);
               } else if (v > 0) {
-                this.adjustState(BTN_UP, 0);
-                this.adjustState(BTN_DOWN, 1);
+                this.adjustState(InputBtn.UP, 0);
+                this.adjustState(InputBtn.DOWN, 1);
               } else {
-                this.adjustState(BTN_UP, 0);
-                this.adjustState(BTN_DOWN, 0);
+                this.adjustState(InputBtn.UP, 0);
+                this.adjustState(InputBtn.DOWN, 0);
               }
             } break;
           default: this.adjustState(axis.btnid, v); // either direction will actuate it
@@ -173,13 +174,13 @@ export class InputManager {
             id: gamepad.id,
             axes: [],
             buttons: [
-              { p: 14, btnid: BTN_LEFT, v: 0 },
-              { p: 15, btnid: BTN_RIGHT, v: 0 },
-              { p: 12, btnid: BTN_UP, v: 0 },
-              { p: 13, btnid: BTN_DOWN, v: 0 },
-              { p: 0, btnid: BTN_JUMP, v: 0 },
-              { p: 2, btnid: BTN_ACTION, v: 0 },
-              { p: 9, btnid: BTN_PAUSE, v: 0 },
+              { p: 14, btnid: InputBtn.LEFT, v: 0 },
+              { p: 15, btnid: InputBtn.RIGHT, v: 0 },
+              { p: 12, btnid: InputBtn.UP, v: 0 },
+              { p: 13, btnid: InputBtn.DOWN, v: 0 },
+              { p: 0, btnid: InputBtn.JUMP, v: 0 },
+              { p: 2, btnid: InputBtn.ACTION, v: 0 },
+              { p: 9, btnid: InputBtn.PAUSE, v: 0 },
             ],
           };
         } break;

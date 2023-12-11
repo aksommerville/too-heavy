@@ -32,7 +32,7 @@ Submission for the 2023-4 GDEX Winter Game Jam.
 - - [ ] Dialogue.
 - - [ ] Sound effects.
 - - [ ] Music.
-- - [ ] Pack javascript and data.
+- - [x] Pack javascript and data.
 - - [ ] Tutorial 1: Playing With Toys
 - - [ ] Tutorial 2: The Magic Is In You
 - - [ ] Tutorial 3: Admin

@@ -10,7 +10,7 @@ const TILESIZE = 16;
  
 export class Grid {
   constructor(serial) {
-    const src = new TextDecoder("utf-8").decode(serial);
+    const src = serial.trim();
     let srcp = 0;
     this.v = [];
     this.w = 0;

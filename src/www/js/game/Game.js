@@ -44,7 +44,7 @@ export class Game {
   load() {
     if (this.loadFailure) return Promise.reject(this.loadFailure);
     if (this.loaded) return Promise.resolve();
-    return this.imageService.load("/data/image/1-main.png")
+    return this.imageService.load(1)
       .then((graphics) => this.graphics = graphics)
       .then(() => this.dataService.load())
       .then(() => {
