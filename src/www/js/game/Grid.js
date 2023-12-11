@@ -52,31 +52,37 @@ export class Grid {
   generateStaticSprites(scene) {
     const sprites = [];
     
-    // Copy the cells and convert to 0=vacant 1=solid
+    // Copy the cells and convert to physics (see bottom of file).
     const c = this.w * this.h;
     const v = new Uint8Array(this.v);
-    for (let i=c; i-->0; ) v[i] = (v[i] >= 0x80) ? 1 : 0;
+    for (let i=c; i-->0; ) v[i] = Grid.CELLPHYSICS[v[i]];
     
     // Read LRTB and at each solid cell, extend leftward then downward. Create a sprite and zero those cells.
     for (let y=0, row=0, p=0; row<this.h; row++, y+=TILESIZE) {
       for (let x=0, col=0; col<this.w; col++, x+=TILESIZE, p++) {
+      
+        // Vacant, skip it.
         if (!v[p]) continue;
+        
         let w = 1;
-        while ((col + w < this.w) && v[p + w]) w++;
+        while ((col + w < this.w) && (v[p + w] === v[p])) w++;
         let h = 1;
-        let subp = p + this.w;
-        while (row + h < this.h) {
-          let allsolid = true;
-          for (let subxp=subp, i=w; i-->0; subxp++) {
-            if (!v[subxp]) {
-              allsolid = false;
-              break;
+        if (v[p] !== 2) { // oneway does not extend vertically. (solid,hazard) do.
+          let subp = p + this.w;
+          while (row + h < this.h) {
+            let allsolid = true;
+            for (let subxp=subp, i=w; i-->0; subxp++) {
+              if (v[subxp] !== v[p]) {
+                allsolid = false;
+                break;
+              }
             }
+            if (!allsolid) break;
+            h++;
+            subp += this.w;
           }
-          if (!allsolid) break;
-          h++;
-          subp += this.w;
         }
+        const phtype = v[p];
         this.clearRect(v, this.w, col, row, w, h);
         const sprite = new Sprite(scene);
         sprite.x = x;
@@ -88,6 +94,11 @@ export class Grid {
         sprite.ph.ptop = 0;
         sprite.ph.invmass = 0;
         sprite.ph.gravity = false;
+        switch (phtype) {
+          case 1: sprite.ph.role = "solid"; break;
+          case 2: sprite.ph.role = "oneway"; break;
+          case 3: sprite.ph.role = "hazard"; break;
+        }
         sprites.push(sprite);
       }
     }
@@ -103,3 +114,24 @@ export class Grid {
     }
   }
 }
+
+// (0,1,2,3) = (vacant,solid,oneway,hazard)
+Grid.CELLPHYSICS = [
+  0,0,0,0,0,3,3,0, 0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+  2,2,2,2,2,2,2,2, 0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
+  
+  1,1,1,1,1,0,0,0, 0,0,0,0,0,0,0,0,
+  1,1,1,1,1,0,0,0, 0,0,0,0,0,0,0,0,
+  1,1,1,1,1,0,0,0, 0,0,0,0,0,0,0,0,
+  1,1,1,1,1,0,0,0, 0,0,0,0,0,0,0,0,
+  1,1,1,1,1,0,0,0, 0,0,0,0,0,0,0,0,
+  1,1,1,1,1,0,0,0, 0,0,0,0,0,0,0,0,
+  1,1,1,1,1,1,1,0, 0,0,0,0,0,0,0,0,
+  0,0,0,1,1,1,1,0, 0,0,0,0,0,0,0,0,
+];

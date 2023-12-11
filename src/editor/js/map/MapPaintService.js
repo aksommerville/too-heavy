@@ -429,6 +429,9 @@ MapPaintService.TILEPROPS = [{
   tileid: 0x01,
   mode: "balanced4x1",
 }, {
+  tileid: 0x45,
+  mode: "hotdog3x1",
+}, {
   tileid: 0x80,
   mode: "fat5x3",
 }, {

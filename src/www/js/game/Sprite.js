@@ -15,20 +15,6 @@ export class Sprite {
     this.vy = 0;
     this.flop = false; // True to flip horizontally.
     this.ph = null; // Extra data used by Physics. Null if the sprite is purely decorative.
-    /*
-    this.pw = 0; // Physical dimensions. If either <=0, sprite does not participate in physics.
-    this.ph = 0;
-    this.px = 0; // Position of (x,y) within physical bounds.
-    this.py = 0;
-    this.pb = null; // Physical bounds, for Physics's use.
-    this.pvx = 0; // Last known valid position, for Physics's use.
-    this.pvy = 0;
-    this.invmass = 0; // 0=immobile, 1=lightest
-    this.allowOutside = true; // if false, the world edges are solid to me
-    this.allowGravity = true;
-    this.falling = false; // If (allowGravity), we set this true when gravity expresses completely.
-    this.gravity = 0; // Managed by physics.
-    /**/
   }
   
   /* Total output coverage {x,y,w,h} in world pixels.

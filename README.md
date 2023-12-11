@@ -9,7 +9,7 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - By 15 December
-- - [ ] One-way platforms.
+- - [x] One-way platforms.
 - - [ ] Static hazards.
 - - [ ] UI to select item.
 - - [x] Map editor: scrolling.

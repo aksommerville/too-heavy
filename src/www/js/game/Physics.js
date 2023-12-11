@@ -9,6 +9,7 @@
  *   pleft,ptop ; corner of hit box relative to sprite's (x,y).
  *   edges: boolean ; true to prevent movement off screen.
  *   gravity: boolean ; true to fall automatically.
+ *   role: 'solid' | 'oneway' | 'hazard' | 'fragile'
  * Volatile:
  *   x,y,w,h ; (x,y) are managed by Physics.
  *   pvx,pvy ; last known position
@@ -30,6 +31,7 @@ export class Physics {
       ptop: 0,
       edges: false,
       gravity: true,
+      role: "solid",
       w: 16,
       h: 16,
       x: 0,
@@ -63,6 +65,7 @@ export class Physics {
       }
       distance = (other) => {
         if (!other.ph) return limit;
+        if (other.ph.role === "oneway") return limit;
         other.ph.x = other.x + other.ph.pleft;
         other.ph.y = other.y + other.ph.ptop;
         if (other.ph.y >= bottom) return limit;
@@ -81,6 +84,7 @@ export class Physics {
       }
       distance = (other) => {
         if (!other.ph) return limit;
+        if (other.ph.role === "oneway") return limit;
         other.ph.x = other.x + other.ph.pleft;
         other.ph.y = other.y + other.ph.ptop;
         if (other.ph.y >= bottom) return limit;
@@ -98,6 +102,7 @@ export class Physics {
       }
       distance = (other) => {
         if (!other.ph) return limit;
+        if (other.ph.role === "oneway") return limit;
         other.ph.x = other.x + other.ph.pleft;
         other.ph.y = other.y + other.ph.ptop;
         if (other.ph.x >= right) return limit;
@@ -116,12 +121,15 @@ export class Physics {
       }
       distance = (other) => {
         if (!other.ph) return limit;
+        // do check "oneway"
         other.ph.x = other.x + other.ph.pleft;
         other.ph.y = other.y + other.ph.ptop;
         if (other.ph.x >= right) return limit;
         if (other.ph.x + other.ph.w <= left) return limit;
         if (other.ph.y + other.ph.h <= back) return limit;
-        return other.ph.y - front;
+        const q = other.ph.y - front;
+        if ((other.ph.role === "oneway") && (q < 0)) return limit;
+        return q;
       };
     } else return 0;
     
@@ -163,6 +171,8 @@ export class Physics {
     for (const other of this.scene.sprites) {
       if (!other.ph) continue;
       if (other === sprite) continue;
+      if (other.ph.role === "oneway") continue; // can't say anything meaningful without motion
+      if (other.ph.role === "hazard") continue; // permit teleporting onto these, it's hilarious
       other.ph.x = other.x + other.ph.pleft;
       other.ph.y = other.y + other.ph.ptop;
       const xlo = Math.max(sprite.ph.x, other.ph.x);
@@ -184,7 +194,7 @@ export class Physics {
   
     // Determine which sprites are participating and sort them into "active" and "passive".
     // Active sprites are ones that can move.
-    const active = [], passive = [];
+    const active = [], passive = [], hazard = [], fragile = [];
     for (const sprite of this.scene.sprites) {
       if (!sprite.ph) continue;
       sprite.ph.pvx = sprite.ph.x;
@@ -192,7 +202,9 @@ export class Physics {
       sprite.ph.x = sprite.x + sprite.ph.pleft;
       sprite.ph.y = sprite.y + sprite.ph.ptop;
       sprite.ph.adjusted = false;
-      if (sprite.ph.invmass > 0) active.push(sprite);
+      if (sprite.ph.role === "fragile") fragile.push(sprite); // but also put it in active or passive; "fragile" is extra
+      if (sprite.ph.role === "hazard") hazard.push(sprite);
+      else if (sprite.ph.invmass > 0) active.push(sprite);
       else passive.push(sprite);
     }
     
@@ -255,16 +267,34 @@ export class Physics {
       sprite.x = sprite.ph.x - sprite.ph.pleft;
       sprite.y = sprite.ph.y - sprite.ph.ptop;
     }
+    
+    // If a collision exists between a hazard and a fragile, notify the fragile.
+    if (hazard.length && fragile.length) {
+      for (const hz of hazard) {
+        for (const fr of fragile) {
+          if (this.collideSprites(hz, fr, true)) {
+            if (fr.collideHazard) fr.collideHazard(hz);
+            else this.scene.removeSprite(fr);
+          }
+        }
+      }
+    }
   }
   
   /* Check for collision between two sprites and if it exists, update their positions to escape it.
    * Caller must ensure that at least one of (a,b) has a positive invmass.
    */
-  collideSprites(a, b) {
-    if (a.ph.x >= b.ph.x + b.ph.w) return;
-    if (a.ph.y >= b.ph.y + b.ph.h) return;
-    if (a.ph.x + a.ph.w <= b.ph.x) return;
-    if (a.ph.y + a.ph.h <= b.ph.y) return;
+  collideSprites(a, b, testOnly) {
+    if (a.ph.x >= b.ph.x + b.ph.w) return false;
+    if (a.ph.y >= b.ph.y + b.ph.h) return false;
+    if (a.ph.x + a.ph.w <= b.ph.x) return false;
+    if (a.ph.y + a.ph.h <= b.ph.y) return false;
+    
+    if (b.ph.role === "oneway") {
+      if (a.ph.pvy + a.ph.h > b.ph.y) return false;
+    }
+    
+    if (testOnly) return true;
     const aweight = a.ph.invmass / (a.ph.invmass + b.ph.invmass);
     const bweight = 1 - aweight;
     
@@ -288,7 +318,7 @@ export class Physics {
       else if (dy < 0) a.ph.y = b.ph.y - a.ph.h;
       else if (dy > 0) a.ph.y = b.ph.y + b.ph.h;
       a.ph.adjusted = true;
-      return;
+      return true;
     }
     
     if (aweight) {
@@ -301,5 +331,35 @@ export class Physics {
       b.ph.y -= dy * bweight;
       b.ph.adjusted = true;
     }
+    return true;
+  }
+  
+  /* If (sprite) is footed entirely on oneway platforms, 
+   * nudge its position and rewrite history to allow it to pass thru, and return true.
+   * Any of that isn't possible, do nothing and return false.
+   */
+  bypassOneWays(sprite) {
+    sprite.ph.x = sprite.x + sprite.ph.pleft;
+    sprite.ph.y = sprite.y + sprite.ph.ptop;
+    const right = sprite.ph.x + sprite.ph.w;
+    const bottom = sprite.ph.y + sprite.ph.h;
+    let haveOneWay = false;
+    for (const other of this.scene.sprites) {
+      if (!other.ph) continue;
+      if (other === sprite) continue;
+      other.ph.x = other.x + other.ph.pleft;
+      other.ph.y = other.y + other.ph.ptop;
+      const dy = other.ph.y - bottom;
+      if ((dy < -0.5) || (dy > 0.5)) continue;
+      if (other.ph.x >= right) continue;
+      if (other.ph.x + other.ph.w <= sprite.ph.x) continue;
+      if (other.ph.role !== "oneway") return false;
+      haveOneWay = true;
+    }
+    if (!haveOneWay) return false;
+    sprite.y += 1;
+    sprite.ph.y += 1;
+    sprite.ph.pvy = sprite.ph.y;
+    return true;
   }
 }

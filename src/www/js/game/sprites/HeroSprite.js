@@ -27,7 +27,8 @@ export class HeroSprite extends Sprite {
     this.ph.pleft = -this.vx;
     this.ph.ptop = -this.vy;
     this.ph.invmass = 0.5;
-    this.ph.edges = true;//XXX TEMP
+    this.ph.edges = false;
+    this.ph.role = "fragile";
     
     this.pvinput = 0;
     this.walkdx = 0; // -1,0,1
@@ -41,6 +42,10 @@ export class HeroSprite extends Sprite {
     this.animFrame = 0;
     this.ducking = false;
     this.cannonball = false;
+  }
+  
+  collideHazard(hazard) {
+    console.log(`!!!!!!!!!! HeroSprite.collideHazard !!!!!!!!!!!!`, hazard);
   }
   
   update(elapsed, inputState) {
@@ -251,8 +256,11 @@ export class HeroSprite extends Sprite {
       // Otherwise one feels cheated on pressing the button a frame or two too late.
     }
     if (this.ducking) {
-      console.log(`Jump while ducking -- this should do something else`);
-      //TODO Down one-way platforms.
+      if (this.scene.physics.bypassOneWays(this)) {
+        // Duck jumped thru oneway.
+      } else {
+        // Other duck jump -- should we do something?
+      }
       return;
     }
     this.jumpDuration = 0;
