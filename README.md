@@ -11,7 +11,7 @@ https://github.com/aksommerville/too-heavy
 - By 15 December
 - - [x] One-way platforms.
 - - [x] Static hazards.
-- - [ ] UI to select item.
+- - [x] UI to select item.
 - - [x] Map editor: scrolling.
 - - [ ] Spawn points and doors.
 - By 22 December
@@ -28,6 +28,7 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Camera. Save and restore state. But not including switches.
 - - [ ] Speed Boost.
 - - [ ] Parachute.
+- - [ ] Vacuum cleaner. Stick to walls and ceilings.
 - - [ ] Treasure anti-chests.
 - By 1 January
 - - [ ] Final maps.

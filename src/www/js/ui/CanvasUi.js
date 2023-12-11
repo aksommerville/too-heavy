@@ -17,6 +17,19 @@ export class CanvasUi {
     this.element.width = 320;
     this.element.height = 160;
     this.context = this.element.getContext("2d");
+    this.context.drawDecal = (dstx, dsty, srcx, srcy, w, h, flop) => this.drawDecal(dstx, dsty, srcx, srcy, w, h, flop);
+  }
+  
+  drawDecal(dstx, dsty, srcx, srcy, w, h, flop) {
+    if (flop) {
+      this.context.save();
+      this.context.translate(dstx, dsty);
+      this.context.scale(-1, 1);
+      this.context.drawImage(this.game.graphics, srcx, srcy, w, h, -w, 0, w, h);
+      this.context.restore();
+    } else {
+      this.context.drawImage(this.game.graphics, srcx, srcy, w, h, dstx, dsty, w, h);
+    }
   }
   
   renderNow() {
@@ -46,6 +59,10 @@ export class CanvasUi {
     } else {
       this.context.fillStyle = "#888";
       this.context.fillRect(0, 0, this.element.width, this.element.height);
+    }
+    
+    if (this.game.menu) {
+      this.game.menu.render(this.context, this.element);
     }
     
     if (this.game.paused) {

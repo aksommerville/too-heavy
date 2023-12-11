@@ -362,4 +362,29 @@ export class HeroSprite extends Sprite {
   
   actionUpdate(elapsed) {
   }
+  
+  /* Render.
+   *************************************************************************/
+   
+  render(context, dstx, dsty) {
+  
+    //TODO Boots need to be a whole new set of images when equipped, i think.
+    //TODO Broom while in use will surely be a whole different thing.
+    //TODO And all the rest.
+    
+    /* Most times carrying an item possessed but not currently in use, it's a second decal behind the first.
+     * These are arranged in a uniform row, all the same size.
+     * Don't draw it if ducking, just don't show the item.
+     */
+    if (!this.ducking) {
+      if (this.scene.game.inventory[this.scene.game.selectedItem]) {
+        let idstx = dstx, idsty = dsty + 1;
+        if (this.flop) idstx += 11;
+        else idstx -= 7;
+        context.drawDecal(idstx, idsty, 262 + this.scene.game.selectedItem * 13, 61, 12, 26, this.flop);
+      }
+    }
+    
+    context.drawDecal(dstx, dsty, this.srcx, this.srcy, this.vw, this.vh, this.flop);
+  }
 }

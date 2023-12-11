@@ -4,9 +4,10 @@
  */
  
 import { Scene, SceneFactory } from "./Scene.js";
-import { InputManager } from "../core/InputManager.js";
-import { ImageService } from "../core/ImageService.js";
+import { InputManager, InputBtn } from "../core/InputManager.js";
 import { DataService } from "./DataService.js";
+import { PauseMenu } from "./menu/PauseMenu.js";
+import { Injector } from "../core/Injector.js";
  
 /* The ideal update timing is 16.666 ms.
  * High-frequency monitors may run considerably shorter, and we should skip frames to accomodate, instead of burning the CPU.
@@ -18,14 +19,14 @@ const MAXIMUM_UPDATE_TIME_MS = 25;
  
 export class Game {
   static getDependencies() {
-    return [Window, SceneFactory, InputManager, ImageService, DataService];
+    return [Window, SceneFactory, InputManager, DataService, Injector];
   }
-  constructor(window, sceneFactory, inputManager, imageService, dataService) {
+  constructor(window, sceneFactory, inputManager, dataService, injector) {
     this.window = window;
     this.sceneFactory = sceneFactory;
     this.inputManager = inputManager;
-    this.imageService = imageService;
     this.dataService = dataService;
+    this.injector = injector;
     
     this.render = () => {}; // RootUi should set.
     
@@ -36,6 +37,10 @@ export class Game {
     this.lastFrameTime = 0;
     this.scene = null;
     this.graphics = null; // Image; required if loaded.
+    this.pvinput = 0;
+    this.menu = null;
+    this.selectedItem = 4; // 0..9. 4=bell
+    this.inventory = [true, true, true, true, true, true, true, true, true]; // indexed by itemid
   }
   
   /* Returns a Promise that resolves when our content is all loaded and ready to go.
@@ -44,10 +49,9 @@ export class Game {
   load() {
     if (this.loadFailure) return Promise.reject(this.loadFailure);
     if (this.loaded) return Promise.resolve();
-    return this.imageService.load(1)
-      .then((graphics) => this.graphics = graphics)
-      .then(() => this.dataService.load())
+    return this.dataService.load()
       .then(() => {
+        this.graphics = this.dataService.getResourceSync("image", 1);
         this.loaded = true;
         this.paused = true;
       }).catch(e => {
@@ -97,11 +101,49 @@ export class Game {
   }
   
   updateModel(elapsed) {
-    if (!this.scene) {
-      this.scene = this.sceneFactory.begin(1);
-    }
+    
     const inputState = this.inputManager.update();
-    this.scene.update(elapsed, inputState);
+    if (inputState !== this.pvinput) {
+      if ((inputState & InputBtn.PAUSE) && !(this.pvinput & InputBtn.PAUSE)) {
+        this.toggleMenu();
+      }
+      this.pvinput = inputState;
+    }
+    
+    if (this.menu) {
+      this.menu.update(elapsed, inputState);
+    } else {
+      if (!this.scene) {
+        this.scene = this.sceneFactory.begin(1);
+      }
+      this.scene.update(elapsed, inputState);
+    }
+  }
+  
+  toggleMenu() {
+    if (this.menu) {
+      this.menu.dismissing();
+      this.menu = this.menu.onHold;
+    } else {
+      this.menu = this.injector.get(PauseMenu);
+    }
+  }
+  
+  dismissMenu(controller) {
+    let parent = null;
+    let menu = this.menu;
+    while (menu) {
+      if (menu === controller) break;
+      parent = menu;
+      menu = menu.onHold;
+    }
+    if (!menu) return;
+    if (parent) {
+      parent.onHold = controller.onHold;
+    } else {
+      this.menu = null;
+    }
+    controller.dismissing();
   }
 }
 

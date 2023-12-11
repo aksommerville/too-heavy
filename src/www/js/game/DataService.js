@@ -1,8 +1,4 @@
 /* DataService.js
- * Eventually we should have the data in a single archive, preferably inlined in index.html.
- * When that happens, DataService will be responsible for decoding it and storing the live objects.
- * Right now, we read everything piecemeal from the source directory (and Images are something else).
- * We're essentially the same thing as the editor's DataService. That shouldn't be the case before we get to prod.
  */
  
 import { Grid } from "./Grid.js";
@@ -48,6 +44,13 @@ export class DataService {
       this.files.push({
         tid, rid,
         serial: element.innerText,
+      });
+    }
+    for (const element of this.window.document.querySelectorAll("img[data-rid]")) {
+      this.files.push({
+        tid: "image",
+        rid: +element.getAttribute("data-rid"),
+        object: element,
       });
     }
     this.loaded = true;
