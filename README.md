@@ -2,15 +2,17 @@
 
 Submission for the 2023-4 GDEX Winter Game Jam.
 
+https://aksommerville.itch.io/too-heavy password "hocus-pocus".
+
+https://github.com/aksommerville/too-heavy
+
 ## TODO
 
 - By 15 December
 - - [ ] One-way platforms.
 - - [ ] Static hazards.
-- - [x] Itch page. aksommerville/too-heavy ; password "hocus-pocus"
-- - [x] Github repo. aksommerville/too-heavy
 - - [ ] UI to select item.
-- - [ ] Map editor: scrolling.
+- - [x] Map editor: scrolling.
 - - [ ] Spawn points and doors.
 - By 22 December
 - - [ ] Triple Jump.
@@ -32,7 +34,6 @@ Submission for the 2023-4 GDEX Winter Game Jam.
 - - [ ] Dialogue.
 - - [ ] Sound effects.
 - - [ ] Music.
-- - [x] Pack javascript and data.
 - - [ ] Tutorial 1: Playing With Toys
 - - [ ] Tutorial 2: The Magic Is In You
 - - [ ] Tutorial 3: Admin

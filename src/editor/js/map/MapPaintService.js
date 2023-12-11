@@ -16,6 +16,7 @@
  *  {id:"effectiveToolRight",tool} ; '' right
  *  {id:"paletteTile",tileid}      ; Palette selection.
  *  {id:"motion",x,y}              ; Constant noise.
+ *  {id:"renderTileSize"}          ; Zoom in and out, editor ui only
  */
  
 export class MapPaintService {
@@ -36,6 +37,7 @@ export class MapPaintService {
     this.paletteTile = 0;
     this.modifiers = 0;
     this.familyByTileid = MapPaintService.digestTileprops();
+    this.renderTileSize = 16;
   }
   
   listen(cb) {
@@ -98,10 +100,6 @@ export class MapPaintService {
       selection = "";
     }
     return selection;
-  }
-  
-  getWheelTool() {
-    return "";
   }
   
   /* "verbatim": Draw the palette selection on to the map.
@@ -298,14 +296,6 @@ export class MapPaintService {
     }
   }
   
-  onWheel(dx, dy, x, y) {
-    if (this.toolInProgress) return; // Don't make things complicated, mmk?
-    this.onMotion(x, y);
-    switch (this.getWheelTool()) {
-      //TODO
-    }
-  }
-  
   onModifiers(v) {
     if (v === this.modifiers) return;
     const prevTool0 = this.getToolForButton(0);
@@ -346,6 +336,13 @@ export class MapPaintService {
     if ((w < 1) || (h < 1) || !w || !h) return;
     this.map.resize(w, h, anchor);
     this.broadcast({ id:"modify" });
+  }
+  
+  setRenderTileSize(px) {
+    if (px < 1) return;
+    if (px === this.renderTileSize) return;
+    this.renderTileSize = px;
+    this.broadcast({ id:"renderTileSize" });
   }
   
   static digestTileprops() {

@@ -27,7 +27,8 @@ export class MapCanvas {
     // Position and scale for the final render, also needed for event processing.
     this.dstx = 0;
     this.dsty = 0;
-    this.dsttilesize = TILESIZE;
+    this.dstAdjustX = 0;
+    this.dstAdjustY = 0;
     
     this.context = this.element.getContext("2d");
     this.paintListener = this.mapPaintService.listen(e => this.onPaintEvent(e));
@@ -74,8 +75,8 @@ export class MapCanvas {
     const bounds = this.element.getBoundingClientRect();
     const x = e.clientX - bounds.x - this.dstx;
     const y = e.clientY - bounds.y - this.dsty;
-    const col = Math.floor(x / this.dsttilesize);
-    const row = Math.floor(y / this.dsttilesize);
+    const col = Math.floor(x / this.mapPaintService.renderTileSize);
+    const row = Math.floor(y / this.mapPaintService.renderTileSize);
     return [col, row];
   }
   
@@ -93,13 +94,10 @@ export class MapCanvas {
      */
     const worldw = this.mapPaintService.map.w * TILESIZE;
     const worldh = this.mapPaintService.map.h * TILESIZE;
-    this.dsttilesize = Math.floor(Math.min(this.element.width / this.mapPaintService.map.w, this.element.height / this.mapPaintService.map.h));
-    if (this.dsttilesize < 4) this.dsttilesize = 4; // oh no, maybe we do need scrolling?
-    else if (this.dsttilesize >= 16) this.dsttilesize &= ~15; // constrain to multiples of the natural tile, if larger
-    const dstw = this.dsttilesize * this.mapPaintService.map.w;
-    const dsth = this.dsttilesize * this.mapPaintService.map.h;
-    this.dstx = (this.element.width >> 1) - (dstw >> 1);
-    this.dsty = (this.element.height >> 1) - (dsth >> 1);
+    const dstw = this.mapPaintService.renderTileSize * this.mapPaintService.map.w;
+    const dsth = this.mapPaintService.renderTileSize * this.mapPaintService.map.h;
+    this.dstx = (this.element.width >> 1) - (dstw >> 1) + this.dstAdjustX;
+    this.dsty = (this.element.height >> 1) - (dsth >> 1) + this.dstAdjustY;
     
     this.context.fillStyle = "#8ac";
     this.context.fillRect(this.dstx, this.dsty, dstw, dsth);
@@ -108,12 +106,12 @@ export class MapCanvas {
     if (graphics) {
       this.context.imageSmoothingEnabled = false;
       const v = this.mapPaintService.map.v;
-      for (let p=0, row=0, y=this.dsty; row<this.mapPaintService.map.h; row++, y+=this.dsttilesize) {
-        for (let col=0, x=this.dstx; col<this.mapPaintService.map.w; col++, x+=this.dsttilesize, p++) {
+      for (let p=0, row=0, y=this.dsty; row<this.mapPaintService.map.h; row++, y+=this.mapPaintService.renderTileSize) {
+        for (let col=0, x=this.dstx; col<this.mapPaintService.map.w; col++, x+=this.mapPaintService.renderTileSize, p++) {
           if (!v[p]) continue; // Tile zero is always transparent. (game runtime does the same thing)
           const srcx = (v[p] & 15) * TILESIZE;
           const srcy = (v[p] >> 4) * TILESIZE;
-          this.context.drawImage(graphics, srcx, srcy, TILESIZE, TILESIZE, x, y, this.dsttilesize, this.dsttilesize);
+          this.context.drawImage(graphics, srcx, srcy, TILESIZE, TILESIZE, x, y, this.mapPaintService.renderTileSize, this.mapPaintService.renderTileSize);
         }
       }
     }
@@ -128,6 +126,7 @@ export class MapCanvas {
       case "shutdown": this.renderSoon(); break;
       case "modify": this.renderSoon(); break;
       case "dirty": this.renderSoon(); break;
+      case "renderTileSize": this.renderSoon(); break;
     }
   }
   
@@ -158,8 +157,10 @@ export class MapCanvas {
       dx = dy;
       dy = 0;
     }
-    const pos = this.mapPositionFromEvent(e);
-    this.mapPaintService.onWheel(dx, dy, pos[0], pos[1]);
+    const adjustSpeed = 40; // in screen pixels, regardless of zoom
+    this.dstAdjustX -= dx * adjustSpeed;
+    this.dstAdjustY -= dy * adjustSpeed;
+    this.renderSoon();
   }
   
   onContextMenu(e) {

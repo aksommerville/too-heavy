@@ -45,6 +45,7 @@ export class MapToolbar {
     this.dom.spawn(this.element, "DIV", ["tattle"], "       ");
     this.dom.spawn(this.element, "CANVAS", ["palette"], { "on-click": () => this.onPaletteClick() });
     this.dom.spawn(this.element, "INPUT", { type: "button", value: "Resize", "on-click": () => this.onResize() });
+    this.dom.spawn(this.element, "INPUT", { type: "number", min: 1, value: this.mapPaintService.renderTileSize, name: "renderTileSize", "on-change": () => this.onRenderTileSizeChanged() });
     this.updateToolHighlight();
     this.updateTattle();
     this.updatePalette();
@@ -126,5 +127,9 @@ export class MapToolbar {
     modal.setup(this.mapPaintService.map.w, this.mapPaintService.map.h);
     modal.onCommit = (w, h, anchor) => this.mapPaintService.onResize(w, h, anchor);
     this.dom.dismissModalByController(this);
+  }
+  
+  onRenderTileSizeChanged() {
+    this.mapPaintService.setRenderTileSize(+this.element.querySelector("input[name='renderTileSize']").value);
   }
 }
