@@ -8,6 +8,7 @@ import { MapPaintService } from "./MapPaintService.js";
 import { DataService } from "../DataService.js";
 import { PalettePicker } from "./PalettePicker.js";
 import { ResizeModal } from "./ResizeModal.js";
+import { MapCommandsModal } from "./MapCommandsModal.js";
 
 const TILESIZE = 16;
 
@@ -46,6 +47,7 @@ export class MapToolbar {
     this.dom.spawn(this.element, "CANVAS", ["palette"], { "on-click": () => this.onPaletteClick() });
     this.dom.spawn(this.element, "INPUT", { type: "button", value: "Resize", "on-click": () => this.onResize() });
     this.dom.spawn(this.element, "INPUT", { type: "number", min: 1, value: this.mapPaintService.renderTileSize, name: "renderTileSize", "on-change": () => this.onRenderTileSizeChanged() });
+    this.dom.spawn(this.element, "INPUT", { type: "button", value: "Commands", "on-click": () => this.onEditCommands() });
     this.updateToolHighlight();
     this.updateTattle();
     this.updatePalette();
@@ -131,5 +133,9 @@ export class MapToolbar {
   
   onRenderTileSizeChanged() {
     this.mapPaintService.setRenderTileSize(+this.element.querySelector("input[name='renderTileSize']").value);
+  }
+  
+  onEditCommands() {
+    const modal = this.dom.spawnModal(MapCommandsModal);
   }
 }

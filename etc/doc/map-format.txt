@@ -1,0 +1,19 @@
+Too Heavy Map Format
+
+Text.
+Starts with grid picture: rectangular hex dump, whitespace forbidden.
+Followed by a blank line, then commands.
+
+COMMANDS
+
+door X Y W H DSTMAPID DSTX DSTY
+  All integers.
+
+edgedoor EDGE P C DSTMAPID OFFSET
+  EDGE: w e n s
+  P C: x or y, and w or h
+  OFFSET: Where the dst map's top/left is relative to this one.
+  
+hero X Y
+
+sprite X Y SPRITEID [ARGS...]

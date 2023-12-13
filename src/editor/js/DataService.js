@@ -19,8 +19,14 @@ export class DataService {
     if (this.allFilesPromise) return this.allFilesPromise;
     if (this.allFiles) return Promise.resolve(this.allFiles);
     return this.allFilesPromise = this.loadDirectoryRecursively("/data")
-      .then(files => { this.allFiles = files; })
-      .then(() => {
+      .then(files => {
+        this.allFiles = files;
+        this.allFiles.sort((a, b) => {
+          if (a.tid < b.tid) return -1;
+          if (a.tid > b.tid) return 1;
+          return a.rid - b.rid;
+        });
+      }).then(() => {
         this.allFilesPromise = null;
         return this.allFiles;
       }).catch(e => {

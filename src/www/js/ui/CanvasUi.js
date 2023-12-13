@@ -33,7 +33,7 @@ export class CanvasUi {
   }
   
   renderNow() {
-    if (this.game.scene) {
+    if (this.game.scene.grid) {
       this.context.fillStyle = this.game.scene.backgroundColor;
       this.context.fillRect(0, 0, this.element.width, this.element.height);
       const worldBounds = this.game.scene.camera.getWorldBounds();

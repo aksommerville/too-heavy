@@ -3,7 +3,7 @@
  * Mostly responsible for loading and timing.
  */
  
-import { Scene, SceneFactory } from "./Scene.js";
+import { Scene } from "./Scene.js";
 import { InputManager, InputBtn } from "../core/InputManager.js";
 import { DataService } from "./DataService.js";
 import { PauseMenu } from "./menu/PauseMenu.js";
@@ -19,23 +19,23 @@ const MAXIMUM_UPDATE_TIME_MS = 25;
  
 export class Game {
   static getDependencies() {
-    return [Window, SceneFactory, InputManager, DataService, Injector];
+    return [Window, Scene, InputManager, DataService, Injector];
   }
-  constructor(window, sceneFactory, inputManager, dataService, injector) {
+  constructor(window, scene, inputManager, dataService, injector) {
     this.window = window;
-    this.sceneFactory = sceneFactory;
+    this.scene = scene;
     this.inputManager = inputManager;
     this.dataService = dataService;
     this.injector = injector;
     
     this.render = () => {}; // RootUi should set.
     
+    this.scene.game = this;
     this.loaded = false;
     this.loadFailure = null;
     this.paused = true;
     this.pendingAnimationFrame = null;
     this.lastFrameTime = 0;
-    this.scene = null;
     this.graphics = null; // Image; required if loaded.
     this.pvinput = 0;
     this.menu = null;
@@ -113,8 +113,8 @@ export class Game {
     if (this.menu) {
       this.menu.update(elapsed, inputState);
     } else {
-      if (!this.scene) {
-        this.scene = this.sceneFactory.begin(1);
+      if (!this.scene.grid) {
+        this.scene.load(1);
       }
       this.scene.update(elapsed, inputState);
     }

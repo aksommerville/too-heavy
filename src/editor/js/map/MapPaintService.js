@@ -32,12 +32,12 @@ export class MapPaintService {
     this.mousey = 0; // ''
     this.toolInProgress = "";
     this.changedDuringStroke = false; // True if the current toolInProgress has changed something, we'll report it at mouseUp
-    this.toolLeft = "verbatim"; // explicit selection only
+    this.toolLeft = "rainbow"; // explicit selection only
     this.toolRight = "heal"; // ''
     this.paletteTile = 0;
     this.modifiers = 0;
     this.familyByTileid = MapPaintService.digestTileprops();
-    this.renderTileSize = 16;
+    this.renderTileSize = 32;
   }
   
   listen(cb) {

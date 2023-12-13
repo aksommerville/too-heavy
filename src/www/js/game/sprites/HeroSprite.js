@@ -106,6 +106,12 @@ export class HeroSprite extends Sprite {
       } else if (!(inputState & InputBtn.ACTION) && (this.pvinput & InputBtn.ACTION)) {
         this.actionEnd();
       }
+      if ((inputState & InputBtn.UP) && !(this.pvinput & InputBtn.UP)) {
+        if (this.checkDoors()) {
+          this.pvinput = inputState;
+          return;
+        }
+      }
       this.pvinput = inputState;
     }
     this.jumpUpdate(elapsed);
@@ -113,6 +119,41 @@ export class HeroSprite extends Sprite {
     this.walkUpdate(elapsed);
     this.actionUpdate(elapsed);
     this.animationUpdate(elapsed);
+    this.checkEdgeDoors();
+  }
+  
+  /* UP: If we're standing in front of a door, travel thru it and return true.
+   * (caller should get out fast in the true case, carpets will have been pulled out from under us).
+   **************************************************************/
+   
+  checkDoors() {
+    const x = this.x;
+    const y = this.y - 16;
+    for (const door of this.scene.doors) {
+      if (x < door.x) continue;
+      if (y < door.y) continue;
+      if (x >= door.x + door.w) continue;
+      if (y >= door.y + door.h) continue;
+      this.scene.load(door.dstmapid, this, door);
+      return true;
+    }
+  }
+  
+  checkEdgeDoors() {
+    const x = this.x;
+    const y = this.y - 16;
+    if (
+      (x >= 0) && (x < this.scene.worldw) &&
+      (y >= 0) && (y < this.scene.worldh)
+    ) return;
+    for (const door of this.scene.edgeDoors) {
+      if (x < door.x) continue;
+      if (y < door.y) continue;
+      if (x >= door.x + door.w) continue;
+      if (y >= door.y + door.h) continue;
+      this.scene.load(door.dstmapid, this, door);
+      return true;
+    }
   }
   
   /* Animation.

@@ -13,8 +13,10 @@ https://github.com/aksommerville/too-heavy
 - - [x] Static hazards.
 - - [x] UI to select item.
 - - [x] Map editor: scrolling.
-- - [ ] Spawn points and doors.
+- - [x] Spawn points and doors.
+- - [ ] edit and run from the same server, so I can keep it running all the time?
 - By 22 December
+- - [ ] Ensure I have a sane build environment on a laptop before leaving
 - - [ ] Triple Jump.
 - - [ ] Long Jump. (duck+forward+jump, blast forward without much elevation change)
 - - [ ] Wall Jump.
@@ -39,6 +41,7 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Tutorial 2: The Magic Is In You
 - - [ ] Tutorial 3: Admin
 - - [ ] Victory cutscene.
+- - [ ] Itch shows a thick gray margin at the bottom of the framebuffer, about 16 fb pixels.
 - By 7 January -- game jam submission
 - - [ ] Guess gamepad mapping for unknown devices.
 - - [ ] Persist gamepad and keyboard mapping.

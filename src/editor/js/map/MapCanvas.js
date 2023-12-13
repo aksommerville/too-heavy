@@ -115,6 +115,77 @@ export class MapCanvas {
         }
       }
     }
+    
+    /* Draw something for each command with any geographical content.
+     * Not overthinking this... read the map's command list from scratch each render.
+     * Commands can only be edited as text. That's not very user friendly, but any alternative would get pretty involved.
+     */
+    for (const cmd of this.mapPaintService.map.meta) {
+      switch (cmd[0]) {
+      
+        case "door": { // X Y W H DSTMAPID DSTX DSTY
+            const x = +cmd[1] * this.mapPaintService.renderTileSize + this.dstx;
+            const y = +cmd[2] * this.mapPaintService.renderTileSize + this.dsty;
+            const w = +cmd[3] * this.mapPaintService.renderTileSize;
+            const h = +cmd[4] * this.mapPaintService.renderTileSize;
+            this.context.fillStyle = "#f80";
+            this.context.globalAlpha = 0.5;
+            this.context.fillRect(x, y, w, h);
+            this.context.globalAlpha = 1;
+          } break;
+          
+        case "edgedoor": { // EDGE P C DSTMAPID OFFSET
+            let x=this.dstx, y=this.dsty, w=this.mapPaintService.renderTileSize>>1, h=this.mapPaintService.renderTileSize>>1;
+            switch (cmd[1]) {
+              case "w": {
+                  y = +cmd[2] * this.mapPaintService.renderTileSize + this.dsty;
+                  h = +cmd[3] * this.mapPaintService.renderTileSize;
+                } break;
+              case "e": {
+                  x += this.mapPaintService.map.w * this.mapPaintService.renderTileSize - w;
+                  y = +cmd[2] * this.mapPaintService.renderTileSize + this.dsty;
+                  h = +cmd[3] * this.mapPaintService.renderTileSize;
+                } break;
+              case "n": {
+                  x = +cmd[2] * this.mapPaintService.renderTileSize + this.dsty;
+                  w = +cmd[3] * this.mapPaintService.renderTileSize;
+                } break;
+              case "s": {
+                  y += this.mapPaintService.map.h * this.mapPaintService.renderTileSize - h;
+                  x = +cmd[2] * this.mapPaintService.renderTileSize + this.dsty;
+                  w = +cmd[3] * this.mapPaintService.renderTileSize;
+                } break;
+            }
+            this.context.fillStyle = "#0f0";
+            this.context.globalAlpha = 0.5;
+            this.context.fillRect(x, y, w, h);
+            this.context.globalAlpha = 1;
+          } break;
+          
+        case "hero": {
+            this.context.beginPath();
+            this.context.arc(
+              (+cmd[1] + 0.5) * this.mapPaintService.renderTileSize + this.dstx,
+              (+cmd[2] + 0.5) * this.mapPaintService.renderTileSize + this.dsty,
+              this.mapPaintService.renderTileSize / 2, 0, Math.PI * 2
+            );
+            this.context.fillStyle = "#406";
+            this.context.fill();
+          } break;
+          
+        case "sprite": {
+            this.context.beginPath();
+            this.context.arc(
+              (+cmd[1] + 0.5) * this.mapPaintService.renderTileSize + this.dstx,
+              (+cmd[2] + 0.5) * this.mapPaintService.renderTileSize + this.dsty,
+              this.mapPaintService.renderTileSize / 2, 0, Math.PI * 2
+            );
+            this.context.fillStyle = "#ff0";
+            this.context.fill();
+          } break;
+          
+      }
+    }
   }
   
   /* Events.

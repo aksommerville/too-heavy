@@ -15,6 +15,7 @@ export class Grid {
     this.v = [];
     this.w = 0;
     this.h = 0;
+    this.meta = [];
     while (srcp < src.length) {
       let nlp = src.indexOf("\n", srcp);
       if (nlp < 0) nlp = src.length;
@@ -39,12 +40,8 @@ export class Grid {
       srcp = nlp + 1;
       if (!line) continue;
       const tokens = line.split(/\s+/);
-      this.receiveCommand(tokens);
+      this.meta.push(tokens);
     }
-  }
-  
-  receiveCommand(tokens) {
-    console.log(`Grid.receiveCommand: ${JSON.stringify(tokens)}`);
   }
   
   /* Return an array of Sprite for our solid regions.
@@ -100,6 +97,25 @@ export class Grid {
           case 3: sprite.ph.role = "hazard"; break;
         }
         sprites.push(sprite);
+        
+        /* If we touch an edge of the grid, extend say 1000 pixels offscreen.
+         * That's incorrect behavior for oneways at the top, so we carve out an exception for that.
+         */
+        const extend = 1000;
+        if (!sprite.x) {
+          sprite.x -= extend;
+          sprite.ph.w += extend;
+        }
+        if (!sprite.y && (sprite.ph.role !== "oneway")) {
+          sprite.y -= extend;
+          sprite.ph.h += extend;
+        }
+        if (sprite.x + sprite.ph.w >= TILESIZE * this.w) {
+          sprite.ph.w += extend;
+        }
+        if (sprite.y + sprite.ph.h >= TILESIZE * this.h ) {
+          sprite.ph.h += extend;
+        }
       }
     }
    
