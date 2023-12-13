@@ -135,6 +135,7 @@ export class HeroSprite extends Sprite {
       if (x >= door.x + door.w) continue;
       if (y >= door.y + door.h) continue;
       this.scene.load(door.dstmapid, this, door);
+      this.adjustForNewMap();
       return true;
     }
   }
@@ -152,8 +153,14 @@ export class HeroSprite extends Sprite {
       if (x >= door.x + door.w) continue;
       if (y >= door.y + door.h) continue;
       this.scene.load(door.dstmapid, this, door);
+      this.adjustForNewMap();
       return true;
     }
+  }
+  
+  adjustForNewMap() {
+    this.reviveX = this.x;
+    this.reviveY = this.y;
   }
   
   /* Animation.

@@ -14,7 +14,7 @@ https://github.com/aksommerville/too-heavy
 - - [x] UI to select item.
 - - [x] Map editor: scrolling.
 - - [x] Spawn points and doors.
-- - [ ] edit and run from the same server, so I can keep it running all the time?
+- - [x] edit and run from the same server, so I can keep it running all the time?
 - By 22 December
 - - [ ] Ensure I have a sane build environment on a laptop before leaving
 - - [ ] Triple Jump.
@@ -28,9 +28,10 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Stopwatch. Stop all other sprites.
 - - [ ] Broom. Fly, limited elevation.
 - - [ ] Camera. Save and restore state. But not including switches.
-- - [ ] Speed Boost.
-- - [ ] Parachute.
+- - [ ] Umbrella (parachute).
 - - [ ] Vacuum cleaner. Stick to walls and ceilings.
+- - [ ] Grappling hook.
+- - [ ] Rocket boots.
 - - [ ] Treasure anti-chests.
 - By 1 January
 - - [ ] Final maps.

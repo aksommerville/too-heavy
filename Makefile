@@ -14,7 +14,8 @@ $(DST_WRAPPER):src/wrapper.html;$(PRECMD) cp $< $@
 $(DST_FAVICON):src/favicon.ico;$(PRECMD) cp $< $@
 all:$(DST_WRAPPER) $(DST_FAVICON)
 
-edit:;node src/server/main.js src
-run:$(DST_HTML) $(DST_WRAPPER) $(DST_FAVICON);node src/server/main.js out/web --make
+# `make run` serves the editor too.
+# We could declare DST_WRAPPER and DST_FAVICON as "--makeable" too, but they won't change much so avoid the extra churn.
+run:$(DST_HTML) $(DST_WRAPPER) $(DST_FAVICON);node src/server/main.js src out/web --makeable=$(DST_HTML) --put=src
 
 clean:;rm -rf mid out

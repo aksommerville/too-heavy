@@ -2,12 +2,19 @@ const http = require("http");
 const fs = require("fs");
 const child_process = require("child_process");
 
-let htdocs = process.argv[2];
-if (!htdocs || (htdocs[0] === '-')) {
-  console.log(`Usage: node ${process.argv[1]} HTDOCS`);
-  process.exit(1);
+const htdocsv = [];
+const makeablev = [];
+let putpfx = null;
+for (let argi=2; argi<process.argv.length; argi++) {
+  const arg = process.argv[argi];
+  if (arg.startsWith("--makeable=")) makeablev.push(arg.substring(11));
+  else if (arg.startsWith("--put=")) putpfx = arg.substring(6);
+  else if (arg === "--help") {
+    console.log(`Usage: node ${process.argv[1]} HTDOCS [HTDOCS...] [--makeable=PATH...] [--put=PATH]`);
+    process.exit(0);
+  } else if (arg.startsWith('-')) throw new Error(`${process.argv[1]}: Unexpected argument ${JSON.stringify(arg)}`);
+  else htdocsv.push(arg);
 }
-const makeFirst = process.argv.includes("--make");
 
 function guessContentType(path, serial) {
   const sfx = (path.match(/.*\.([^.\/]*)$/) || ['', ''])[1].toLowerCase();
@@ -33,7 +40,18 @@ function fail(rsp, code, msg) {
 
 function serveGet(req, rsp) {
   if (req.url.indexOf('?') >= 0) return fail(rsp, 400, "GETs must not have a query string");
-  const path = htdocs + req.url;
+  let path = null, st;
+  for (const prefix of htdocsv) {
+    try {
+      path = prefix + req.url;
+      st = fs.statSync(path);
+      break;
+    } catch (e) {
+      path = null;
+      // ok try next prefix
+    }
+  }
+  if (!path) return fail(rsp, 404, "File not found");
   if (path.indexOf("..") >= 0) return fail(rsp, 404, "File not found");
   try {
     const st = fs.statSync(path);
@@ -43,9 +61,11 @@ function serveGet(req, rsp) {
       rsp.statusCode = 200;
       rsp.end(generateJsonDirectoryListing(path));
     } else {
-      if (makeFirst) {
+      if (makeablev.indexOf(path) >= 0) {
         const makeOutput = child_process.execSync(`make ${path}`);
         console.log(makeOutput.toString("utf8").trim());
+        //TODO If make fails, we should return an error for the browser to display.
+        // Not urgent. This is a Javascript app, make doesn't really do much.
       }
       const serial = fs.readFileSync(path);
       // Browsers are picky about Content-Type, for some things like Javascript. Highly stupid :P
@@ -60,8 +80,9 @@ function serveGet(req, rsp) {
 }
 
 function servePut(req, rsp) {
+  if (!putpfx) return fail(rsp, 405, "Method not allowed");
   if (req.url.indexOf('?') >= 0) return fail(rsp, 400, "PUTs must not have a query string");
-  const path = "src" + req.url;
+  const path = putpfx + req.url;
   if (path.indexOf("..") >= 0) return fail(rsp, 404, "File not found");
   try {
     fs.writeFileSync(path, req.body);
@@ -73,7 +94,7 @@ function servePut(req, rsp) {
 }
 
 function servePost(req, rsp) {
-  fail(rsp, 404, "No such operation");
+  fail(rsp, 405, "No such operation");
 }
 
 const server = http.createServer();
