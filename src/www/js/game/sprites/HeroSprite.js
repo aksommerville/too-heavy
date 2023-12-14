@@ -6,12 +6,13 @@ import { InputBtn } from "../../core/InputManager.js";
 import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
 import { Physics } from "../Physics.js";
 
-const JUMP_LIMIT_TIME = 0.600;
-const JUMP_SPEED_MAX = 380; // px/sec
+const JUMP_LIMIT_TIME = [0.600, 0.720, 0.800]; // s, indexed by jumpSequence
+const JUMP_SPEED_MAX = [380, 430, 500]; // px/sec, ''
 const CANNONBALL_SPEED = 100; // px/sec, but gravity does most of it.
 const DEATH_COUNTDOWN_TIME = 0.500;
 const DEATH_BLACKOUT_TIME = 0.500;
 const WALK_RESIDUAL_DECAY = 1000; // px/sec**2
+const TRIPLE_JUMP_FOOT_TIME = 0.100;
 
 export class HeroSprite extends Sprite {
   constructor(scene) {
@@ -41,6 +42,8 @@ export class HeroSprite extends Sprite {
     this.walkHistory = []; // [dx,duration] for the last few (walkdx) states. For triggering dash and such. Reverse chronological order.
     this.jumping = false;
     this.jumpDuration = 0;
+    this.jumpSequence = 0; // 0,1,2=first,second,third for triple-jump
+    this.jumpSequencePoison = false; // if true, the next jump must be seq 0. (dx changed, or anything else that forces break in triple-jump)
     this.footState = false; // True if we're on the ground.
     this.footClock = 0; // How long since footState changed.
     this.animClock = 0;
@@ -201,6 +204,7 @@ export class HeroSprite extends Sprite {
    *******************************************************/
    
   duckBegin() {
+    this.jumpSequencePoison = true;
     if (this.walkdx) {
       this.walkEnd();
     }
@@ -214,6 +218,7 @@ export class HeroSprite extends Sprite {
   }
   
   duckEnd() {
+    this.jumpSequencePoison = true;
     this.ducking = false;
     this.cannonball = false;
     this.animClock = 0;
@@ -238,6 +243,7 @@ export class HeroSprite extends Sprite {
     else this.flop = true;
     if (this.ducking) return;
     if (dx === this.walkdx) return;
+    this.jumpSequencePoison = true;
     this.animClock = 0;
     this.animFrame = 0;
     this.addWalkHistory();
@@ -251,6 +257,7 @@ export class HeroSprite extends Sprite {
   
   walkEnd() {
     if (!this.walkdx) return;
+    this.jumpSequencePoison = true;
     this.animClock = 0;
     this.animFrame = 0;
     this.addWalkHistory();
@@ -368,9 +375,20 @@ export class HeroSprite extends Sprite {
       }
       return;
     }
+    
+    if (this.jumpSequencePoison) {
+      this.jumpSequence = 0;
+      this.jumpSequencePoison = false;
+    } else if (this.footClock <= TRIPLE_JUMP_FOOT_TIME) {
+      this.jumpSequence++;
+      if (this.jumpSequence >= 3) this.jumpSequence = 0;
+    } else {
+      this.jumpSequence = 0;
+    }
+    
     this.jumpDuration = 0;
     this.jumping = true;
-    //TODO sound effect
+    //TODO sound effect -- different per jumpSequence. Plus some visual feedback for jumpSequence 1 and 2.
   }
   
   jumpAbort() {
@@ -397,6 +415,9 @@ export class HeroSprite extends Sprite {
     } else if (this.footState) {
       this.footState = false;
       this.footClock = 0;
+      if (!this.jumping) { // footState goes false but not jumping -- walked off a cliff
+        this.jumpSequencePoison = true;
+      }
     } else {
       this.footClock += elapsed;
     }
@@ -409,11 +430,13 @@ export class HeroSprite extends Sprite {
       return;
     }
     
+    const limitTime = JUMP_LIMIT_TIME[this.jumpSequence];
+    const speedMax = JUMP_SPEED_MAX[this.jumpSequence];
     this.jumpDuration += elapsed;
-    if (this.jumpDuration >= JUMP_LIMIT_TIME) {
+    if (this.jumpDuration >= limitTime) {
       this.jumping = false;
     } else {
-      const speed = ((JUMP_LIMIT_TIME - this.jumpDuration) * JUMP_SPEED_MAX) / JUMP_LIMIT_TIME;
+      const speed = ((limitTime - this.jumpDuration) * speedMax) / limitTime;
       this.y -= elapsed * speed;
     }
   }

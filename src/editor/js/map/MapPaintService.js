@@ -213,6 +213,15 @@ export class MapPaintService {
     return family.tileid + 0x00;
   }
    
+  pillar1x3(p, x, y, family) {
+    // Exactly the same as hotdog, but vertical.
+    const top = (y > 0) && (this.familyByTileid[this.map.v[p - this.map.w]] === family);
+    const bottom = (y < this.map.h - 1) && (this.familyByTileid[this.map.v[p + this.map.w]] === family);
+    if (top && bottom) return family.tileid + 0x10;
+    if (top) return family.tileid + 0x20;
+    return family.tileid + 0x00;
+  }
+   
   healMotion1(x, y) {
     if ((x < 0) || (y < 0) || (x >= this.map.w) || (y >= this.map.h)) return false;
     const p = y * this.map.w + x;
@@ -223,6 +232,7 @@ export class MapPaintService {
       case "balanced4x1": tileid = family.tileid + Math.floor(Math.random() * 4); break;
       case "fat5x3": tileid = this.fat5x3(p, x, y, family); break;
       case "hotdog3x1": tileid = this.hotdog3x1(p, x, y, family); break;
+      case "pillar1x3": tileid = this.pillar1x3(p, x, y, family); break;
       default: throw new Error(`Tileprops mode ${JSON.stringify(family.mode)} not implemented at healMotion`);
     }
     if (tileid === this.map.v[p]) return false;
@@ -364,6 +374,7 @@ export class MapPaintService {
         case "balanced4x1": fill(family.tileid, 4, 1, family); break;
         case "fat5x3": fill(family.tileid, 5, 3, family); break;
         case "hotdog3x1": fill(family.tileid, 3, 1, family); break;
+        case "pillar1x3": fill(family.tileid, 1, 3, family); break;
         default: throw new Error(`Please add unpacking rules for tileprops mode ${JSON.stringify(family.mode)}`);
       }
     }
@@ -428,6 +439,9 @@ MapPaintService.TOOLS = [{
 MapPaintService.TILEPROPS = [{
   tileid: 0x01,
   mode: "balanced4x1",
+}, {
+  tileid: 0x0d,
+  mode: "pillar1x3",
 }, {
   tileid: 0x45,
   mode: "hotdog3x1",

@@ -11,7 +11,7 @@ https://github.com/aksommerville/too-heavy
 - By 22 December
 - - [ ] Ensure I have a sane build environment on a laptop before leaving
 - - [x] Try ramping velocity down on stop, it feels too abrupt.
-- - [ ] Triple Jump.
+- - [x] Triple Jump.
 - - [ ] Long Jump. (duck+forward+jump, blast forward without much elevation change)
 - - [ ] Wall Jump.
 - - [ ] Wall Slide.
