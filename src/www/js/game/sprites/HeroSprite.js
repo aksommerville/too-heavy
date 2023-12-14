@@ -11,6 +11,7 @@ const JUMP_SPEED_MAX = 380; // px/sec
 const CANNONBALL_SPEED = 100; // px/sec, but gravity does most of it.
 const DEATH_COUNTDOWN_TIME = 0.500;
 const DEATH_BLACKOUT_TIME = 0.500;
+const WALK_RESIDUAL_DECAY = 1000; // px/sec**2
 
 export class HeroSprite extends Sprite {
   constructor(scene) {
@@ -34,6 +35,8 @@ export class HeroSprite extends Sprite {
     
     this.pvinput = 0;
     this.walkdx = 0; // -1,0,1
+    this.walkresidualdx = 0; // -1,0,1
+    this.walkresidual = 0; // px/sec
     this.walkDuration = 0; // sec, how long have we been walking this direction. Counts when not walking too.
     this.walkHistory = []; // [dx,duration] for the last few (walkdx) states. For triggering dash and such. Reverse chronological order.
     this.jumping = false;
@@ -256,6 +259,14 @@ export class HeroSprite extends Sprite {
   }
   
   walkUpdate(elapsed) {
+  
+    if (!this.walkdx && (this.walkresidual > 0)) {
+      if ((this.walkresidual -= WALK_RESIDUAL_DECAY * elapsed) <= 0) {
+        this.walkresidual = 0;
+      }
+      this.x += this.walkresidual * elapsed * this.walkresidualdx;
+    }
+  
     if (!this.walkdx) {
       this.walkDuration += elapsed;
       return;
@@ -270,6 +281,16 @@ export class HeroSprite extends Sprite {
     }
     this.x += elapsed * walkSpeed * this.walkdx;
     this.walkDuration += elapsed;
+    
+    if (!this.walkresidual) {
+      this.walkresidualdx = this.walkdx;
+    }
+    if ((this.walkdx == this.walkresidualdx) && (this.walkresidual < walkSpeed)) {
+      this.walkresidual = walkSpeed;
+    }
+    if (this.walkdx !== this.walkresidualdx) {
+      this.walkresidual = 0;
+    }
   }
   
   addWalkHistory() {

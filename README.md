@@ -8,15 +8,9 @@ https://github.com/aksommerville/too-heavy
 
 ## TODO
 
-- By 15 December
-- - [x] One-way platforms.
-- - [x] Static hazards.
-- - [x] UI to select item.
-- - [x] Map editor: scrolling.
-- - [x] Spawn points and doors.
-- - [x] edit and run from the same server, so I can keep it running all the time?
 - By 22 December
 - - [ ] Ensure I have a sane build environment on a laptop before leaving
+- - [x] Try ramping velocity down on stop, it feels too abrupt.
 - - [ ] Triple Jump.
 - - [ ] Long Jump. (duck+forward+jump, blast forward without much elevation change)
 - - [ ] Wall Jump.
