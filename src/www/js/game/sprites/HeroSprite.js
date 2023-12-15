@@ -41,9 +41,10 @@ export class HeroSprite extends Sprite {
     this.walkDuration = 0; // sec, how long have we been walking this direction. Counts when not walking too.
     this.walkHistory = []; // [dx,duration] for the last few (walkdx) states. For triggering dash and such. Reverse chronological order.
     this.jumping = false;
-    this.jumpDuration = 0;
+    this.jumpDuration = 0; // For one dimensional jumps (regular and triple).
     this.jumpSequence = 0; // 0,1,2=first,second,third for triple-jump
     this.jumpSequencePoison = false; // if true, the next jump must be seq 0. (dx changed, or anything else that forces break in triple-jump)
+    this.jump2dv = [0, 0];
     this.footState = false; // True if we're on the ground.
     this.footClock = 0; // How long since footState changed.
     this.animClock = 0;
@@ -71,6 +72,8 @@ export class HeroSprite extends Sprite {
     this.blackout = DEATH_BLACKOUT_TIME;
     this.x = this.reviveX;
     this.y = this.reviveY;
+    this.walkresidual = 0;
+    this.srcx = 262;
     this.scene.physics.warp(this);
     //TODO sound effect
     //TODO fireworks
@@ -368,7 +371,11 @@ export class HeroSprite extends Sprite {
       // Otherwise one feels cheated on pressing the button a frame or two too late.
     }
     if (this.ducking) {
-      if (this.scene.physics.bypassOneWays(this)) {
+      if ((this.pvinput & (InputBtn.LEFT | InputBtn.RIGHT)) === InputBtn.LEFT) {
+        this.beginLongJump(-1);
+      } else if ((this.pvinput & (InputBtn.LEFT | InputBtn.RIGHT)) === InputBtn.RIGHT) {
+        this.beginLongJump(1);
+      } else if (this.scene.physics.bypassOneWays(this)) {
         // Duck jumped thru oneway.
       } else {
         // Other duck jump -- should we do something?
@@ -388,7 +395,20 @@ export class HeroSprite extends Sprite {
     
     this.jumpDuration = 0;
     this.jumping = true;
+    this.jump2dv[0] = 0;
+    this.jump2dv[1] = 0;
     //TODO sound effect -- different per jumpSequence. Plus some visual feedback for jumpSequence 1 and 2.
+  }
+  
+  beginLongJump(dx) {
+    this.jump2dv[0] = dx * 250;
+    this.jump2dv[1] = -200;
+    this.jumping = true;
+    this.jumpDuration = 0;
+    this.duckEnd();
+    this.jumpSequencePoison = false; // duckEnd sets it true, but it should be false -- you can double-jump off a long-jump
+    this.jumpSequence = 0;
+    //TODO sound effect
   }
   
   jumpAbort() {
@@ -398,7 +418,7 @@ export class HeroSprite extends Sprite {
   
   jumpUpdate(elapsed) {
     if (this.scene.physics.measureFreedom(this, 0, 1, 2) <= 0) {
-      if (!this.walkdx) { // standing still and grounded -- mark a revive point
+      if (!this.walkdx && !this.walkresidual) { // standing still and grounded -- mark a revive point
         this.reviveX = this.x;
         this.reviveY = this.y;
       }
@@ -430,6 +450,32 @@ export class HeroSprite extends Sprite {
       return;
     }
     
+    // Two-dimensional jumps.
+    if (this.jump2dv[0] || this.jump2dv[1]) {
+      if (this.jump2dv[0] < 0) {
+        if ((this.jump2dv[0] += 190 * elapsed) >= 150) {
+          this.walkresidualdx = -1;
+          this.walkresidual = -this.jump2dv[0];
+          this.jump2dv[0] = 0;
+        }
+      } else if (this.jump2dv[0] > 0) {
+        if ((this.jump2dv[0] -= 190 * elapsed) <= -150) {
+          this.walkresidualdx = 1;
+          this.walkresidual = this.jump2dv[0];
+          this.jump2dv[0] = 0;
+        }
+      }
+      if ((this.jump2dv[1] += 200 * elapsed) >= 0) this.jump2dv[1] = 0; //TODO decay rate
+      if (!this.jump2dv[0] && !this.jump2dv[1]) {
+        this.jumping = false;
+        return;
+      }
+      this.x += this.jump2dv[0] * elapsed;
+      this.y += this.jump2dv[1] * elapsed;
+      return;
+    }
+    
+    // One-dimensional jumps.
     const limitTime = JUMP_LIMIT_TIME[this.jumpSequence];
     const speedMax = JUMP_SPEED_MAX[this.jumpSequence];
     this.jumpDuration += elapsed;
