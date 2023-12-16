@@ -10,7 +10,8 @@ https://github.com/aksommerville/too-heavy
 
 - 16-17 December: Finish Dot.
 - - [x] Wall Slide.
-- - [ ] Wall Jump.
+- - [x] Wall Jump.
+- - [ ] Would it work better to suspend gravity during jumps? We get some oddities like extra bouncing at the end of a jump, if it ends at higher elevation.
 - - [ ] Augmented Dash. (jump immediately after dashing, blast off diagonally). Maybe not? Long Jump provides this.
 - - [ ] Cannonball.
 - - [ ] Stopwatch. Stop all other sprites.

@@ -13,6 +13,10 @@ const DEATH_COUNTDOWN_TIME = 0.500;
 const DEATH_BLACKOUT_TIME = 0.500;
 const WALK_RESIDUAL_DECAY = 1000; // px/sec**2
 const TRIPLE_JUMP_FOOT_TIME = 0.100;
+const LONG_JUMP_VELOCITY_X = 250;
+const LONG_JUMP_VELOCITY_Y = -200;
+const WALL_JUMP_VELOCITY_X = 200;
+const WALL_JUMP_VELOCITY_Y = -250;
 const WALL_SLIDE_COVERAGE_MINIMUM = 0.750; // no wall slide if it's just your head or foot against the wall
 const WALL_SLIDE_FORCE_GRAVITY = 50; // px/sec, keep it under this (mind that physics will accelerate it one frame each time)
 
@@ -384,6 +388,11 @@ export class HeroSprite extends Sprite {
    **************************************************************************/
   
   jumpBegin() {
+  
+    if (this.wallSlide) {
+      return this.beginWallJump(-this.wallSlide);
+    }
+  
     if (!this.footState) {
       if (this.footClock >= 0.050) {
         return;
@@ -422,9 +431,23 @@ export class HeroSprite extends Sprite {
     //TODO sound effect -- different per jumpSequence. Plus some visual feedback for jumpSequence 1 and 2.
   }
   
+  beginWallJump(dx) {
+    this.jump2dv[0] = dx * WALL_JUMP_VELOCITY_X;
+    this.jump2dv[1] = WALL_JUMP_VELOCITY_Y;
+    this.jumping = true;
+    this.jumpDuration = 0;
+    this.wallSlide = 0;
+    this.ducking = false;
+    this.walkdx = 0;
+    this.jumpSequencePoison = false;
+    this.jumpSequence = 0;
+    this.resetAnimation();
+    //TODO sound effect
+  }
+  
   beginLongJump(dx) {
-    this.jump2dv[0] = dx * 250;
-    this.jump2dv[1] = -200;
+    this.jump2dv[0] = dx * LONG_JUMP_VELOCITY_X;
+    this.jump2dv[1] = LONG_JUMP_VELOCITY_Y;
     this.jumping = true;
     this.jumpDuration = 0;
     this.duckEnd();

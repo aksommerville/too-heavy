@@ -147,12 +147,12 @@ export class MapCanvas {
                   h = +cmd[3] * this.mapPaintService.renderTileSize;
                 } break;
               case "n": {
-                  x = +cmd[2] * this.mapPaintService.renderTileSize + this.dsty;
+                  x = +cmd[2] * this.mapPaintService.renderTileSize + this.dstx;
                   w = +cmd[3] * this.mapPaintService.renderTileSize;
                 } break;
               case "s": {
                   y += this.mapPaintService.map.h * this.mapPaintService.renderTileSize - h;
-                  x = +cmd[2] * this.mapPaintService.renderTileSize + this.dsty;
+                  x = +cmd[2] * this.mapPaintService.renderTileSize + this.dstx;
                   w = +cmd[3] * this.mapPaintService.renderTileSize;
                 } break;
             }
