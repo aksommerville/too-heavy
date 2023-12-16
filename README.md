@@ -10,7 +10,7 @@ https://github.com/aksommerville/too-heavy
 
 - 16-17 December: Finish Dot.
 - - [x] Cannonball.
-- - [ ] Stopwatch. Stop all other sprites.
+- - [x] Stopwatch. Stop all other sprites.
 - - [ ] Broom. Fly, limited elevation.
 - - [ ] Camera. Save and restore state. But not including switches.
 - - [ ] Umbrella (parachute).
@@ -18,7 +18,9 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Grappling hook.
 - - [ ] Rocket boots.
 - By 22 December
+- - [ ] Eliminate the death face. Explode immediately.
 - - [ ] Mitigate jitter when climbing a chimney across vertical neighbor maps. (eg in jump lessons)
+- - [ ] Oneways in row 1 don't catch when entering from north? See broom lesson.
 - - [ ] Ensure I have a sane build environment on a laptop before leaving
 - - [ ] Moving platforms.
 - - [ ] Switches.

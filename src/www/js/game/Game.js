@@ -41,6 +41,7 @@ export class Game {
     this.menu = null;
     this.selectedItem = 4; // 0..9. 4=bell
     this.inventory = [true, true, true, true, true, true, true, true, true]; // indexed by itemid
+    this.timeFrozen = false;
   }
   
   /* Returns a Promise that resolves when our content is all loaded and ready to go.

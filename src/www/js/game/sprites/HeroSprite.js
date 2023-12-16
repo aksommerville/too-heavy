@@ -71,10 +71,12 @@ export class HeroSprite extends Sprite {
     this.reviveY = this.y;
     this.deathCountdown = 0;
     this.blackout = 0;
+    this.itemInProgress = -1;
   }
   
   collideHazard(hazard) {
     if (this.deathCountdown) return;
+    //TODO Don't do a death face. Explode immediately.
     this.deathCountdown = DEATH_COUNTDOWN_TIME;
     this.duckEnd();
     this.jumpAbort();
@@ -499,7 +501,7 @@ export class HeroSprite extends Sprite {
   
   jumpUpdate(elapsed) {
     if (this.scene.physics.measureFreedom(this, 0, 1, 2) <= 0) {
-      if (!this.walkdx && !this.walkresidual) { // standing still and grounded -- mark a revive point
+      if (!this.walkdx && !this.walkresidual && !this.scene.spawnAtEntranceOnly) { // standing still and grounded -- mark a revive point
         this.reviveX = this.x;
         this.reviveY = this.y;
       }
@@ -579,14 +581,44 @@ export class HeroSprite extends Sprite {
    ********************************************************************************/
   
   actionBegin() {
-    //console.log(`actionBegin`);
+    if (!this.scene.game.inventory[this.scene.game.selectedItem]) {
+      return;
+    }
+    switch (this.scene.game.selectedItem) {
+      case 0: this.stopwatchBegin(); break;
+      case 1: this.broomBegin(); break;
+      case 2: this.cameraBegin(); break;
+      case 3: this.vacuumBegin(); break;
+      case 4: this.bellBegin(); break;
+      case 5: this.umbrellaBegin(); break;
+      case 6: this.bootsBegin(); break;
+      case 7: this.grappleBegin(); break;
+      case 8: this.raftBegin(); break;
+    }
   }
   
   actionEnd() {
-    //console.log(`actionEnd`);
+    switch (this.itemInProgress) {
+      case 0: this.stopwatchEnd(); break;
+    }
   }
   
   actionUpdate(elapsed) {
+  }
+  
+  /* Stopwatch. Freeze time while held.
+   **************************************************************************/
+   
+  stopwatchBegin() {
+    this.scene.game.timeFrozen = true;
+    this.itemInProgress = 0;
+    //TODO sound effect
+  }
+  
+  stopwatchEnd() {
+    this.scene.game.timeFrozen = false;
+    this.itemInProgress = -1;
+    //TODO sound effect
   }
   
   /* Render.

@@ -40,6 +40,8 @@ export class Physics {
       pvy: 0,
       gravityRate: 0,
       adjusted: false,
+      restrictHorzCorrection: false, // if true, mass is infinite horizontally
+      collisions: null, // set to empty array and we fill each frame with the sprites you collided against
     };
   }
   
@@ -53,8 +55,6 @@ export class Physics {
     for (const q of this.scene.sprites) {
       if (!q.ph) continue;
       if (q === standee) continue;
-      q.ph.x = q.x + q.ph.pleft;
-      q.ph.y = q.y + q.ph.ptop;
       if (standee.ph.x >= q.ph.x + q.ph.w) continue;
       if (standee.ph.x + standee.ph.w <= q.ph.x) continue;
       const distance = Math.abs(standee.ph.y + standee.ph.h - q.ph.y);
@@ -87,8 +87,6 @@ export class Physics {
       distance = (other) => {
         if (!other.ph) return limit;
         if (other.ph.role === "oneway") return limit;
-        other.ph.x = other.x + other.ph.pleft;
-        other.ph.y = other.y + other.ph.ptop;
         if (other.ph.y >= bottom) return limit;
         if (other.ph.y + other.ph.h <= top) return limit;
         if (other.ph.x >= back) return limit;
@@ -106,8 +104,6 @@ export class Physics {
       distance = (other) => {
         if (!other.ph) return limit;
         if (other.ph.role === "oneway") return limit;
-        other.ph.x = other.x + other.ph.pleft;
-        other.ph.y = other.y + other.ph.ptop;
         if (other.ph.y >= bottom) return limit;
         if (other.ph.y + other.ph.h <= top) return limit;
         if (other.ph.x + other.ph.w <= back) return limit;
@@ -124,8 +120,6 @@ export class Physics {
       distance = (other) => {
         if (!other.ph) return limit;
         if (other.ph.role === "oneway") return limit;
-        other.ph.x = other.x + other.ph.pleft;
-        other.ph.y = other.y + other.ph.ptop;
         if (other.ph.x >= right) return limit;
         if (other.ph.x + other.ph.w <= left) return limit;
         if (other.ph.y >= back) return limit;
@@ -143,8 +137,6 @@ export class Physics {
       distance = (other) => {
         if (!other.ph) return limit;
         // do check "oneway"
-        other.ph.x = other.x + other.ph.pleft;
-        other.ph.y = other.y + other.ph.ptop;
         if (other.ph.x >= right) return limit;
         if (other.ph.x + other.ph.w <= left) return limit;
         if (other.ph.y + other.ph.h <= back) return limit;
@@ -170,8 +162,6 @@ export class Physics {
    */
   testSpritePosition(sprite) {
     if (!sprite.ph) return 0;
-    sprite.ph.pvx = sprite.ph.x;
-    sprite.ph.pvy = sprite.ph.y;
     sprite.ph.x = sprite.x + sprite.ph.pleft;
     sprite.ph.y = sprite.y + sprite.ph.ptop;
     let overlap = 0;
@@ -194,8 +184,6 @@ export class Physics {
       if (other === sprite) continue;
       if (other.ph.role === "oneway") continue; // can't say anything meaningful without motion
       if (other.ph.role === "hazard") continue; // permit teleporting onto these, it's hilarious
-      other.ph.x = other.x + other.ph.pleft;
-      other.ph.y = other.y + other.ph.ptop;
       const xlo = Math.max(sprite.ph.x, other.ph.x);
       const xhi = Math.min(sprite.ph.x + sprite.ph.w, other.ph.x + other.ph.w);
       if (xlo >= xhi) continue;
@@ -218,11 +206,10 @@ export class Physics {
     const active = [], passive = [], hazard = [], fragile = [];
     for (const sprite of this.scene.sprites) {
       if (!sprite.ph) continue;
-      sprite.ph.pvx = sprite.ph.x;
-      sprite.ph.pvy = sprite.ph.y;
       sprite.ph.x = sprite.x + sprite.ph.pleft;
       sprite.ph.y = sprite.y + sprite.ph.ptop;
       sprite.ph.adjusted = false;
+      if (sprite.ph.collisions) sprite.ph.collisions = [];
       if (sprite.ph.role === "fragile") fragile.push(sprite); // but also put it in active or passive; "fragile" is extra
       if (sprite.ph.role === "hazard") hazard.push(sprite);
       else if (sprite.ph.invmass > 0) active.push(sprite);
@@ -300,6 +287,12 @@ export class Physics {
         }
       }
     }
+    
+    for (const sprite of this.scene.sprites) {
+      if (!sprite.ph) continue;
+      sprite.ph.pvx = sprite.ph.x;
+      sprite.ph.pvy = sprite.ph.y;
+    }
   }
   
   /* Check for collision between two sprites and if it exists, update their positions to escape it.
@@ -316,8 +309,9 @@ export class Physics {
     }
     
     if (testOnly) return true;
-    const aweight = a.ph.invmass / (a.ph.invmass + b.ph.invmass);
-    const bweight = 1 - aweight;
+    
+    if (a.ph.collisions) a.ph.collisions.push(b);
+    if (b.ph.collisions) b.ph.collisions.push(a);
     
     // Measure (a)'s escapement in each of the cardinal directions.
     // Of course we don't know whether the escaped position is actually valid, that's kind of a fundamental weakness of this engine...
@@ -331,14 +325,41 @@ export class Physics {
     else if (esct <= escb) dy = -esct;
     else dy = escb;
     
+    // Apportion escapement according to inverse masses.
+    // If we're escaping in a horizontal direction, make the effective mass infinite if request.
+    let aim = a.ph.invmass;
+    let bim = b.ph.invmass;
+    if (dx) {
+      if (a.ph.restrictHorzCorrection) aim = 0;
+      if (b.ph.restrictHorzCorrection) bim = 0;
+      if (!aim && !bim) { // oh shoot. back out and do it vertical instead.
+        dx = 0;
+        if (esct <= escb) dy = -esct;
+        else dy = escb;
+        aim = a.ph.invmass;
+        bim = b.ph.invmass;
+      }
+    }
+    const aweight = aim / (aim + bim);
+    const bweight = 1 - aweight;
+    
     // When (b) is static, don't risk rounding errors from (dx * aweight) -- we can trivially calculate the exact new values for (a).
     // (turns out, this does matter for preventing jitter).    
+    // Now with "restrictHorzCorrection", (a) could have infinite effective mass too, so do this twice.
     if (!bweight) {
            if (dx < 0) a.ph.x = b.ph.x - a.ph.w;
       else if (dx > 0) a.ph.x = b.ph.x + b.ph.w;
       else if (dy < 0) a.ph.y = b.ph.y - a.ph.h;
       else if (dy > 0) a.ph.y = b.ph.y + b.ph.h;
       a.ph.adjusted = true;
+      return true;
+    }
+    if (!aweight) {
+           if (dx > 0) b.ph.x = a.ph.x - b.ph.w;
+      else if (dx < 0) b.ph.x = a.ph.x + a.ph.w;
+      else if (dy > 0) b.ph.y = a.ph.y - b.ph.h;
+      else if (dy < 0) b.ph.y = a.ph.y + a.ph.h;
+      b.ph.adjusted = true;
       return true;
     }
     

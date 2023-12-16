@@ -13,6 +13,7 @@ import { DataService } from "./DataService.js";
 import { HeroSprite } from "./sprites/HeroSprite.js";
 import { ProximityRevealSprite } from "./sprites/ProximityRevealSprite.js";
 import { BreakableSprite } from "./sprites/BreakableSprite.js";
+import { CrusherSprite } from "./sprites/CrusherSprite.js";
 
 const TILESIZE = 16;
  
@@ -33,6 +34,7 @@ export class Scene {
     this.camera = new Camera(this);
     this.doors = []; // {x,y,w,h,dstmapid,dstx,dsty} (x,y,w,h) in pixels, (dstx,dsty) in cells.
     this.edgeDoors = []; // {x,y,w,h,dstmapid,offx,offy} all in pixels. we generate a rectangle that goes way offscreen
+    this.spawnAtEntranceOnly = false;
     
     // HeroSprite should set these after it updates each time, for other sprites to observe.
     this.herox = 0;
@@ -42,7 +44,10 @@ export class Scene {
   }
   
   update(elapsed, inputState) {
-    for (const sprite of this.sprites) sprite.update?.(elapsed, inputState);
+    for (const sprite of this.sprites) {
+      if (this.game.timeFrozen && !(sprite instanceof HeroSprite)) continue;
+      sprite.update?.(elapsed, inputState);
+    }
     this.physics.update(elapsed);
   }
   
@@ -138,6 +143,9 @@ export class Scene {
             const sprite = this.createSpriteFromGridCommand(cmd);
             this.sprites.push(sprite);
           } break;
+        case "spawnAtEntranceOnly": {
+            this.spawnAtEntranceOnly = true;
+          } break;
       }
     }
     
@@ -159,6 +167,7 @@ export class Scene {
       // spriteId is the class name and could be resolved dynamically, but don't: That would be a potential security hole.
       case "ProximityRevealSprite": return new ProximityRevealSprite(this, col, row, cmd.slice(4));
       case "BreakableSprite": return new BreakableSprite(this, col, row, cmd.slice(4));
+      case "CrusherSprite": return new CrusherSprite(this, col, row, cmd.slice(4));
     }
     throw new Error(`Unknown spriteId ${JSON.stringify(spriteId)}`);
   }

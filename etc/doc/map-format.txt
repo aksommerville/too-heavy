@@ -17,3 +17,7 @@ edgedoor EDGE P C DSTMAPID OFFSET
 hero X Y
 
 sprite X Y SPRITEID [ARGS...]
+
+spawnAtEntranceOnly
+  If present, hero should not set respawn points when standing still; use the entrance only.
+  Must include this if using CrusherSprite, otherwise one can get stuck on it, and I don't have a good fix for that.

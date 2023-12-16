@@ -18,13 +18,13 @@ export class BreakableSprite extends Sprite {
     this.y = row * TILESIZE;
     this.vw = 2 * TILESIZE;
     this.vh = 2 * TILESIZE;
-    this.srcx = 327; // wood create. TODO configure via args
+    this.srcx = 327; // wood crate. TODO configure via args
     this.srcy = 88;
     this.layer = 10;
     Physics.prepareSprite(this);
     this.ph.w = 2 * TILESIZE;
     this.ph.h = 2 * TILESIZE;
-    this.phinvmass = 0;
+    this.ph.invmass = 0;
   }
   
   onCannonball(hero, distance) {

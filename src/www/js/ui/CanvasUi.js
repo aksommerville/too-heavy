@@ -61,6 +61,8 @@ export class CanvasUi {
       this.context.fillRect(0, 0, this.element.width, this.element.height);
     }
     
+    //TODO weather. eg this.game.timeFrozen
+    
     if (this.game.menu) {
       this.game.menu.render(this.context, this.element);
     }
