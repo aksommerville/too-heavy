@@ -13,6 +13,8 @@ const DEATH_COUNTDOWN_TIME = 0.500;
 const DEATH_BLACKOUT_TIME = 0.500;
 const WALK_RESIDUAL_DECAY = 1000; // px/sec**2
 const TRIPLE_JUMP_FOOT_TIME = 0.100;
+const WALL_SLIDE_COVERAGE_MINIMUM = 0.750; // no wall slide if it's just your head or foot against the wall
+const WALL_SLIDE_FORCE_GRAVITY = 50; // px/sec, keep it under this (mind that physics will accelerate it one frame each time)
 
 export class HeroSprite extends Sprite {
   constructor(scene) {
@@ -40,6 +42,7 @@ export class HeroSprite extends Sprite {
     this.walkresidual = 0; // px/sec
     this.walkDuration = 0; // sec, how long have we been walking this direction. Counts when not walking too.
     this.walkHistory = []; // [dx,duration] for the last few (walkdx) states. For triggering dash and such. Reverse chronological order.
+    this.wallSlide = 0; // -1,0,1
     this.jumping = false;
     this.jumpDuration = 0; // For one dimensional jumps (regular and triple).
     this.jumpSequence = 0; // 0,1,2=first,second,third for triple-jump
@@ -47,8 +50,9 @@ export class HeroSprite extends Sprite {
     this.jump2dv = [0, 0];
     this.footState = false; // True if we're on the ground.
     this.footClock = 0; // How long since footState changed.
-    this.animClock = 0;
-    this.animFrame = 0;
+    this.animTime = 0; // Duration of next frame.
+    this.animClock = 0; // Counts down to zero, then adds animTime and increments animFrame.
+    this.animFrame = 0; // Incremented during update, used and reset during render.
     this.ducking = false;
     this.cannonball = false;
     this.reviveX = this.x;
@@ -64,8 +68,7 @@ export class HeroSprite extends Sprite {
     this.jumpAbort();
     this.actionEnd();
     this.walkEnd();
-    this.srcx = 381;
-    this.srcy = 1;
+    this.resetAnimation();
   }
   
   finishDeathCountdown() {
@@ -73,7 +76,7 @@ export class HeroSprite extends Sprite {
     this.x = this.reviveX;
     this.y = this.reviveY;
     this.walkresidual = 0;
-    this.srcx = 262;
+    this.resetAnimation();
     this.scene.physics.warp(this);
     //TODO sound effect
     //TODO fireworks
@@ -172,35 +175,24 @@ export class HeroSprite extends Sprite {
     this.reviveY = this.y;
   }
   
-  /* Animation.
+  /* Animation. Dumb counter, during updates.
+   * Actual face selection happens at render.
    *****************************************************************/
    
   animationUpdate(elapsed) {
-    if ((this.animClock -= elapsed) > 0) return;
-    
-    if (this.ducking) {
-      this.animClock += 0.500;
-      this.srcx = 364;
-    
-    } else if (this.walkdx) {
-      this.animClock += 0.160;
-      if (++(this.animFrame) >= 4) this.animFrame = 0;
-      switch (this.animFrame) {
-        case 0: this.srcx = 296; break;
-        case 1: this.srcx = 313; break;
-        case 2: this.srcx = 330; break;
-        case 3: this.srcx = 313; break;
-      }
-    
-    } else {
-      if (this.srcx === 262) {
-        this.animClock = 0.200;
-        this.srcx = 279;
-      } else {
-        this.animClock = 0.500 + Math.random() * 1.500;
-        this.srcx = 262;
+    if (this.animTime > 0) {
+      this.animClock -= elapsed;
+      if (this.animClock <= 0) {
+        this.animClock += this.animTime;
+        this.animFrame++;
       }
     }
+  }
+  
+  resetAnimation() {
+    this.animClock = 0;
+    this.animTime = 0;
+    this.animFrame = 999;
   }
   
   /* Duck.
@@ -212,7 +204,7 @@ export class HeroSprite extends Sprite {
       this.walkEnd();
     }
     this.ducking = true;
-    this.animClock = 0;
+    this.resetAnimation();
     if (this.scene.physics.measureFreedom(this, 0, 1, 1) >= 1) {
       this.cannonball = true;
     } else {
@@ -221,10 +213,11 @@ export class HeroSprite extends Sprite {
   }
   
   duckEnd() {
+    //TODO If cannonball in progress, force it to continue?
     this.jumpSequencePoison = true;
     this.ducking = false;
     this.cannonball = false;
-    this.animClock = 0;
+    this.resetAnimation();
   }
   
   duckUpdate(elapsed) {
@@ -234,6 +227,7 @@ export class HeroSprite extends Sprite {
   }
   
   executeCannonball() {
+    //TODO verify distance travelled -- no two-pixel cannonballs
     console.log("CANNONBALL!!");
     //TODO check what's under us, break it, etc
   }
@@ -247,8 +241,7 @@ export class HeroSprite extends Sprite {
     if (this.ducking) return;
     if (dx === this.walkdx) return;
     this.jumpSequencePoison = true;
-    this.animClock = 0;
-    this.animFrame = 0;
+    this.resetAnimation();
     this.addWalkHistory();
     if (this.shouldDash(dx)) {
       this.dash(dx);
@@ -261,14 +254,16 @@ export class HeroSprite extends Sprite {
   walkEnd() {
     if (!this.walkdx) return;
     this.jumpSequencePoison = true;
-    this.animClock = 0;
-    this.animFrame = 0;
+    this.resetAnimation();
     this.addWalkHistory();
     this.walkdx = 0;
     this.walkDuration = 0;
   }
   
   walkUpdate(elapsed) {
+  
+    let pvwallSlide = this.wallSlide;
+    this.wallSlide = 0; // until proven otherwise -- see end of function
   
     if (!this.walkdx && (this.walkresidual > 0)) {
       if ((this.walkresidual -= WALK_RESIDUAL_DECAY * elapsed) <= 0) {
@@ -281,7 +276,7 @@ export class HeroSprite extends Sprite {
       this.walkDuration += elapsed;
       return;
     }
-    const WALK_SPEED_NORMAL = 150;
+    const WALK_SPEED_NORMAL = 150;//XXX move constants to top
     const WALK_SPEED_MIN = 20;
     const RAMP_UP_TIME = 0.150;
     let walkSpeed = WALK_SPEED_NORMAL;
@@ -300,6 +295,32 @@ export class HeroSprite extends Sprite {
     }
     if (this.walkdx !== this.walkresidualdx) {
       this.walkresidual = 0;
+    }
+    
+    if (!this.footState) {
+      if ((this.walkdx < 0) && (this.scene.physics.measureFreedom(this, -1, 0, 2) < 2)) {
+        this.x -= this.ph.w;
+        const coverage = this.scene.physics.testSpritePosition(this);
+        this.x += this.ph.w;
+        if (coverage >= WALL_SLIDE_COVERAGE_MINIMUM) {
+          this.wallSlide = -1;
+        }
+      } else if ((this.walkdx > 0) && (this.scene.physics.measureFreedom(this, 1, 0, 2) < 2)) {
+        this.x += this.ph.w;
+        const coverage = this.scene.physics.testSpritePosition(this);
+        this.x -= this.ph.w;
+        if (coverage >= WALL_SLIDE_COVERAGE_MINIMUM) {
+          this.wallSlide = 1;
+        }
+      }
+      if (this.wallSlide !== pvwallSlide) {
+        this.resetAnimation();
+      }
+      if (this.wallSlide) {
+        if (this.ph.gravityRate > WALL_SLIDE_FORCE_GRAVITY) {
+          this.ph.gravityRate = WALL_SLIDE_FORCE_GRAVITY;
+        }
+      }
     }
   }
   
@@ -397,6 +418,7 @@ export class HeroSprite extends Sprite {
     this.jumping = true;
     this.jump2dv[0] = 0;
     this.jump2dv[1] = 0;
+    this.resetAnimation();
     //TODO sound effect -- different per jumpSequence. Plus some visual feedback for jumpSequence 1 and 2.
   }
   
@@ -408,12 +430,14 @@ export class HeroSprite extends Sprite {
     this.duckEnd();
     this.jumpSequencePoison = false; // duckEnd sets it true, but it should be false -- you can double-jump off a long-jump
     this.jumpSequence = 0;
+    this.resetAnimation();
     //TODO sound effect
   }
   
   jumpAbort() {
     if (!this.jumping) return;
     this.jumping = false;
+    this.resetAnimation();
   }
   
   jumpUpdate(elapsed) {
@@ -447,6 +471,7 @@ export class HeroSprite extends Sprite {
     // Abort the jump if we hit the ground.
     if ((this.jumpDuration > 0.100) && (this.ph.y > this.ph.pvy) && (this.scene.physics.measureFreedom(this, 0, 1, 2) < 2)) {
       this.jumping = false;
+      this.resetAnimation();
       return;
     }
     
@@ -481,6 +506,7 @@ export class HeroSprite extends Sprite {
     this.jumpDuration += elapsed;
     if (this.jumpDuration >= limitTime) {
       this.jumping = false;
+      this.resetAnimation();
     } else {
       const speed = ((limitTime - this.jumpDuration) * speedMax) / limitTime;
       this.y -= elapsed * speed;
@@ -512,9 +538,9 @@ export class HeroSprite extends Sprite {
     
     /* Most times carrying an item possessed but not currently in use, it's a second decal behind the first.
      * These are arranged in a uniform row, all the same size.
-     * Don't draw it if ducking, just don't show the item.
+     * Don't draw it if ducking or wall-sliding, just don't show the item.
      */
-    if (!this.ducking) {
+    if (!this.ducking && !this.wallSlide) {
       if (this.scene.game.inventory[this.scene.game.selectedItem]) {
         let idstx = dstx, idsty = dsty + 1;
         if (this.flop) idstx += 11;
@@ -523,6 +549,35 @@ export class HeroSprite extends Sprite {
       }
     }
     
-    context.drawDecal(dstx, dsty, this.srcx, this.srcy, this.vw, this.vh, this.flop);
+    /* Draw a frame for Dot.
+     * Only relevant for the frames of uniform size, top of the decal sheet, just right of the tiles.
+     * TODO Different faces while jumping.
+     */
+    const drawDot = (frameId) => context.drawDecal(dstx, dsty, 262 + frameId * 17, 1, 16, 29, this.flop);
+    if (this.deathCountdown) {
+      drawDot(7);
+    } else if (this.wallSlide) {
+      drawDot(8);
+    } else if (this.ducking) {
+      drawDot(6);
+      
+    } else if (this.walkdx) { // walking. 4 uniform frames
+      if (!this.animTime) this.animTime = this.animClock = 0.250;
+      if (this.animFrame >= 4) this.animFrame = 0;
+      drawDot(2 + this.animFrame);
+
+    } else { // idle. random blinking
+      if (this.animFrame >= 2) {
+        this.animFrame = 0;
+        if (!this.animTime) {
+          this.animClock = this.animTime = 0.500 + Math.random() * 1.500;
+        } else {
+          this.animTime = 0.500 + Math.random() * 1.500;
+        }
+      } else if ((this.animFrame === 1) && (this.animClock > 0.200)) {
+        this.animClock = 0.200;
+      }
+      drawDot(this.animFrame);
+    }
   }
 }

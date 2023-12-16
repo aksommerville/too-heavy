@@ -8,17 +8,11 @@ https://github.com/aksommerville/too-heavy
 
 ## TODO
 
-- By 22 December
-- - [ ] Ensure I have a sane build environment on a laptop before leaving
-- - [x] Try ramping velocity down on stop, it feels too abrupt.
-- - [x] Triple Jump.
-- - [x] Long Jump. (duck+forward+jump, blast forward without much elevation change)
+- 16-17 December: Finish Dot.
+- - [x] Wall Slide.
 - - [ ] Wall Jump.
-- - [ ] Wall Slide.
-- - [ ] Augmented Dash. (jump immediately after dashing, blast off diagonally)
+- - [ ] Augmented Dash. (jump immediately after dashing, blast off diagonally). Maybe not? Long Jump provides this.
 - - [ ] Cannonball.
-- - [ ] Moving platforms.
-- - [ ] Switches.
 - - [ ] Stopwatch. Stop all other sprites.
 - - [ ] Broom. Fly, limited elevation.
 - - [ ] Camera. Save and restore state. But not including switches.
@@ -26,6 +20,10 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Vacuum cleaner. Stick to walls and ceilings.
 - - [ ] Grappling hook.
 - - [ ] Rocket boots.
+- By 22 December
+- - [ ] Ensure I have a sane build environment on a laptop before leaving
+- - [ ] Moving platforms.
+- - [ ] Switches.
 - - [ ] Treasure anti-chests.
 - By 1 January
 - - [ ] Final maps.
