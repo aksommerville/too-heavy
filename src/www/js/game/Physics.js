@@ -42,6 +42,27 @@ export class Physics {
       adjusted: false,
     };
   }
+  
+  /* Return every physics-participating sprite whose top edge is very close to (standee)'s bottom edge.
+   */
+  findFloorSprites(standee) {
+    const floors = [];
+    if (!standee.ph) return floors;
+    standee.ph.x = standee.x + standee.ph.pleft;
+    standee.ph.y = standee.y + standee.ph.ptop;
+    for (const q of this.scene.sprites) {
+      if (!q.ph) continue;
+      if (q === standee) continue;
+      q.ph.x = q.x + q.ph.pleft;
+      q.ph.y = q.y + q.ph.ptop;
+      if (standee.ph.x >= q.ph.x + q.ph.w) continue;
+      if (standee.ph.x + standee.ph.w <= q.ph.x) continue;
+      const distance = Math.abs(standee.ph.y + standee.ph.h - q.ph.y);
+      if (distance >= 2) continue;
+      floors.push(q);
+    }
+    return floors;
+  }
 
   /* How far can (sprite) move in direction (dx,dy) before colliding with something?
    * (limit) is a hint that we can stop looking beyond that magnitude. We might return more.

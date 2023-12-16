@@ -9,11 +9,7 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - 16-17 December: Finish Dot.
-- - [x] Wall Slide.
-- - [x] Wall Jump.
-- - [x] Would it work better to suspend gravity during jumps? We get some oddities like extra bouncing at the end of a jump, if it ends at higher elevation. ...yes, way better
-- - [ ] Augmented Dash. (jump immediately after dashing, blast off diagonally). Maybe not? Long Jump provides this.
-- - [ ] Cannonball.
+- - [x] Cannonball.
 - - [ ] Stopwatch. Stop all other sprites.
 - - [ ] Broom. Fly, limited elevation.
 - - [ ] Camera. Save and restore state. But not including switches.
@@ -22,6 +18,7 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Grappling hook.
 - - [ ] Rocket boots.
 - By 22 December
+- - [ ] Mitigate jitter when climbing a chimney across vertical neighbor maps. (eg in jump lessons)
 - - [ ] Ensure I have a sane build environment on a laptop before leaving
 - - [ ] Moving platforms.
 - - [ ] Switches.

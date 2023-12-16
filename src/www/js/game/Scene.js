@@ -8,9 +8,11 @@ import { Injector } from "../core/Injector.js";
 import { Camera } from "./Camera.js";
 import { Grid } from "./Grid.js";
 import { Sprite } from "./Sprite.js";
-import { HeroSprite } from "./sprites/HeroSprite.js";
 import { Physics } from "./Physics.js";
 import { DataService } from "./DataService.js";
+import { HeroSprite } from "./sprites/HeroSprite.js";
+import { ProximityRevealSprite } from "./sprites/ProximityRevealSprite.js";
+import { BreakableSprite } from "./sprites/BreakableSprite.js";
 
 const TILESIZE = 16;
  
@@ -31,6 +33,12 @@ export class Scene {
     this.camera = new Camera(this);
     this.doors = []; // {x,y,w,h,dstmapid,dstx,dsty} (x,y,w,h) in pixels, (dstx,dsty) in cells.
     this.edgeDoors = []; // {x,y,w,h,dstmapid,offx,offy} all in pixels. we generate a rectangle that goes way offscreen
+    
+    // HeroSprite should set these after it updates each time, for other sprites to observe.
+    this.herox = 0;
+    this.heroy = 0;
+    this.herocol = 0;
+    this.herorow = 0;
   }
   
   update(elapsed, inputState) {
@@ -127,7 +135,8 @@ export class Scene {
             this.sprites.push(hero);
           } break;
         case "sprite": { // X Y SPRITEID [ARGS...]
-            //TODO
+            const sprite = this.createSpriteFromGridCommand(cmd);
+            this.sprites.push(sprite);
           } break;
       }
     }
@@ -138,90 +147,23 @@ export class Scene {
     this.worldw = this.grid.w * TILESIZE;
     this.worldh = this.grid.h * TILESIZE;
   }
-}
-
-Scene.singleton = true;
-
-export class SceneFactory {
-  static getDependencies() {
-    return [Injector, DataService];
-  }
-  constructor(injector, dataService) {
-    this.injector = injector;
-    this.dataService = dataService;
+  
+  createSpriteFromGridCommand(cmd) { // sprite X Y SPRITEID [ARGS...]
+    const col = +cmd[1];
+    const row = +cmd[2];
+    if (isNaN(col) || isNaN(row)) {
+      throw new Error(`Invalid sprite command: ${JSON.stringify(cmd)}`);
+    }
+    const spriteId = cmd[3];
+    switch (spriteId) {
+      // spriteId is the class name and could be resolved dynamically, but don't: That would be a potential security hole.
+      case "ProximityRevealSprite": return new ProximityRevealSprite(this, col, row, cmd.slice(4));
+      case "BreakableSprite": return new BreakableSprite(this, col, row, cmd.slice(4));
+    }
+    throw new Error(`Unknown spriteId ${JSON.stringify(spriteId)}`);
   }
   
-  begin(sceneId) {
-    const scene = this.injector.get(Scene);
-    if (!(scene.grid = this.dataService.getResourceSync("map", sceneId))) throw new Error(`Failed to load map:${sceneId}`);
-    
-    for (const cmd of scene.grid.meta) {
-      switch (cmd[0]) {
-        case "door": { // X Y W H DSTMAPID DSTX DSTY
-            scene.doors.push({
-              x: +cmd[1] * TILESIZE,
-              y: +cmd[2] * TILESIZE,
-              w: +cmd[3] * TILESIZE,
-              h: +cmd[4] * TILESIZE,
-              dstmapid: +cmd[5],
-              dstx: +cmd[6],
-              dsty: +cmd[7],
-            });
-          } break;
-        case "edgedoor": { // EDGE P C DSTMAPID OFFSET
-            let x, y, w=1000, h=1000, offx=0, offy=0;
-            switch (cmd[1]) {
-              case "w": {
-                  x = -1000;
-                  y = +cmd[2] * TILESIZE;
-                  h = +cmd[3] * TILESIZE;
-                  offy = +cmd[5] * TILESIZE;
-                } break;
-              case "e": {
-                  x = this.w * TILESIZE;
-                  y = +cmd[2] * TILESIZE;
-                  h = +cmd[3] * TILESIZE;
-                  offy = +cmd[5] * TILESIZE;
-                } break;
-              case "n": {
-                  y = -1000;
-                  x = +cmd[2] * TILESIZE;
-                  w = +cmd[3] * TILESIZE;
-                  offx = +cmd[5] * TILESIZE;
-                } break;
-              case "s": {
-                  y = this.h * TILESIZE;
-                  x = +cmd[2] * TILESIZE;
-                  w = +cmd[3] * TILESIZE;
-                  offx = +cmd[5] * TILESIZE;
-                } break;
-            }
-            scene.edgeDoors.push({
-              x, y, w, h,
-              dstmapid: +cmd[4],
-              offx, offy,
-            });
-          } break;
-        case "hero": { // X Y
-            //TODO skip if we have a hero carried over from prior scene -- how is that going to work?
-            const hero = new HeroSprite(scene);
-            hero.x = (+cmd[1] + 0.5) * TILESIZE;
-            hero.y = (+cmd[2] + 1) * TILESIZE; // hero's focus point is at the bottom, we happen to know
-            scene.sprites.push(hero);
-          } break;
-        case "sprite": { // X Y SPRITEID [ARGS...]
-            //TODO
-          } break;
-      }
-    }
-    
-    for (const sprite of scene.grid.generateStaticSprites(scene)) {
-      scene.sprites.push(sprite);
-    }
-    scene.worldw = scene.grid.w * TILESIZE;
-    scene.worldh = scene.grid.h * TILESIZE;
-    return scene;
+  sortSpritesForRender() {
+    this.sprites.sort((a, b) => a.layer - b.layer);
   }
 }
-
-SceneFactory.singleton = true;

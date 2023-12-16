@@ -117,6 +117,7 @@ export class Game {
         this.scene.load(1);
       }
       this.scene.update(elapsed, inputState);
+      this.scene.sortSpritesForRender();
     }
   }
   

@@ -9,12 +9,20 @@ import { Sprite } from "../Sprite.js";
 export class AnimateOnceSprite extends Sprite {
   constructor(scene) {
     super(scene);
+    
+    // Whoever creates the sprite should overwrite:
     this.frameDuration = 0.250;
     this.frameCount = 4;
     this.clock = 0;
+    this.dx = 0; // px/sec
+    this.dy = 0;
   }
   
   update(elapsed) {
+  
+    this.x += this.dx * elapsed;
+    this.y += this.dy * elapsed;
+  
     this.clock += elapsed;
     if (this.clock >= this.frameDuration) {
       if (this.frameCount <= 1) {

@@ -9,6 +9,7 @@ import { Physics } from "../Physics.js";
 const JUMP_LIMIT_TIME = [0.300, 0.390, 0.450]; // s, indexed by jumpSequence
 const JUMP_SPEED_MAX = [380, 410, 450]; // px/sec, ''
 const CANNONBALL_SPEED = 100; // px/sec, but gravity does most of it.
+const CANNONBALL_MINIMUM_DISTANCE = 33; // pixels
 const DEATH_COUNTDOWN_TIME = 0.500;
 const DEATH_BLACKOUT_TIME = 0.500;
 const WALK_RESIDUAL_DECAY = 1000; // px/sec**2
@@ -43,6 +44,7 @@ export class HeroSprite extends Sprite {
     this.ph.invmass = 0.5;
     this.ph.edges = false;
     this.ph.role = "fragile";
+    this.layer = 100;
     
     this.pvinput = 0;
     this.walkdx = 0; // -1,0,1
@@ -64,6 +66,7 @@ export class HeroSprite extends Sprite {
     this.animFrame = 0; // Incremented during update, used and reset during render.
     this.ducking = false;
     this.cannonball = false;
+    this.cannonballStartY = 0;
     this.reviveX = this.x;
     this.reviveY = this.y;
     this.deathCountdown = 0;
@@ -89,6 +92,13 @@ export class HeroSprite extends Sprite {
     this.scene.physics.warp(this);
     //TODO sound effect
     //TODO fireworks
+  }
+  
+  reportLocationToScene() {
+    this.scene.herox = this.x;
+    this.scene.heroy = this.y - 12; // not sure why i put her focus point at the feet...
+    this.scene.herox = Math.floor(this.scene.herox / 16);
+    this.scene.heroy = Math.floor(this.scene.heroy / 16);
   }
   
   update(elapsed, inputState) {
@@ -141,6 +151,7 @@ export class HeroSprite extends Sprite {
     this.actionUpdate(elapsed);
     this.animationUpdate(elapsed);
     this.checkEdgeDoors();
+    this.reportLocationToScene();
   }
   
   /* UP: If we're standing in front of a door, travel thru it and return true.
@@ -216,13 +227,13 @@ export class HeroSprite extends Sprite {
     this.resetAnimation();
     if (this.scene.physics.measureFreedom(this, 0, 1, 1) >= 1) {
       this.cannonball = true;
+      this.cannonballStartY = this.y;
     } else {
       this.cannonball = false;
     }
   }
   
   duckEnd() {
-    //TODO If cannonball in progress, force it to continue?
     this.jumpSequencePoison = true;
     this.ducking = false;
     this.cannonball = false;
@@ -236,9 +247,19 @@ export class HeroSprite extends Sprite {
   }
   
   executeCannonball() {
-    //TODO verify distance travelled -- no two-pixel cannonballs
-    console.log("CANNONBALL!!");
-    //TODO check what's under us, break it, etc
+    const distance = this.y - this.cannonballStartY;
+    this.cannonballStartY = this.y;
+    if (distance < CANNONBALL_MINIMUM_DISTANCE) {
+      // Not far enough. No negative feedback or anything. Could be an accidental press of down, ignore it.
+      return;
+    }
+    //TODO sound effect
+    //TODO visual feedback, can we shake the camera?
+    for (const other of this.scene.physics.findFloorSprites(this)) {
+      if (typeof(other.onCannonball) === "function") {
+        other.onCannonball(this, distance);
+      }
+    }
   }
   
   /* Walk.
