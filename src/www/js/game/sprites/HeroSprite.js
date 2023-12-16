@@ -6,17 +6,21 @@ import { InputBtn } from "../../core/InputManager.js";
 import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
 import { Physics } from "../Physics.js";
 
-const JUMP_LIMIT_TIME = [0.600, 0.720, 0.800]; // s, indexed by jumpSequence
-const JUMP_SPEED_MAX = [380, 430, 500]; // px/sec, ''
+const JUMP_LIMIT_TIME = [0.300, 0.390, 0.450]; // s, indexed by jumpSequence
+const JUMP_SPEED_MAX = [380, 410, 450]; // px/sec, ''
 const CANNONBALL_SPEED = 100; // px/sec, but gravity does most of it.
 const DEATH_COUNTDOWN_TIME = 0.500;
 const DEATH_BLACKOUT_TIME = 0.500;
 const WALK_RESIDUAL_DECAY = 1000; // px/sec**2
 const TRIPLE_JUMP_FOOT_TIME = 0.100;
 const LONG_JUMP_VELOCITY_X = 250;
-const LONG_JUMP_VELOCITY_Y = -200;
-const WALL_JUMP_VELOCITY_X = 200;
-const WALL_JUMP_VELOCITY_Y = -250;
+const LONG_JUMP_VELOCITY_Y = -100;
+const LONG_JUMP_DECAY_X = 190;
+const LONG_JUMP_DECAY_Y = 200;
+const WALL_JUMP_VELOCITY_X = 400;
+const WALL_JUMP_VELOCITY_Y = -150;
+const WALL_JUMP_DECAY_X = 900;
+const WALL_JUMP_DECAY_Y = 300;
 const WALL_SLIDE_COVERAGE_MINIMUM = 0.750; // no wall slide if it's just your head or foot against the wall
 const WALL_SLIDE_FORCE_GRAVITY = 50; // px/sec, keep it under this (mind that physics will accelerate it one frame each time)
 
@@ -52,6 +56,7 @@ export class HeroSprite extends Sprite {
     this.jumpSequence = 0; // 0,1,2=first,second,third for triple-jump
     this.jumpSequencePoison = false; // if true, the next jump must be seq 0. (dx changed, or anything else that forces break in triple-jump)
     this.jump2dv = [0, 0];
+    this.jump2decay = [0, 0];
     this.footState = false; // True if we're on the ground.
     this.footClock = 0; // How long since footState changed.
     this.animTime = 0; // Duration of next frame.
@@ -425,6 +430,7 @@ export class HeroSprite extends Sprite {
     
     this.jumpDuration = 0;
     this.jumping = true;
+    this.ph.gravity = false;
     this.jump2dv[0] = 0;
     this.jump2dv[1] = 0;
     this.resetAnimation();
@@ -434,7 +440,10 @@ export class HeroSprite extends Sprite {
   beginWallJump(dx) {
     this.jump2dv[0] = dx * WALL_JUMP_VELOCITY_X;
     this.jump2dv[1] = WALL_JUMP_VELOCITY_Y;
+    this.jump2decay[0] = WALL_JUMP_DECAY_X;
+    this.jump2decay[1] = WALL_JUMP_DECAY_Y;
     this.jumping = true;
+    this.ph.gravity = false;
     this.jumpDuration = 0;
     this.wallSlide = 0;
     this.ducking = false;
@@ -448,7 +457,10 @@ export class HeroSprite extends Sprite {
   beginLongJump(dx) {
     this.jump2dv[0] = dx * LONG_JUMP_VELOCITY_X;
     this.jump2dv[1] = LONG_JUMP_VELOCITY_Y;
+    this.jump2decay[0] = LONG_JUMP_DECAY_X;
+    this.jump2decay[1] = LONG_JUMP_DECAY_Y;
     this.jumping = true;
+    this.ph.gravity = false;
     this.jumpDuration = 0;
     this.duckEnd();
     this.jumpSequencePoison = false; // duckEnd sets it true, but it should be false -- you can double-jump off a long-jump
@@ -460,6 +472,7 @@ export class HeroSprite extends Sprite {
   jumpAbort() {
     if (!this.jumping) return;
     this.jumping = false;
+    this.ph.gravity = true;
     this.resetAnimation();
   }
   
@@ -494,6 +507,7 @@ export class HeroSprite extends Sprite {
     // Abort the jump if we hit the ground.
     if ((this.jumpDuration > 0.100) && (this.ph.y > this.ph.pvy) && (this.scene.physics.measureFreedom(this, 0, 1, 2) < 2)) {
       this.jumping = false;
+      this.ph.gravity = true;
       this.resetAnimation();
       return;
     }
@@ -501,21 +515,24 @@ export class HeroSprite extends Sprite {
     // Two-dimensional jumps.
     if (this.jump2dv[0] || this.jump2dv[1]) {
       if (this.jump2dv[0] < 0) {
-        if ((this.jump2dv[0] += 190 * elapsed) >= 150) {
-          this.walkresidualdx = -1;
-          this.walkresidual = -this.jump2dv[0];
+        if ((this.jump2dv[0] += this.jump2decay[0] * elapsed) >= 0) {
           this.jump2dv[0] = 0;
         }
       } else if (this.jump2dv[0] > 0) {
-        if ((this.jump2dv[0] -= 190 * elapsed) <= -150) {
-          this.walkresidualdx = 1;
-          this.walkresidual = this.jump2dv[0];
+        if ((this.jump2dv[0] -= this.jump2decay[0] * elapsed) <= 0) {
           this.jump2dv[0] = 0;
         }
       }
-      if ((this.jump2dv[1] += 200 * elapsed) >= 0) this.jump2dv[1] = 0; //TODO decay rate
-      if (!this.jump2dv[0] && !this.jump2dv[1]) {
+      if ((this.jump2dv[1] += this.jump2decay[1] * elapsed) >= 0) {
         this.jumping = false;
+        this.ph.gravity = true;
+        if (this.jump2dv[0] < 0) {
+          this.walkresidualdx = -1;
+          this.walkresidual = -this.jump2dv[0];
+        } else if (this.jump2dv[0] > 0) {
+          this.walkresidualdx = 1;
+          this.walkresidual = this.jump2dv[0];
+        }
         return;
       }
       this.x += this.jump2dv[0] * elapsed;
@@ -529,6 +546,7 @@ export class HeroSprite extends Sprite {
     this.jumpDuration += elapsed;
     if (this.jumpDuration >= limitTime) {
       this.jumping = false;
+      this.ph.gravity = true;
       this.resetAnimation();
     } else {
       const speed = ((limitTime - this.jumpDuration) * speedMax) / limitTime;
