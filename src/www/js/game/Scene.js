@@ -64,6 +64,7 @@ export class Scene {
     this.doors = [];
     this.edgeDoors = [];
     this.camera.cutNext = true;
+    this.spawnAtEntranceOnly = false;
     
     /* If we were given a hero sprite, keep it.
      * And if there's also a door (or edgeDoor), adjust the hero's position accordingly.
