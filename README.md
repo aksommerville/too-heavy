@@ -8,17 +8,8 @@ https://github.com/aksommerville/too-heavy
 
 ## TODO
 
-- 16-17 December: Finish Dot.
-- - [x] Cannonball.
-- - [x] Stopwatch. Stop all other sprites.
-- - [x] Broom. Fly, limited elevation.
-- - [x] Camera. Save and restore state. But not including switches.
-- - [x] Umbrella (parachute).
-- - [x] Vacuum cleaner. Stick to walls and ceilings.
-- - [x] Grappling hook.
-- - [x] Rocket boots.
 - By 22 December
-- - [ ] We really need some emergency respawn-in-a-hazardous-place mitigation.
+- - [x] We really need some emergency respawn-in-a-hazardous-place mitigation.
 - - [ ] Eliminate the death face. Explode immediately.
 - - [ ] Mitigate jitter when climbing a chimney across vertical neighbor maps. (eg in jump lessons)
 - - [ ] Oneways in row 1 don't catch when entering from north? See entrance to broom lesson.

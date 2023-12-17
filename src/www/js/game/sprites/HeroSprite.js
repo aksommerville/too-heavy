@@ -15,6 +15,7 @@ const CANNONBALL_SPEED = 100; // px/sec, but gravity does most of it.
 const CANNONBALL_MINIMUM_DISTANCE = 33; // pixels
 const DEATH_COUNTDOWN_TIME = 0.500;
 const DEATH_BLACKOUT_TIME = 0.500;
+const DEATH_EMERGENCY_IMMORTAL_TIME = 2.000;
 const WALK_RESIDUAL_DECAY = 1000; // px/sec**2
 const TRIPLE_JUMP_FOOT_TIME = 0.100;
 const LONG_JUMP_VELOCITY_X = 250;
@@ -88,15 +89,19 @@ export class HeroSprite extends Sprite {
     this.cannonballStartY = 0;
     this.reviveX = this.x;
     this.reviveY = this.y;
+    this.mapEntryX = this.x;
+    this.mapEntryY = this.y;
     this.deathCountdown = 0;
     this.blackout = 0;
     this.itemInProgress = -1;
     this.vacuumDx = 0;
     this.vacuumDy = 0;
     this.dustBunnies = []; // Decoration while vacuuming. [srcx,x,y,dx,dy,ttl] (x,y) relative to sprite
+    this.interactedSinceSpawn = false;
   }
   
   collideHazard(hazard) {
+    if (this.immortalClock > 0) return;
     if (this.deathCountdown) return;
     //TODO Don't do a death face. Explode immediately.
     this.deathCountdown = DEATH_COUNTDOWN_TIME;
@@ -109,11 +114,20 @@ export class HeroSprite extends Sprite {
   
   finishDeathCountdown() {
     this.blackout = DEATH_BLACKOUT_TIME;
-    this.x = this.reviveX;
-    this.y = this.reviveY;
+    if (this.interactedSinceSpawn) {
+      // Normal case: Return to (reviveX, reviveY), should be the last place we stood still on solid ground.
+      this.x = this.reviveX;
+      this.y = this.reviveY;
+    } else {
+      // But if we died without having delived input? Return to wherever we entered the map.
+      this.x = this.mapEntryX;
+      this.y = this.mapEntryY;
+      this.immortalClock = DEATH_EMERGENCY_IMMORTAL_TIME;
+    }
     this.walkresidual = 0;
     this.resetAnimation();
     this.scene.physics.warp(this);
+    this.interactedSinceSpawn = false;
     //TODO sound effect
     //TODO fireworks
   }
@@ -126,6 +140,7 @@ export class HeroSprite extends Sprite {
   }
   
   update(elapsed, inputState) {
+    if ((this.immortalClock -= elapsed) <= 0) this.immortalClock = 0;
     if (this.deathCountdown > 0) {
       if ((this.deathCountdown -= elapsed) <= 0) {
         this.deathCountdown = 0;
@@ -141,6 +156,7 @@ export class HeroSprite extends Sprite {
       }
     }
     if (inputState !== this.pvinput) {
+      this.interactedSinceSpawn = true;
       if ((inputState & InputBtn.DOWN) && !(this.pvinput & InputBtn.DOWN)) {
         this.duckBegin();
       } else if (!(inputState & InputBtn.DOWN) && (this.pvinput & InputBtn.DOWN)) {
@@ -216,8 +232,9 @@ export class HeroSprite extends Sprite {
   }
   
   adjustForNewMap() {
-    this.reviveX = this.x;
-    this.reviveY = this.y;
+    this.reviveX = this.mapEntryX = this.x;
+    this.reviveY = this.mapEntryY = this.y;
+    this.interactedSinceSpawn = false;
   }
   
   /* Animation. Dumb counter, during updates.
