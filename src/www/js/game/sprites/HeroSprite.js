@@ -3,8 +3,9 @@
  
 import { Sprite } from "../Sprite.js";
 import { InputBtn } from "../../core/InputManager.js";
-import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
 import { Physics } from "../Physics.js";
+import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
+import { SelfieSprite } from "./SelfieSprite.js";
 
 const JUMP_LIMIT_TIME = [0.300, 0.390, 0.450]; // s, indexed by jumpSequence
 const JUMP_SPEED_MAX = [380, 410, 450]; // px/sec, ''
@@ -27,6 +28,8 @@ const WALL_SLIDE_FORCE_GRAVITY = 50; // px/sec, keep it under this (mind that ph
 const BROOM_ELEVATION_LIMIT = 16 * 6;
 const BROOM_UP_VELOCITY = -100;
 const BROOM_DOWN_VELOCITY = 200;
+const UMBRELLA_GRAVITY = 40; // px/sec, no acceleration
+const VACUUM_DISTANCE_LIMIT = 120; // pixels
 
 const ITEM_STOPWATCH = 0;
 const ITEM_BROOM = 1;
@@ -85,6 +88,9 @@ export class HeroSprite extends Sprite {
     this.deathCountdown = 0;
     this.blackout = 0;
     this.itemInProgress = -1;
+    this.vacuumDx = 0;
+    this.vacuumDy = 0;
+    this.dustBunnies = []; // Decoration while vacuuming. [srcx,x,y,dx,dy,ttl] (x,y) relative to sprite
   }
   
   collideHazard(hazard) {
@@ -150,7 +156,7 @@ export class HeroSprite extends Sprite {
       if ((inputState & InputBtn.ACTION) && !(this.pvinput & InputBtn.ACTION)) {
         this.actionBegin();
       } else if (!(inputState & InputBtn.ACTION) && (this.pvinput & InputBtn.ACTION)) {
-        this.actionEnd();
+        inputState = this.actionEnd();
       }
       if ((inputState & InputBtn.UP) && !(this.pvinput & InputBtn.UP)) {
         if (this.checkDoors()) {
@@ -283,6 +289,7 @@ export class HeroSprite extends Sprite {
    ************************************************************************/
   
   walkBegin(dx) {
+    if (this.itemInProgress === ITEM_VACUUM) return;
     if (dx<0) this.flop = false;
     else this.flop = true;
     if (this.ducking) return;
@@ -434,6 +441,7 @@ export class HeroSprite extends Sprite {
   jumpBegin() {
   
     if (this.itemInProgress === ITEM_BROOM) return;
+    if (this.itemInProgress === ITEM_VACUUM) return;
   
     if (this.wallSlide) {
       return this.beginWallJump(-this.wallSlide);
@@ -616,16 +624,22 @@ export class HeroSprite extends Sprite {
     }
   }
   
-  actionEnd() {
+  // Returns mangled inputState. A silly hack so item terminators can make us pretend the dpad was off, and re-notice it next update.
+  actionEnd(inputState) {
     switch (this.itemInProgress) {
       case ITEM_STOPWATCH: this.stopwatchEnd(); break;
       case ITEM_BROOM: this.broomEnd(); break;
+      case ITEM_VACUUM: return this.vacuumEnd(inputState);
+      case ITEM_UMBRELLA: this.umbrellaEnd(); break;
     }
+    return inputState;
   }
   
   actionUpdate(elapsed) {
     switch (this.itemInProgress) {
       case ITEM_BROOM: this.broomUpdate(elapsed); break;
+      case ITEM_VACUUM: this.vacuumUpdate(elapsed); break;
+      case ITEM_UMBRELLA: this.umbrellaUpdate(elapsed); break;
     }
   }
   
@@ -678,20 +692,168 @@ export class HeroSprite extends Sprite {
     }
   }
   
-  /* Items TODO
-   ***********************************************************************/
+  /* Camera.
+   **********************************************************************/
    
   cameraBegin() {
+    let selfie = this.scene.sprites.find(s => s instanceof SelfieSprite);
+    if (selfie) {
+      this.x = selfie.x;
+      this.y = selfie.y;
+      this.scene.physics.warp(this);
+      this.scene.removeSprite(selfie);
+      //TODO sound effect "vwwwwwwooop!"
+      return;
+    }
+    selfie = new SelfieSprite(this.scene);
+    this.scene.sprites.push(selfie);
+    selfie.x = this.x;
+    selfie.y = this.y;
+    //TODO sound effect "click!"
   }
   
+  /* Vacuum.
+   ***********************************************************************/
+  
   vacuumBegin() {
+    this.itemInProgress = ITEM_VACUUM;
+    this.jumpAbort();
+    this.ducking = false;
+    this.walkdx = 0;
+    this.vacuumDy = 0;
+    if (this.flop) this.vacuumDx = 1;
+    else this.vacuumDx = -1;
+    this.vacuumUpdate(0); // force a more refined choice of (dx,dy), avoids flicker
+    this.resetDustBunnies();
+    this.resetAnimation();
   }
+  
+  vacuumEnd(inputState) {
+    this.itemInProgress = -1;
+    this.ph.gravity = true;
+    this.resetAnimation();
+    return inputState & ~(InputBtn.LEFT | InputBtn.RIGHT); // if LEFT or RIGHT is held, pretend it's new next update
+  }
+  
+  vacuumUpdate(elapsed) {
+  
+    // Poll input.
+    let ndx = this.vacuumDx, ndy = this.vacuumDy;
+    if (this.pvinput & InputBtn.UP) { ndx = 0; ndy = -1; }
+    else if (this.pvinput & InputBtn.DOWN) { ndx = 0; ndy = 1; }
+    else if (this.pvinput & InputBtn.LEFT) { ndx = -1; ndy = 0; }
+    else if (this.pvinput & InputBtn.RIGHT) { ndx = 1; ndy = 0; }
+    if ((ndx !== this.vacuumDx) || (ndy !== this.vacuumDy)) {
+      if (ndx < 0) this.flop = false;
+      else if (ndx > 0) this.flop = true;
+      this.vacuumDx = ndx;
+      this.vacuumDy = ndy;
+      this.resetDustBunnies();
+    }
+    
+    // Advance dust bunnies.
+    for (const db of this.dustBunnies) {
+      if ((db[5] -= elapsed) <= 0) {
+        this.resetDustBunny(db, true);
+      } else {
+        db[1] += db[3] * elapsed;
+        db[2] += db[4] * elapsed;
+      }
+    }
+    
+    // Attract toward walls.
+    this.ph.gravity = true;
+    const VACUUM_VELOCITY = 500; // Gravity peaks at 300 px/sec; Vacuum must be stronger than that.
+    const freedom = this.scene.physics.measureFreedom(this, this.vacuumDx, this.vacuumDy, VACUUM_DISTANCE_LIMIT);
+    if (freedom < 2) {
+      // Stuck to a wall. If we're oriented horizontally, cancel gravity.
+      this.ph.gravity = false;
+      this.ph.gravityRate = 0;
+      this.x += this.vacuumDx * freedom;
+      this.y += this.vacuumDy * freedom;
+    } else if (freedom < VACUUM_DISTANCE_LIMIT) {
+      // Wall in range. Force drops off with distance squared.
+      const normForce = (1 - (freedom / VACUUM_DISTANCE_LIMIT)) ** 2;
+      const force = VACUUM_VELOCITY * normForce;
+      this.x += this.vacuumDx * force * elapsed;
+      this.y += this.vacuumDy * force * elapsed;
+    }
+  }
+  
+  resetDustBunnies() {
+    const dbCount = 4;
+    this.dustBunnies = [];
+    for (let i=dbCount; i-->0; ) {
+      const db = [0, 0, 0, 0, 0, 0];
+      this.resetDustBunny(db, false);
+      this.dustBunnies.push(db);
+    }
+  }
+  
+  resetDustBunny(db, fullDistance) {
+    const maxTtl = 0.400;
+    const minTtl = 0.100;
+    const maxDistance = 20;
+    const speed = maxDistance / maxTtl;
+    db[0] = 400 + 5 * Math.floor(Math.random() * 4); // srcx
+    db[1] = db[2] = db[3] = db[4] = 0; // x,y,dx,dy
+    db[5] = fullDistance ? maxTtl : (minTtl + Math.random() * (maxTtl - minTtl)); // ttl
+    let t = Math.random() * (Math.PI / 2) - Math.PI / 4; // random angle within 45 degrees of the business direction
+    if (this.vacuumDx > 0) ;
+    else if (this.vacuumDy < 0) t += Math.PI / 2;
+    else if (this.vacuumDx < 0) t += Math.PI;
+    else t -= Math.PI / 2;
+    const distance = (db[5] * maxDistance) / maxTtl;
+    db[3] = Math.cos(t + Math.PI) * speed;
+    db[4] = -Math.sin(t + Math.PI) * speed;
+    db[1] = 0;
+    db[2] = 0;
+    if (this.vacuumDx < 0) {
+      db[2] += this.vh / 2;
+    } else if (this.vacuumDx > 0) {
+      db[1] += this.vw;
+      db[2] += this.vh / 2;
+    } else if (this.vacuumDy < 0) {
+      db[1] += this.vw / 2;
+    } else {
+      db[1] += this.vw / 2;
+      db[2] += this.vh;
+    }
+    db[1] += Math.cos(t) * distance;
+    db[2] += -Math.sin(t) * distance;
+  }
+  
+  /* Items TODO
+   ***********************************************************************/
   
   bellBegin() {
   }
   
+  /* Umbrella: Disable normal gravity and reimplement more gently.
+   *************************************************************************/
+  
   umbrellaBegin() {
+    this.itemInProgress = ITEM_UMBRELLA;
+    this.ducking = false;
+    this.jumping = false;
+    this.ph.gravity = false;
+    this.resetAnimation();
   }
+  
+  umbrellaEnd() {
+    this.itemInProgress = -1;
+    this.ph.gravity = true;
+    this.ph.gravityRate = 0;
+    this.resetAnimation();
+  }
+  
+  umbrellaUpdate(elapsed) {
+    this.y += UMBRELLA_GRAVITY * elapsed;
+    this.ph.gravity = false; // jumping can interfere... just keep falsing it
+  }
+  
+  /* Items TODO
+   **********************************************************************/
   
   bootsBegin() {
   }
@@ -715,6 +877,30 @@ export class HeroSprite extends Sprite {
      */
     if (this.itemInProgress === ITEM_BROOM) {
       context.drawDecal(dstx - 5, dsty, 262, 153, 27, 29, this.flop);
+      return;
+    }
+    
+    /* Ditto vacuum.
+     */
+    if (this.itemInProgress === ITEM_VACUUM) {
+      let srcx = 400;
+      let srcy = 61;
+      if (!this.flop) dstx -= 4;
+      if (this.vacuumDy < 0) srcx = 421;
+      else if (this.vacuumDy > 0) srcx = 442;
+      if (this.ph.gravity) { // Gravity turns off when we attach to a surface. Don't draw dust bunnies during that time.
+        for (const [dbsrcx, dbx, dby] of this.dustBunnies) {
+          context.drawDecal(Math.round(dstx + dbx), Math.round(dsty + dby), dbsrcx, 94, 4, 4, false);
+        }
+      }
+      context.drawDecal(dstx, dsty - 2, srcx, srcy, 20, 32, this.flop);
+      return;
+    }
+    
+    /* Ditto umbrella.
+     */
+    if (this.itemInProgress === ITEM_UMBRELLA) {
+      context.drawDecal(dstx - 2, dsty - 7, 379, 61, 20, 37, this.flop);
       return;
     }
     

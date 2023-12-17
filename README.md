@@ -12,9 +12,9 @@ https://github.com/aksommerville/too-heavy
 - - [x] Cannonball.
 - - [x] Stopwatch. Stop all other sprites.
 - - [x] Broom. Fly, limited elevation.
-- - [ ] Camera. Save and restore state. But not including switches.
-- - [ ] Umbrella (parachute).
-- - [ ] Vacuum cleaner. Stick to walls and ceilings.
+- - [x] Camera. Save and restore state. But not including switches.
+- - [x] Umbrella (parachute).
+- - [x] Vacuum cleaner. Stick to walls and ceilings.
 - - [ ] Grappling hook.
 - - [ ] Rocket boots.
 - By 22 December
@@ -23,7 +23,7 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Oneways in row 1 don't catch when entering from north? See entrance to broom lesson.
 - - [ ] Ensure I have a sane build environment on a laptop before leaving
 - - [ ] Moving platforms.
-- - [ ] Switches.
+- - [ ] Switches. Must reset if you die (see camera lesson)
 - - [ ] Treasure anti-chests.
 - By 1 January
 - - [ ] Final maps.
@@ -34,6 +34,7 @@ https://github.com/aksommerville/too-heavy
 - - - [ ] Forbid using wrong items
 - - - [ ] Static education about broom height limit, it's not obvious.
 - - - [ ] Keep score.
+- - - [ ] Camera: Add switch door, once that's made
 - - [ ] Tutorial 2: The Magic Is In You
 - - - [ ] Forbid using items.
 - - - [ ] Keep score.
