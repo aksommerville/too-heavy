@@ -11,8 +11,8 @@ https://github.com/aksommerville/too-heavy
 - By 22 December
 - - [x] We really need some emergency respawn-in-a-hazardous-place mitigation.
 - - [x] Eliminate the death face. Explode immediately.
-- - [ ] Mitigate jitter when climbing a chimney across vertical neighbor maps. (eg in jump lessons)
-- - [ ] Oneways in row 1 don't catch when entering from north? See entrance to broom lesson.
+- - [x] Mitigate jitter when climbing a chimney across vertical neighbor maps. (eg in jump lessons)
+- - [x] Oneways in row 1 don't catch when entering from north? See entrance to broom lesson.
 - - [ ] Ensure I have a sane build environment on a laptop before leaving
 - - [ ] Moving platforms.
 - - [ ] Switches. Must reset if you die (see camera lesson)

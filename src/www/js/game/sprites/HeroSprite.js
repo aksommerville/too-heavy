@@ -194,14 +194,18 @@ export class HeroSprite extends Sprite {
       if (x >= door.x + door.w) continue;
       if (y >= door.y + door.h) continue;
       this.scene.load(door.dstmapid, this, door);
-      this.adjustForNewMap();
+      this.adjustForNewMap(null);
       return true;
     }
   }
   
   checkEdgeDoors() {
+    // Don't look for edge door unless we've been here some short interval.
+    // Otherwise, especially when fighting gravity, you can get some jitter.
+    // It's safe to let the hero run hundreds of pixels offscreen, in general.
+    if (this.scene.timeSinceLoad < 0.500) return;
     const x = this.x;
-    const y = this.y - 16;
+    const y = this.ph.y + this.ph.h * 0.5;
     if (
       (x >= 0) && (x < this.scene.worldw) &&
       (y >= 0) && (y < this.scene.worldh)
@@ -212,12 +216,19 @@ export class HeroSprite extends Sprite {
       if (x >= door.x + door.w) continue;
       if (y >= door.y + door.h) continue;
       this.scene.load(door.dstmapid, this, door);
-      this.adjustForNewMap();
+      this.adjustForNewMap(door.edge);
       return true;
     }
   }
   
-  adjustForNewMap() {
+  adjustForNewMap(edge) {
+    // If an edge is provided, keep us close to it (mind that it's backward; "edge" is from the door that got us here).
+    switch (edge) {
+      case "n": if (this.y < this.scene.worldh - 8) this.y = this.scene.worldh - 8; break;
+      case "s": if (this.y > 8) this.y = 8; break;
+      case "w": if (this.x < this.scene.worldw - 8) this.x = this.scene.worldw - 8; break;
+      case "e": if (this.x > 8) this.x = 8; break;
+    }
     this.reviveX = this.mapEntryX = this.x;
     this.reviveY = this.mapEntryY = this.y;
     this.interactedSinceSpawn = false;

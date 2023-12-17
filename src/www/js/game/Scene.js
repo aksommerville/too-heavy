@@ -35,6 +35,9 @@ export class Scene {
     this.doors = []; // {x,y,w,h,dstmapid,dstx,dsty} (x,y,w,h) in pixels, (dstx,dsty) in cells.
     this.edgeDoors = []; // {x,y,w,h,dstmapid,offx,offy} all in pixels. we generate a rectangle that goes way offscreen
     this.spawnAtEntranceOnly = false;
+    this.timeSinceLoad = 0;
+    this.worldw = 0;
+    this.worldh = 0;
     
     // HeroSprite should set these after it updates each time, for other sprites to observe.
     this.herox = 0;
@@ -44,6 +47,7 @@ export class Scene {
   }
   
   update(elapsed, inputState) {
+    this.timeSinceLoad += elapsed;
     for (const sprite of this.sprites) {
       if (this.game.timeFrozen && !(sprite instanceof HeroSprite)) continue;
       sprite.update?.(elapsed, inputState);
@@ -65,6 +69,7 @@ export class Scene {
     this.edgeDoors = [];
     this.camera.cutNext = true;
     this.spawnAtEntranceOnly = false;
+    this.timeSinceLoad = 0;
     
     /* If we were given a hero sprite, keep it.
      * And if there's also a door (or edgeDoor), adjust the hero's position accordingly.
