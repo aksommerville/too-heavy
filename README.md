@@ -16,7 +16,7 @@ https://github.com/aksommerville/too-heavy
 - - [x] Umbrella (parachute).
 - - [x] Vacuum cleaner. Stick to walls and ceilings.
 - - [ ] Grappling hook.
-- - [ ] Rocket boots.
+- - [x] Rocket boots.
 - By 22 December
 - - [ ] Eliminate the death face. Explode immediately.
 - - [ ] Mitigate jitter when climbing a chimney across vertical neighbor maps. (eg in jump lessons)

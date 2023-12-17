@@ -6,6 +6,7 @@ import { InputBtn } from "../../core/InputManager.js";
 import { Physics } from "../Physics.js";
 import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
 import { SelfieSprite } from "./SelfieSprite.js";
+import { RaftSprite } from "./RaftSprite.js";
 
 const JUMP_LIMIT_TIME = [0.300, 0.390, 0.450]; // s, indexed by jumpSequence
 const JUMP_SPEED_MAX = [380, 410, 450]; // px/sec, ''
@@ -30,6 +31,7 @@ const BROOM_UP_VELOCITY = -100;
 const BROOM_DOWN_VELOCITY = 200;
 const UMBRELLA_GRAVITY = 40; // px/sec, no acceleration
 const VACUUM_DISTANCE_LIMIT = 120; // pixels
+const BOOTS_VELOCITY = 400;
 
 const ITEM_STOPWATCH = 0;
 const ITEM_BROOM = 1;
@@ -242,6 +244,7 @@ export class HeroSprite extends Sprite {
    
   duckBegin() {
     if (this.itemInProgress === ITEM_BROOM) return;
+    if (this.itemInProgress === ITEM_BOOTS) return;
     this.jumpSequencePoison = true;
     if (this.walkdx) {
       this.walkEnd();
@@ -290,6 +293,7 @@ export class HeroSprite extends Sprite {
   
   walkBegin(dx) {
     if (this.itemInProgress === ITEM_VACUUM) return;
+    if (this.itemInProgress === ITEM_BOOTS) return;
     if (dx<0) this.flop = false;
     else this.flop = true;
     if (this.ducking) return;
@@ -442,6 +446,7 @@ export class HeroSprite extends Sprite {
   
     if (this.itemInProgress === ITEM_BROOM) return;
     if (this.itemInProgress === ITEM_VACUUM) return;
+    if (this.itemInProgress === ITEM_BOOTS) return;
   
     if (this.wallSlide) {
       return this.beginWallJump(-this.wallSlide);
@@ -631,6 +636,8 @@ export class HeroSprite extends Sprite {
       case ITEM_BROOM: this.broomEnd(); break;
       case ITEM_VACUUM: return this.vacuumEnd(inputState);
       case ITEM_UMBRELLA: this.umbrellaEnd(); break;
+      case ITEM_BOOTS: this.bootsEnd(); break;
+      case ITEM_GRAPPLE: return this.grappleEnd(inputState);
     }
     return inputState;
   }
@@ -640,6 +647,8 @@ export class HeroSprite extends Sprite {
       case ITEM_BROOM: this.broomUpdate(elapsed); break;
       case ITEM_VACUUM: this.vacuumUpdate(elapsed); break;
       case ITEM_UMBRELLA: this.umbrellaUpdate(elapsed); break;
+      case ITEM_BOOTS: this.bootsUpdate(elapsed); break;
+      case ITEM_GRAPPLE: this.grappleUpdate(elapsed); break;
     }
   }
   
@@ -823,10 +832,12 @@ export class HeroSprite extends Sprite {
     db[2] += -Math.sin(t) * distance;
   }
   
-  /* Items TODO
+  /* Bell: No effect.
    ***********************************************************************/
   
   bellBegin() {
+    //TODO sound effect
+    //TODO animation
   }
   
   /* Umbrella: Disable normal gravity and reimplement more gently.
@@ -852,16 +863,63 @@ export class HeroSprite extends Sprite {
     this.ph.gravity = false; // jumping can interfere... just keep falsing it
   }
   
-  /* Items TODO
+  /* Rocket Boots.
    **********************************************************************/
   
   bootsBegin() {
+    this.itemInProgress = ITEM_BOOTS;
+    this.jumpAbort();
+    this.duckEnd();
+    this.walkHistory = []; // Prevent triggering a dash by toggling boots (without changing dpad)
+    this.walkEnd();
+    this.ph.gravity = false;
+    this.resetAnimation();
   }
   
+  bootsEnd() {
+    this.itemInProgress = -1;
+    this.ph.gravity = true;
+    this.ph.gravityRate = 0;
+    this.walkHistory = [];
+    this.resetAnimation();
+  }
+  
+  bootsUpdate(elapsed) {
+    if (this.y < -30) return; // Maps with open ceiling, stop at some point for sanity's sake.
+    this.y -= BOOTS_VELOCITY * elapsed;
+    
+    // We've suppressed walking. Take over setting flop from dpad (it's cosmetic only).
+    switch (this.pvinput & (InputBtn.LEFT | InputBtn.RIGHT)) {
+      case InputBtn.LEFT: this.flop = false; break;
+      case InputBtn.RIGHT: this.flop = true; break;
+    }
+  }
+  
+  /* Grappling hook.
+   *******************************************************************/
+  //TODO
   grappleBegin() {
   }
   
+  grappleEnd(inputState) {
+    return inputState;
+  }
+  
+  /* Raft.
+   *********************************************************************/
+
   raftBegin() {
+    // If one already exists, it unceremoniously disappears.
+    this.scene.removeSprite(this.scene.sprites.find(s => s instanceof RaftSprite));
+    // And create a new one.
+    const raft = new RaftSprite(this.scene);
+    if (this.flop) {
+      raft.x = this.x - this.vx + this.vw;
+    } else {
+      raft.x = this.x - this.vw - raft.vw;
+    }
+    raft.y = this.y - raft.vh;
+    this.scene.sprites.push(raft);
   }
   
   /* Render.
@@ -869,10 +927,6 @@ export class HeroSprite extends Sprite {
    
   render(context, dstx, dsty) {
   
-    //TODO Boots need to be a whole new set of images when equipped, i think.
-    //TODO Broom while in use will surely be a whole different thing.
-    //TODO And all the rest.
-    
     /* Riding the broom is its own thing entirely.
      */
     if (this.itemInProgress === ITEM_BROOM) {
@@ -901,6 +955,15 @@ export class HeroSprite extends Sprite {
      */
     if (this.itemInProgress === ITEM_UMBRELLA) {
       context.drawDecal(dstx - 2, dsty - 7, 379, 61, 20, 37, this.flop);
+      return;
+    }
+    
+    /* Ditto boots.
+     */
+    if (this.itemInProgress === ITEM_BOOTS) {
+      if (!this.animTime) this.animTime = this.animClock = 0.125;
+      if (this.animFrame >= 2) this.animFrame = 0;
+      context.drawDecal(dstx, dsty, this.animFrame ? 262 : 279, 183, 16, 33, this.flop);
       return;
     }
     

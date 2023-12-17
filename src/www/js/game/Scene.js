@@ -52,6 +52,7 @@ export class Scene {
   }
   
   removeSprite(sprite) {
+    if (!sprite) return;
     const p = this.sprites.indexOf(sprite);
     if (p < 0) return;
     this.sprites.splice(p, 1);
