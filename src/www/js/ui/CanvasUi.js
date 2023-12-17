@@ -107,10 +107,12 @@ export class CanvasUi {
     const worldBottom = worldBounds.y + worldBounds.h;
     for (const sprite of sprites) {
       const sbounds = sprite.getRenderBounds();
-      if (sbounds.x >= worldRight) continue;
-      if (sbounds.y >= worldBottom) continue;
-      if (sbounds.x + sbounds.w <= worldBounds.x) continue;
-      if (sbounds.y + sbounds.h <= worldBounds.y) continue;
+      if (!sprite.renderAlways) {
+        if (sbounds.x >= worldRight) continue;
+        if (sbounds.y >= worldBottom) continue;
+        if (sbounds.x + sbounds.w <= worldBounds.x) continue;
+        if (sbounds.y + sbounds.h <= worldBounds.y) continue;
+      }
       this.renderSprite(sprite, sbounds.x - worldBounds.x, sbounds.y - worldBounds.y, sbounds);
     }
   }

@@ -6,6 +6,7 @@ import { InputBtn } from "../../core/InputManager.js";
 import { Physics } from "../Physics.js";
 import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
 import { SelfieSprite } from "./SelfieSprite.js";
+import { GrappleSprite } from "./GrappleSprite.js";
 import { RaftSprite } from "./RaftSprite.js";
 
 const JUMP_LIMIT_TIME = [0.300, 0.390, 0.450]; // s, indexed by jumpSequence
@@ -245,6 +246,7 @@ export class HeroSprite extends Sprite {
   duckBegin() {
     if (this.itemInProgress === ITEM_BROOM) return;
     if (this.itemInProgress === ITEM_BOOTS) return;
+    if (this.itemInProgress === ITEM_GRAPPLE) return;
     this.jumpSequencePoison = true;
     if (this.walkdx) {
       this.walkEnd();
@@ -459,7 +461,7 @@ export class HeroSprite extends Sprite {
       // Coyote time. Let her run off a cliff and jump from midair, for just a tiny fraction of a second.
       // Otherwise one feels cheated on pressing the button a frame or two too late.
     }
-    if (this.ducking) {
+    if (this.pvinput & InputBtn.DOWN) { // DOWN button, not (this.ducking) -- these should still work when we have a duck-resistant item in play, eg grapple
       if ((this.pvinput & (InputBtn.LEFT | InputBtn.RIGHT)) === InputBtn.LEFT) {
         this.beginLongJump(-1);
       } else if ((this.pvinput & (InputBtn.LEFT | InputBtn.RIGHT)) === InputBtn.RIGHT) {
@@ -897,12 +899,58 @@ export class HeroSprite extends Sprite {
   
   /* Grappling hook.
    *******************************************************************/
-  //TODO
+
   grappleBegin() {
+    this.duckEnd();
+    // We should not be able to reach this point with the grapple deployed, but if one does exist, kill it.
+    this.scene.removeSprite(this.scene.sprites.find(s => s instanceof GrappleSprite));
+    // Create the grapple and apply initial position and direction.
+    const grapple = new GrappleSprite(this.scene);
+    this.scene.sprites.push(grapple);
+    grapple.x = this.x - this.vx;
+    grapple.y = this.y - this.vy;
+    const [dx, dy] = this.grappleChooseDirection();
+    switch (dx) {
+      case 0: grapple.x += (this.vw >> 1) - (grapple.vw >> 1); break;
+      case 1: grapple.x += this.vw; break;
+    }
+    switch (dy) {
+      case 0: grapple.y += (this.vh >> 1) - (grapple.vh >> 1); break;
+      case 1: grapple.y += this.vh; break;
+    }
+    grapple.setup(this, dx, dy);
+    this.itemInProgress = ITEM_GRAPPLE;
   }
   
   grappleEnd(inputState) {
+    this.itemInProgress = -1;
+    this.scene.removeSprite(this.scene.sprites.find(s => s instanceof GrappleSprite));
+    this.ph.gravityRate = 0; // questionable...
     return inputState;
+  }
+  
+  grappleUpdate(elapsed) {
+    // The GrappleSprite can destroy itself, be sure to react to that accordingly.
+    // GrappleSprite in fact takes care of most of the logic here.
+    const grapple = this.scene.sprites.find(s => s instanceof GrappleSprite);
+    if (!grapple) return this.grappleEnd(this.pvinput);
+  }
+  
+  /* Returns [dx,dy], which direction the grapple should go.
+   * Default is diagonally up in the direction we're facing.
+   * Diagonals can't be produced by the dpad, they can only happen by default (and diagonal down is not possible).
+   */
+  grappleChooseDirection() {
+    switch (this.pvinput & (InputBtn.UP | InputBtn.DOWN)) {
+      case InputBtn.UP: return [0, -1];
+      case InputBtn.DOWN: return [0, 1];
+    }
+    switch (this.pvinput & (InputBtn.LEFT | InputBtn.RIGHT)) {
+      case InputBtn.LEFT: return [-1, 0];
+      case InputBtn.RIGHT: return [1, 0];
+    }
+    if (this.flop) return [1, -1];
+    return [-1, -1];
   }
   
   /* Raft.
@@ -970,13 +1018,16 @@ export class HeroSprite extends Sprite {
     /* Most times carrying an item possessed but not currently in use, it's a second decal behind the first.
      * These are arranged in a uniform row, all the same size.
      * Don't draw it if ducking or wall-sliding, just don't show the item.
+     * Grapple: Use defaults, just don't draw our arm when in use. (GrappleSprite does the fun parts)
      */
     if (!this.ducking && !this.wallSlide) {
-      if (this.scene.game.inventory[this.scene.game.selectedItem]) {
-        let idstx = dstx, idsty = dsty + 1;
-        if (this.flop) idstx += 11;
-        else idstx -= 7;
-        context.drawDecal(idstx, idsty, 262 + this.scene.game.selectedItem * 13, 61, 12, 26, this.flop);
+      if (this.itemInProgress !== ITEM_GRAPPLE) {
+        if (this.scene.game.inventory[this.scene.game.selectedItem]) {
+          let idstx = dstx, idsty = dsty + 1;
+          if (this.flop) idstx += 11;
+          else idstx -= 7;
+          context.drawDecal(idstx, idsty, 262 + this.scene.game.selectedItem * 13, 61, 12, 26, this.flop);
+        }
       }
     }
     
