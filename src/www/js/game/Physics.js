@@ -41,6 +41,7 @@ export class Physics {
       gravityRate: 0,
       adjusted: false,
       restrictHorzCorrection: false, // if true, mass is infinite horizontally
+      restrictVertCorrection: false, // '' vertically
       collisions: null, // set to empty array and we fill each frame with the sprites you collided against
     };
   }
@@ -340,6 +341,18 @@ export class Physics {
         bim = b.ph.invmass;
       }
     }
+    if (dy) {
+      if (a.ph.restrictVertCorrection) aim = 0;
+      if (b.ph.restrictVertCorrection) bim = 0;
+      if (!aim && !bim) { // oh shoot. back out and do it horizontal instead.
+        dy = 0;
+        if (escl <= escr) dx = -escl;
+        else dx = escr;
+        aim = a.ph.invmass;
+        bim = b.ph.invmass;
+      }
+    }
+    if (!aim && !bim) return true;
     const aweight = aim / (aim + bim);
     const bweight = 1 - aweight;
     

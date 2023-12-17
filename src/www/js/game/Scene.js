@@ -14,6 +14,7 @@ import { HeroSprite } from "./sprites/HeroSprite.js";
 import { ProximityRevealSprite } from "./sprites/ProximityRevealSprite.js";
 import { BreakableSprite } from "./sprites/BreakableSprite.js";
 import { CrusherSprite } from "./sprites/CrusherSprite.js";
+import { PlatformSprite } from "./sprites/PlatformSprite.js";
 
 const TILESIZE = 16;
  
@@ -175,6 +176,7 @@ export class Scene {
       case "ProximityRevealSprite": return new ProximityRevealSprite(this, col, row, cmd.slice(4));
       case "BreakableSprite": return new BreakableSprite(this, col, row, cmd.slice(4));
       case "CrusherSprite": return new CrusherSprite(this, col, row, cmd.slice(4));
+      case "PlatformSprite": return new PlatformSprite(this, col, row, cmd.slice(4));
     }
     throw new Error(`Unknown spriteId ${JSON.stringify(spriteId)}`);
   }
