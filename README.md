@@ -11,7 +11,7 @@ https://github.com/aksommerville/too-heavy
 - 16-17 December: Finish Dot.
 - - [x] Cannonball.
 - - [x] Stopwatch. Stop all other sprites.
-- - [ ] Broom. Fly, limited elevation.
+- - [x] Broom. Fly, limited elevation.
 - - [ ] Camera. Save and restore state. But not including switches.
 - - [ ] Umbrella (parachute).
 - - [ ] Vacuum cleaner. Stick to walls and ceilings.
@@ -20,7 +20,7 @@ https://github.com/aksommerville/too-heavy
 - By 22 December
 - - [ ] Eliminate the death face. Explode immediately.
 - - [ ] Mitigate jitter when climbing a chimney across vertical neighbor maps. (eg in jump lessons)
-- - [ ] Oneways in row 1 don't catch when entering from north? See broom lesson.
+- - [ ] Oneways in row 1 don't catch when entering from north? See entrance to broom lesson.
 - - [ ] Ensure I have a sane build environment on a laptop before leaving
 - - [ ] Moving platforms.
 - - [ ] Switches.
@@ -31,7 +31,12 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Sound effects.
 - - [ ] Music.
 - - [ ] Tutorial 1: Playing With Toys
+- - - [ ] Forbid using wrong items
+- - - [ ] Static education about broom height limit, it's not obvious.
+- - - [ ] Keep score.
 - - [ ] Tutorial 2: The Magic Is In You
+- - - [ ] Forbid using items.
+- - - [ ] Keep score.
 - - [ ] Tutorial 3: Admin
 - - [ ] Victory cutscene.
 - - [ ] Itch shows a thick gray margin at the bottom of the framebuffer, about 16 fb pixels.

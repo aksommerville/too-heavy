@@ -24,6 +24,19 @@ const WALL_JUMP_DECAY_X = 900;
 const WALL_JUMP_DECAY_Y = 300;
 const WALL_SLIDE_COVERAGE_MINIMUM = 0.750; // no wall slide if it's just your head or foot against the wall
 const WALL_SLIDE_FORCE_GRAVITY = 50; // px/sec, keep it under this (mind that physics will accelerate it one frame each time)
+const BROOM_ELEVATION_LIMIT = 16 * 6;
+const BROOM_UP_VELOCITY = -100;
+const BROOM_DOWN_VELOCITY = 200;
+
+const ITEM_STOPWATCH = 0;
+const ITEM_BROOM = 1;
+const ITEM_CAMERA = 2;
+const ITEM_VACUUM = 3;
+const ITEM_BELL = 4;
+const ITEM_UMBRELLA = 5;
+const ITEM_BOOTS = 6;
+const ITEM_GRAPPLE = 7;
+const ITEM_RAFT = 8;
 
 export class HeroSprite extends Sprite {
   constructor(scene) {
@@ -161,6 +174,7 @@ export class HeroSprite extends Sprite {
    **************************************************************/
    
   checkDoors() {
+    if (this.itemInProgress === ITEM_BROOM) return false;
     const x = this.x;
     const y = this.y - 16;
     for (const door of this.scene.doors) {
@@ -221,6 +235,7 @@ export class HeroSprite extends Sprite {
    *******************************************************/
    
   duckBegin() {
+    if (this.itemInProgress === ITEM_BROOM) return;
     this.jumpSequencePoison = true;
     if (this.walkdx) {
       this.walkEnd();
@@ -365,6 +380,7 @@ export class HeroSprite extends Sprite {
    **************************************************************************/
   
   shouldDash(dx) {
+    if (this.itemInProgress === ITEM_BROOM) return false;
     if (this.walkHistory.length < 2) return false;
     const prev = this.walkHistory[0];
     const prever = this.walkHistory[1];
@@ -416,6 +432,8 @@ export class HeroSprite extends Sprite {
    **************************************************************************/
   
   jumpBegin() {
+  
+    if (this.itemInProgress === ITEM_BROOM) return;
   
     if (this.wallSlide) {
       return this.beginWallJump(-this.wallSlide);
@@ -500,6 +518,7 @@ export class HeroSprite extends Sprite {
   }
   
   jumpUpdate(elapsed) {
+    if (this.itemInProgress === ITEM_BROOM) return;
     if (this.scene.physics.measureFreedom(this, 0, 1, 2) <= 0) {
       if (!this.walkdx && !this.walkresidual && !this.scene.spawnAtEntranceOnly) { // standing still and grounded -- mark a revive point
         this.reviveX = this.x;
@@ -585,25 +604,29 @@ export class HeroSprite extends Sprite {
       return;
     }
     switch (this.scene.game.selectedItem) {
-      case 0: this.stopwatchBegin(); break;
-      case 1: this.broomBegin(); break;
-      case 2: this.cameraBegin(); break;
-      case 3: this.vacuumBegin(); break;
-      case 4: this.bellBegin(); break;
-      case 5: this.umbrellaBegin(); break;
-      case 6: this.bootsBegin(); break;
-      case 7: this.grappleBegin(); break;
-      case 8: this.raftBegin(); break;
+      case ITEM_STOPWATCH: this.stopwatchBegin(); break;
+      case ITEM_BROOM: this.broomBegin(); break;
+      case ITEM_CAMERA: this.cameraBegin(); break;
+      case ITEM_VACUUM: this.vacuumBegin(); break;
+      case ITEM_BELL: this.bellBegin(); break;
+      case ITEM_UMBRELLA: this.umbrellaBegin(); break;
+      case ITEM_BOOTS: this.bootsBegin(); break;
+      case ITEM_GRAPPLE: this.grappleBegin(); break;
+      case ITEM_RAFT: this.raftBegin(); break;
     }
   }
   
   actionEnd() {
     switch (this.itemInProgress) {
-      case 0: this.stopwatchEnd(); break;
+      case ITEM_STOPWATCH: this.stopwatchEnd(); break;
+      case ITEM_BROOM: this.broomEnd(); break;
     }
   }
   
   actionUpdate(elapsed) {
+    switch (this.itemInProgress) {
+      case ITEM_BROOM: this.broomUpdate(elapsed); break;
+    }
   }
   
   /* Stopwatch. Freeze time while held.
@@ -621,6 +644,64 @@ export class HeroSprite extends Sprite {
     //TODO sound effect
   }
   
+  /* Broom.
+   *************************************************************************/
+   
+  broomBegin() {
+    this.itemInProgress = ITEM_BROOM;
+    this.ducking = false;
+    this.jumping = false;
+  }
+  
+  broomEnd() {
+    this.itemInProgress = -1;
+    this.ph.gravity = true;
+    this.ph.gravityRate = 0;
+  }
+  
+  broomUpdate(elapsed) {
+    const footRoom = this.scene.physics.measureFreedom(this, 0, 1, BROOM_ELEVATION_LIMIT);
+    if (footRoom >= BROOM_ELEVATION_LIMIT) {
+      if (!this.ph.gravity) {
+        this.ph.gravity = true;
+        this.ph.gravityRate = 0;
+      }
+    } else {
+      if (this.ph.gravity) {
+        this.ph.gravity = false;
+      }
+    }
+    
+    switch (this.pvinput & (InputBtn.UP | InputBtn.DOWN)) {
+      case InputBtn.UP: this.y += BROOM_UP_VELOCITY * elapsed; break;
+      case InputBtn.DOWN: this.y += BROOM_DOWN_VELOCITY * elapsed; break;
+    }
+  }
+  
+  /* Items TODO
+   ***********************************************************************/
+   
+  cameraBegin() {
+  }
+  
+  vacuumBegin() {
+  }
+  
+  bellBegin() {
+  }
+  
+  umbrellaBegin() {
+  }
+  
+  bootsBegin() {
+  }
+  
+  grappleBegin() {
+  }
+  
+  raftBegin() {
+  }
+  
   /* Render.
    *************************************************************************/
    
@@ -629,6 +710,13 @@ export class HeroSprite extends Sprite {
     //TODO Boots need to be a whole new set of images when equipped, i think.
     //TODO Broom while in use will surely be a whole different thing.
     //TODO And all the rest.
+    
+    /* Riding the broom is its own thing entirely.
+     */
+    if (this.itemInProgress === ITEM_BROOM) {
+      context.drawDecal(dstx - 5, dsty, 262, 153, 27, 29, this.flop);
+      return;
+    }
     
     /* Most times carrying an item possessed but not currently in use, it's a second decal behind the first.
      * These are arranged in a uniform row, all the same size.
