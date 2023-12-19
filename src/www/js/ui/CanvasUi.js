@@ -14,6 +14,9 @@ export class CanvasUi {
     this.element = element;
     this.game = game;
     
+    // RootUi should set this when configuration is in progress.
+    this.inputConfigurationContext = null;
+    
     this.element.width = 320;
     this.element.height = 160;
     this.context = this.element.getContext("2d");
@@ -72,11 +75,24 @@ export class CanvasUi {
       this.context.globalAlpha = 0.75;
       this.context.fillRect(0, 0, this.element.width, this.element.height);
       this.context.globalAlpha = 1;
+      
       this.context.fillStyle = "#fff";
       this.context.font = "24px sans-serif";
       this.context.textAlign = "center";
-      this.context.textBaseline = "middle";
-      this.context.fillText("Click to resume", this.element.width >> 1, this.element.height >> 1);
+      this.context.textBaseline = "top";
+      this.context.fillText("~ PAUSED ~", this.element.width >> 1, 10);
+      
+      if (this.inputConfigurationContext) {
+        this.context.textBaseline = "center";
+        this.context.fillText(this.inputConfigurationContext.message, this.element.width >> 1, this.element.height >> 1);
+      
+      } else {
+        this.context.font = "12px sans-serif";
+        this.context.textAlign = "left";
+        this.context.textBaseline = "bottom";
+        this.context.fillText("F1 (at any time) to configure input.", 10, this.element.height - 10);
+        this.context.fillText("Click to resume.", 10, this.element.height - 25);
+      }
     }
   }
   

@@ -30,9 +30,10 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Itch shows a thick gray margin at the bottom of the framebuffer, about 16 fb pixels.
 - By 7 January -- game jam submission
 - - [ ] Guess gamepad mapping for unknown devices.
-- - [ ] Persist gamepad and keyboard mapping.
-- - [ ] UI to edit mappings.
+- - [x] Persist gamepad and keyboard mapping.
+- - [x] UI to edit mappings.
 - - [ ] Toggle fullscreen.
 - Stretch goals, or after submission
 - - [ ] Touch input.
 - - [ ] Some way to run without a browser. Electron, or build our own thing?
+- - [ ] What would it take to generate a source map? Kind of painful looking up errors in index.html...
