@@ -121,6 +121,7 @@ export class HeroSprite extends Sprite {
     this.resetAnimation();
     this.scene.physics.warp(this);
     this.interactedSinceSpawn = false;
+    this.scene.clearTransientState();
     //TODO sound effect
     //TODO fireworks
   }
@@ -128,8 +129,8 @@ export class HeroSprite extends Sprite {
   reportLocationToScene() {
     this.scene.herox = this.x;
     this.scene.heroy = this.y - 12; // not sure why i put her focus point at the feet...
-    this.scene.herox = Math.floor(this.scene.herox / 16);
-    this.scene.heroy = Math.floor(this.scene.heroy / 16);
+    this.scene.herocol = Math.floor(this.scene.herox / 16);
+    this.scene.herorow = Math.floor(this.scene.heroy / 16);
   }
   
   update(elapsed, inputState) {

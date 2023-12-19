@@ -24,10 +24,10 @@ export class ProximityRevealSprite extends Sprite {
   }
   
   update(elapsed) {
-    if (this.scene.herox < this.collo) return;
-    if (this.scene.herox > this.colhi) return;
-    if (this.scene.heroy < this.rowlo) return;
-    if (this.scene.heroy > this.rowhi) return;
+    if (this.scene.herocol < this.collo) return;
+    if (this.scene.herocol > this.colhi) return;
+    if (this.scene.herorow < this.rowlo) return;
+    if (this.scene.herorow > this.rowhi) return;
     this.scene.removeSprite(this);
   }
 }

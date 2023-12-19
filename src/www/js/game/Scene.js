@@ -15,6 +15,8 @@ import { ProximityRevealSprite } from "./sprites/ProximityRevealSprite.js";
 import { BreakableSprite } from "./sprites/BreakableSprite.js";
 import { CrusherSprite } from "./sprites/CrusherSprite.js";
 import { PlatformSprite } from "./sprites/PlatformSprite.js";
+import { SwitchSprite } from "./sprites/SwitchSprite.js";
+import { BlockSprite } from "./sprites/BlockSprite.js";
 
 const TILESIZE = 16;
  
@@ -39,6 +41,7 @@ export class Scene {
     this.timeSinceLoad = 0;
     this.worldw = 0;
     this.worldh = 0;
+    this.transientState = {};
     
     // HeroSprite should set these after it updates each time, for other sprites to observe.
     this.herox = 0;
@@ -177,11 +180,31 @@ export class Scene {
       case "BreakableSprite": return new BreakableSprite(this, col, row, cmd.slice(4));
       case "CrusherSprite": return new CrusherSprite(this, col, row, cmd.slice(4));
       case "PlatformSprite": return new PlatformSprite(this, col, row, cmd.slice(4));
+      case "SwitchSprite": return new SwitchSprite(this, col, row, cmd.slice(4));
+      case "BlockSprite": return new BlockSprite(this, col, row, cmd.slice(4));
     }
     throw new Error(`Unknown spriteId ${JSON.stringify(spriteId)}`);
   }
   
   sortSpritesForRender() {
     this.sprites.sort((a, b) => a.layer - b.layer);
+  }
+  
+  deliverTransientState(k, v) {
+    for (const sprite of this.sprites) {
+      if (sprite.onTransientState) sprite.onTransientState(k, v);
+    }
+    this.transientState[k] = v;
+  }
+  
+  clearTransientState() {
+    for (const k of Object.keys(this.transientState)) {
+      const v = this.transientState[k];
+      if (!v) continue; // they all start null, and let's declare all false values equivalent. they're normally boolean.
+      for (const sprite of this.sprites) {
+        if (sprite.onTransientState) sprite.onTransientState(k, false);
+      }
+    }
+    this.transientState = {};
   }
 }
