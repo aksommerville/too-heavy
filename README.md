@@ -11,7 +11,7 @@ https://github.com/aksommerville/too-heavy
 - By 22 December
 - - [ ] Ensure I have a sane build environment on a laptop before leaving
 - - [x] Switches. Must reset if you die (see camera lesson)
-- - [ ] Treasure anti-chests.
+- - [x] Treasure anti-chests.
 - By 1 January
 - - [ ] Final maps.
 - - [ ] Dialogue.

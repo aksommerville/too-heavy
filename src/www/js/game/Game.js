@@ -42,6 +42,7 @@ export class Game {
     this.selectedItem = 4; // 0..9. 4=bell
     this.inventory = [true, true, true, true, true, true, true, true, true]; // indexed by itemid
     this.timeFrozen = false;
+    this.permanentState = {};
   }
   
   /* Returns a Promise that resolves when our content is all loaded and ready to go.
@@ -146,6 +147,15 @@ export class Game {
       this.menu = null;
     }
     controller.dismissing();
+  }
+  
+  setPermanentState(k, v) {
+    if (!k) return;
+    if (this.permanentState[k] === v) return;
+    this.permanentState[k] = v;
+    for (const sprite of this.scene.sprites) {
+      if (sprite.onPermanentState) sprite.onPermanentState(k, v);
+    }
   }
 }
 

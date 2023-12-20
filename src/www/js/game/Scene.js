@@ -17,18 +17,19 @@ import { CrusherSprite } from "./sprites/CrusherSprite.js";
 import { PlatformSprite } from "./sprites/PlatformSprite.js";
 import { SwitchSprite } from "./sprites/SwitchSprite.js";
 import { BlockSprite } from "./sprites/BlockSprite.js";
+import { ChestSprite } from "./sprites/ChestSprite.js";
 
 const TILESIZE = 16;
  
 export class Scene {
   static getDependencies() {
-    return [/*Game,*/ Physics, DataService];
+    return [Physics, DataService];
   }
-  constructor(/*game,*/ physics, dataService) {
-    this.game = null; // owner must provide
+  constructor(physics, dataService) {
     this.physics = physics;
     this.dataService = dataService;
     
+    this.game = null; // owner must provide
     this.physics.scene = this;
     
     this.backgroundColor = "#66bbff";
@@ -74,6 +75,7 @@ export class Scene {
     this.camera.cutNext = true;
     this.spawnAtEntranceOnly = false;
     this.timeSinceLoad = 0;
+    this.transientState = {};
     
     /* If we were given a hero sprite, keep it.
      * And if there's also a door (or edgeDoor), adjust the hero's position accordingly.
@@ -182,6 +184,7 @@ export class Scene {
       case "PlatformSprite": return new PlatformSprite(this, col, row, cmd.slice(4));
       case "SwitchSprite": return new SwitchSprite(this, col, row, cmd.slice(4));
       case "BlockSprite": return new BlockSprite(this, col, row, cmd.slice(4));
+      case "ChestSprite": return new ChestSprite(this, col, row, cmd.slice(4));
     }
     throw new Error(`Unknown spriteId ${JSON.stringify(spriteId)}`);
   }
