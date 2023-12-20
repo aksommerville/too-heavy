@@ -4,6 +4,7 @@
  */
  
 import { Sprite } from "../Sprite.js";
+import { HeroSprite } from "../HeroSprite.js";
 
 const TILESIZE = 16;
 
@@ -44,6 +45,8 @@ export class ChestSprite extends Sprite {
       this.sated = true;
       this.srcy = 217;
       this.scene.game.inventory[this.scene.game.selectedItem] = false;
+      const hero = this.scene.sprites.find(s => s instanceof HeroSprite);
+      if (hero && hero.actionEnd) hero.actionEnd();
       //TODO sound effect
       //TODO other feedback? this event is pretty much the biggest deal we do.
       if (this.permanentStateKey) {

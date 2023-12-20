@@ -9,10 +9,9 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - By 22 December
-- - [ ] Ensure I have a sane build environment on a laptop before leaving
-- - [x] Switches. Must reset if you die (see camera lesson)
-- - [x] Treasure anti-chests.
+- - [x] Ensure I have a sane build environment on a laptop before leaving
 - By 1 January
+- - [x] Chest: Terminate action in progress.
 - - [ ] Final maps.
 - - [ ] Dialogue.
 - - [ ] Sound effects.
@@ -27,7 +26,7 @@ https://github.com/aksommerville/too-heavy
 - - - [ ] Keep score.
 - - [ ] Tutorial 3: Admin
 - - [ ] Victory cutscene.
-- - [ ] Itch shows a thick gray margin at the bottom of the framebuffer, about 16 fb pixels.
+- - [x] Itch shows a thick gray margin at the bottom of the framebuffer, about 16 fb pixels.
 - By 7 January -- game jam submission
 - - [ ] Guess gamepad mapping for unknown devices.
 - - [x] Persist gamepad and keyboard mapping.
