@@ -8,10 +8,7 @@ https://github.com/aksommerville/too-heavy
 
 ## TODO
 
-- By 22 December
-- - [x] Ensure I have a sane build environment on a laptop before leaving
 - By 1 January
-- - [x] Chest: Terminate action in progress.
 - - [ ] Final maps.
 - - [ ] Dialogue.
 - - [ ] Sound effects.
@@ -26,11 +23,8 @@ https://github.com/aksommerville/too-heavy
 - - - [ ] Keep score.
 - - [ ] Tutorial 3: Admin
 - - [ ] Victory cutscene.
-- - [x] Itch shows a thick gray margin at the bottom of the framebuffer, about 16 fb pixels.
 - By 7 January -- game jam submission
 - - [ ] Guess gamepad mapping for unknown devices.
-- - [x] Persist gamepad and keyboard mapping.
-- - [x] UI to edit mappings.
 - - [ ] Toggle fullscreen.
 - Stretch goals, or after submission
 - - [ ] Touch input.

@@ -43,3 +43,12 @@ edgedoor n 0 20 9 0
 edgedoor n 26 5 10 -26
 hero 29 26
 sprite 8 6 PlatformSprite 80 0 pencil
+sprite 2 22 FlagSprite chest2
+sprite 43 16 FlagSprite chest3
+sprite 43 22 FlagSprite chest4
+sprite 3 11 FlagSprite chest5
+sprite 43 11 FlagSprite chest6
+sprite 0 4 FlagSprite chest7
+sprite 43 5 FlagSprite chest8
+sprite 8 4 FlagSprite chest9
+sprite 28 4 FlagSprite chest10

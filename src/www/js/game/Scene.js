@@ -185,6 +185,7 @@ export class Scene {
       case "SwitchSprite": return new SwitchSprite(this, col, row, cmd.slice(4));
       case "BlockSprite": return new BlockSprite(this, col, row, cmd.slice(4));
       case "ChestSprite": return new ChestSprite(this, col, row, cmd.slice(4));
+      case "FlagSprite": return new FlagSprite(this, col, row, cmd.slice(4));
     }
     throw new Error(`Unknown spriteId ${JSON.stringify(spriteId)}`);
   }
