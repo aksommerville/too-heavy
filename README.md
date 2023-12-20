@@ -9,6 +9,10 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - By 1 January
+- - [ ] Shuffle chest graphics so its body doesn't move when flopping.
+- - [ ] Eyes and dialogue for chest.
+- - [ ] Skinny spikes don't look sharp.
+- - [ ] Crusher kills you from the platform end, if you touch a wall while rising. (it shouldn't)
 - - [ ] Final maps.
 - - [ ] Dialogue.
 - - [ ] Sound effects.

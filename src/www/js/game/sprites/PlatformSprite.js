@@ -16,6 +16,7 @@ export class PlatformSprite extends Sprite {
     this.ph.gravity = false;
     this.ph.collisions = [];
     this.ph.invmass = 0.001;
+    this.ph.edges = true;
     this.x = Math.round((col + 0.5) * TILESIZE);
     this.y = Math.round((row + 0.5) * TILESIZE);
     this.dx = +args[0] || 0;

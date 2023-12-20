@@ -34,7 +34,7 @@ door 12 27 2 2 201 3 9
 door 6 27 2 2 301 3 9
 edgedoor w 14 10 2 -14
 edgedoor e 13 5 3 -11
-edgedoor e 19 5 4 -17
+edgedoor e 19 5 4 13
 edgedoor w 8 5 5 -8
 edgedoor e 8 5 6 -8
 edgedoor w 0 6 7 0
