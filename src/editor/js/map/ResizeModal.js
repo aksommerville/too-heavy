@@ -19,6 +19,7 @@ export class ResizeModal {
     this.pvh = 0;
     
     this.buildUi();
+    this.element.querySelector("input[name='w']").focus();
   }
   
   setup(w, h) {
@@ -65,5 +66,6 @@ export class ResizeModal {
     const h = +this.element.querySelector("input[name='h']").value;
     const anchor = +this.element.querySelector("input[name='anchor']:checked").value;
     this.onCommit(w, h, anchor);
+    this.dom.dismissModalByController(this);
   }
 }
