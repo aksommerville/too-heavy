@@ -31,6 +31,7 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Guess gamepad mapping for unknown devices.
 - - [ ] Toggle fullscreen.
 - Stretch goals, or after submission
+- - [ ] Clean up and improve minification. eg maps could probably reduce to 5/8 if we switch to a binary format and base64 it.
 - - [ ] Touch input.
 - - [ ] Some way to run without a browser. Electron, or build our own thing?
 - - [ ] What would it take to generate a source map? Kind of painful looking up errors in index.html...

@@ -5,13 +5,14 @@
 const fs = require("fs");
 const minifyJavascript = require("./minifyJavascript.js");
 
-const RESTYPES = ["image", "map"];
+const RESTYPES = ["image", "map", "song"];
 
 const exename = process.argv[1] || "mkhtml.js";
 let dstpath = null;
 let htmlpath = null;
 const images = []; // sparse, keyed by id
 const maps = []; // ''
+const songs = []; // ''
 let scripts = []; // contiguous
 
 // => [tid,rid]
@@ -50,6 +51,7 @@ for (let argi=2; argi<process.argv.length; argi++) {
     switch (tid) {
       case "image": images[rid] = serial; break;
       case "map": maps[rid] = serial; break;
+      case "song": songs[rid] = serial; break;
       case "js": scripts.push(digestScript(arg, serial)); break;
       case "html": {
           if (htmlpath) throw new Error(`${exename}: Multiple HTML inputs (${htmlpath}, ${arg}). Should have exactly one.`);
@@ -84,6 +86,28 @@ while (scripts.length) {
 }
 scripts = orderedScripts;
 
+/* Produce a block of HTML encoding these resources, for sparse arrays indexed by rid.
+ * (tid) is the type name for encoding, and always influences formatting.
+ */
+function emitResources(resv, tid) {
+  let dst = "";
+  let encode;
+  switch (tid) {
+    // Images are special, they encode a bit different from anything else:
+    case "image": encode = (rid, serial) => `<img data-rid="${rid}" style="display:none" src="data:image/png;base64,${serial.toString("base64")}"/>\n`; break;
+    // Maps encode generically, but as plain text, no point base64ing them:
+    case "map": encode = (rid, serial) => `<th-res data-tid="${tid}" data-rid="${rid}" style="display:none">\n${serial.toString("utf8")}\n</th-res>\n`; break;
+    // Everything else (eg song), encode generically and base64 the payload:
+    default: encode = (rid, serial) => `<th-res data-tid="${tid}" data-rid="${rid}" style="display:none">\n${serial.toString("base64")}\n</th-res>\n`; break;
+  }
+  for (let rid=1; rid<resv.length; rid++) {
+    const serial = resv[rid];
+    if (!serial) continue;
+    dst += encode(rid, serial);
+  }
+  return dst;
+}
+
 /* Run through index.html linewise. Delete and insert things in places we magically know about.
  */
 const htmlTemplate = fs.readFileSync(htmlpath);
@@ -96,16 +120,9 @@ for (let srcp=0, lineno=1; srcp<htmlTemplate.length; lineno++) {
   if (!line) continue;
   
   if (line.startsWith("<script")) {
-    for (let rid=1; rid<images.length; rid++) {
-      const image = images[rid];
-      if (!image) continue;
-      dsthtml += `<img data-rid="${rid}" style="display:none" src="data:image/png;base64,${image.toString("base64")}"/>\n`;
-    }
-    for (let rid=1; rid<maps.length; rid++) {
-      const map = maps[rid];
-      if (!map) continue;
-      dsthtml += `<th-res data-tid="map" data-rid="${rid}" style="display:none">\n${map.toString("utf8")}\n</th-res>\n`;
-    }
+    dsthtml += emitResources(images, "image");
+    dsthtml += emitResources(maps, "map");
+    dsthtml += emitResources(songs, "song");
     dsthtml += line + "\n";
     dsthtml += "const TILESIZE = 16;\n"; // poor planning on my part. fix this eventually, TODO
     for (const { src } of scripts) {
