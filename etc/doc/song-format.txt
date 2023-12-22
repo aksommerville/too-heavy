@@ -1,0 +1,29 @@
+Too Heavy Song Format
+
+It's not crazy to read MIDI files directly at runtime, but I choose not to.
+That would require us to handle multiple concurrent tracks, and we wouldn't know a note's duration when it starts.
+
+Songs will be converted automatically during assembly of index.html, from standard MIDI.
+See etc/tool/mkhtml.js and etc/tool/reencodeSong.js.
+
+Some quirks re MIDI:
+ - A Set Tempo Meta event is required at time zero, and forbidden at all other times.
+ - - We'll default to 500 ms/qnote if unset.
+ - Channel 10 is expected to be drums. We encode those with no channel, and no duration per note.
+ - Except for channel 10, we ignore MIDI channel numbers and instead produce a channel ID per MTrk chunk.
+ - All Program Change and Control Change are ignored. (and also really everything that isn't Note On / Note Off).
+ - We trim leading and trailing space. Ensure that your last note extends to the end of the song exactly.
+
+3-byte header:
+  u8 tempo, ms/tick. Zero illegal.
+  u8 startp. <3 illegal. Position in this chunk where the song begins initially.
+  u8 loopp. <startp illegal. Position in this chunk to return to at the end. Zero legal, that means don't repeat.
+
+Followed by events, distinguishable from high bits of the leading byte.
+
+0nnnnnnn : DELAY (n) ticks, zero illegal.
+100ccnnn nnnnvvvv dddddddd : NOTE (n)=MIDI note ID, (c)=channel, (v)=velocity(4 bits), (d)=duration(ticks)
+101vvvvv nnnnnnnn : DRUM (v)=velocity (n)=MIDI note ID (8 bits, we're free to use the upper 128 if we pick some way to identify them in the MIDI file).
+110xxxxx : RESERVED, illegal
+111xxxxx : RESERVED, illegal
+00000000 : EOF. In case we need to pad output or something.

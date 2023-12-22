@@ -4,6 +4,7 @@
  
 const fs = require("fs");
 const minifyJavascript = require("./minifyJavascript.js");
+const reencodeSong = require("./reencodeSong.js");
 
 const RESTYPES = ["image", "map", "song"];
 
@@ -51,7 +52,7 @@ for (let argi=2; argi<process.argv.length; argi++) {
     switch (tid) {
       case "image": images[rid] = serial; break;
       case "map": maps[rid] = serial; break;
-      case "song": songs[rid] = serial; break;
+      case "song": songs[rid] = reencodeSong(serial, arg); break;
       case "js": scripts.push(digestScript(arg, serial)); break;
       case "html": {
           if (htmlpath) throw new Error(`${exename}: Multiple HTML inputs (${htmlpath}, ${arg}). Should have exactly one.`);

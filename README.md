@@ -31,7 +31,11 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Guess gamepad mapping for unknown devices.
 - - [ ] Toggle fullscreen.
 - Stretch goals, or after submission
-- - [ ] Clean up and improve minification. eg maps could probably reduce to 5/8 if we switch to a binary format and base64 it.
+- - [ ] Clean up and improve minification.
+- - - [ ] Maps could probably reduce to 5/8 if we switch to a binary format and base64 it. Would we benefit from RLE or some other very simple compression? Row filtering?
+- - - [ ] Plenty of opportunity to eliminate whitespace in JS, inline constants, shorten private identifiers, etc. Or should we use an existing tool? They'll do it better.
+- - - [ ] Eliminate unused space from the image.
+- - - [x] Reformat songs so runtime doesn't need multiple tracks.
 - - [ ] Touch input.
 - - [ ] Some way to run without a browser. Electron, or build our own thing?
 - - [ ] What would it take to generate a source map? Kind of painful looking up errors in index.html...
