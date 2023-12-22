@@ -20,6 +20,13 @@ export class AudioManager {
     this.songTempo = 0; // s/tick
     this.songLastEventTime = 0; // sec, from context
     this.poller = null;
+    
+    this.oscillatorTypeByChid = [
+      "sine",
+      "sawtooth",
+      "sine",
+      "sine",
+    ];
   }
   
   /* This must be done after the first user interaction, we can't do it at construction.
@@ -78,15 +85,15 @@ export class AudioManager {
     const frequency = 440 * 2 ** ((noteid - 0x45) / 12);
     const oscillatorOptions = {
       frequency,
-      type: "sine",
+      type: this.oscillatorTypeByChid[chid & 3],
     };
     const oscillator = new OscillatorNode(this.context, oscillatorOptions);
     oscillator.start();
     const attackLevel = 0.250;
     const sustainLevel = 0.100;
-    const attackTime = 0.050;
-    const decayTime = 0.100;
-    const releaseTime = 0.200;
+    const attackTime = 0.030;
+    const decayTime = 0.080;
+    const releaseTime = 0.400;
     const gainNode = new GainNode(this.context);
     gainNode.gain.value = 0;
     gainNode.gain.setValueAtTime(0, when);

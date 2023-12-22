@@ -312,11 +312,11 @@ function encodeOutput(midi) {
       append(delay);
     }
     now = event.time;
-    if (event.chid === 10) {
+    if (event.channel === 10) {
       append(0xa0 | (event.velocity >> 2));
       append(event.noteid);
     } else {
-      append(0x80 | (event.chid << 3) | (event.noteid >> 4));
+      append(0x80 | (event.channel << 3) | (event.noteid >> 4));
       append((event.noteid << 4) | (event.velocity >> 3));
       append(event.duration);
     }
