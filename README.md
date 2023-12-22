@@ -17,6 +17,8 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Dialogue.
 - - [ ] Sound effects.
 - - [ ] Music.
+- - - [ ] Instrument voices.
+- - - [ ] Repair song end times -- last note must extend to the exact end.
 - - [ ] Tutorial 1: Playing With Toys
 - - - [ ] Forbid using wrong items
 - - - [ ] Static education about broom height limit, it's not obvious.

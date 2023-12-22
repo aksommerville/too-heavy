@@ -8,6 +8,7 @@ import { InputManager, InputBtn } from "../core/InputManager.js";
 import { DataService } from "./DataService.js";
 import { PauseMenu } from "./menu/PauseMenu.js";
 import { Injector } from "../core/Injector.js";
+import { AudioManager } from "../core/AudioManager.js";
  
 /* The ideal update timing is 16.666 ms.
  * High-frequency monitors may run considerably shorter, and we should skip frames to accomodate, instead of burning the CPU.
@@ -19,14 +20,15 @@ const MAXIMUM_UPDATE_TIME_MS = 25;
  
 export class Game {
   static getDependencies() {
-    return [Window, Scene, InputManager, DataService, Injector];
+    return [Window, Scene, InputManager, DataService, Injector, AudioManager];
   }
-  constructor(window, scene, inputManager, dataService, injector) {
+  constructor(window, scene, inputManager, dataService, injector, audioManager) {
     this.window = window;
     this.scene = scene;
     this.inputManager = inputManager;
     this.dataService = dataService;
     this.injector = injector;
+    this.audioManager = audioManager;
     
     this.render = () => {}; // RootUi should set.
     
@@ -56,6 +58,7 @@ export class Game {
         this.graphics = this.dataService.getResourceSync("image", 1);
         this.loaded = true;
         this.paused = true;
+        this.audioManager.playSong(this.dataService.getResourceSync("song", 1));
       }).catch(e => {
         this.loadFailure = e;
         throw e;
@@ -65,6 +68,7 @@ export class Game {
   pause() {
     if (!this.loaded) return;
     if (this.paused) return;
+    this.audioManager.stop();
     this.paused = true;
     if (this.pendingAnimationFrame) {
       this.window.cancelAnimationFrame(this.pendingAnimationFrame);
@@ -76,6 +80,7 @@ export class Game {
   resume() {
     if (!this.loaded) return;
     if (!this.paused) return;
+    this.audioManager.reset();
     this.paused = false;
     this.lastFrameTime = this.window.Date.now();
     this.pendingAnimationFrame = this.window.requestAnimationFrame(() => this.update());

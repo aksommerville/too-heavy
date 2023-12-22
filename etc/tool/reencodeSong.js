@@ -243,6 +243,9 @@ function calculateFinalTiming(midi) {
    * Find the longest duration.
    * And it can be zero, i guess, if a song is empty or all drums.
    */
+  /* OK actually... Trying to calculate the longest acceptable tick length led to some high choices that ended up screwing up timing.
+   * Just force it to 5 ms.
+   *
   let longestDurationMs = midi.events.reduce((a, v) => ((a > v.duration) ? a : v.duration), 0) * 1000;
   let ticklenMs = longestDurationMs ? Math.ceil((1000 * 255) / longestDurationMs) : 50;
   if (ticklenMs < 1) {
@@ -250,6 +253,8 @@ function calculateFinalTiming(midi) {
   } else if (ticklenMs > 0xff) {
     ticklenMs = 0xff;
   }
+  /**/
+  ticklenMs = 5;
   // umm. yeah. let's go with that.
   midi.ticklen = ticklenMs;
   for (const event of midi.events) {
@@ -263,7 +268,12 @@ function calculateFinalTiming(midi) {
   
   // A little extra fix up: Sort by time (should be redundant, but rounding, who knows), and drop any delay from the first note.
   midi.events.sort((a, b) => a.time - b.time);
-  midi.events[0].time = 0;
+  if (midi.events[0].time > 0) {
+    const rm = midi.events[0].time;
+    for (const event of midi.events) {
+      event.time -= rm;
+    }
+  }
 }
 
 /* With (events) finalized, generate the final output in our format.
@@ -301,6 +311,7 @@ function encodeOutput(midi) {
     if (delay > 0) {
       append(delay);
     }
+    now = event.time;
     if (event.chid === 10) {
       append(0xa0 | (event.velocity >> 2));
       append(event.noteid);
