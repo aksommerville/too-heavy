@@ -9,17 +9,18 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - By 1 January
-- - [ ] Shuffle chest graphics so its body doesn't move when flopping.
+- - [x] Shuffle chest graphics so its body doesn't move when flopping.
 - - [ ] Eyes and dialogue for chest.
 - - [ ] Skinny spikes don't look sharp.
 - - [ ] Crusher kills you from the platform end, if you touch a wall while rising. (it shouldn't)
+- - [ ] Dash while stopwatched -- Must allow the dash decoration to proceed and terminate.
 - - [ ] Final maps.
 - - [ ] Dialogue.
 - - [ ] Sound effects.
 - - [ ] Music.
 - - - [x] Instrument voices. ...not overthinking this ;)
 - - - [ ] Repair song end times -- last note must extend to the exact end.
-- - - [ ] What's in the box has tracks reversed. 0 should be bass and 1 lead
+- - - [x] What's in the box has tracks reversed. 0 should be bass and 1 lead
 - - [ ] Tutorial 1: Playing With Toys
 - - - [ ] Forbid using wrong items
 - - - [ ] Static education about broom height limit, it's not obvious.

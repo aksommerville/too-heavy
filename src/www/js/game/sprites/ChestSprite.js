@@ -11,11 +11,11 @@ const TILESIZE = 16;
 export class ChestSprite extends Sprite {
   constructor(scene, col, row, args) {
     super(scene);
-    this.x = col * TILESIZE;
+    this.x = col * TILESIZE - 3;
     this.y = (row + 1) * TILESIZE - 69;
     this.srcx = 262;
     this.srcy = 287; // 287=OPEN 217=CLOSED
-    this.vw = 93;
+    this.vw = 102;
     this.vh = 69;
     this.permanentStateKey = args[0] || "";
     this.sated = false;
