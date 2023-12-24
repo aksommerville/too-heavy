@@ -10,10 +10,14 @@ https://github.com/aksommerville/too-heavy
 
 - By 1 January
 - - [x] Shuffle chest graphics so its body doesn't move when flopping.
-- - [ ] Eyes and dialogue for chest.
-- - [ ] Skinny spikes don't look sharp.
+- - [ ] Dialogue for chest. "FEED ME" or "THANKS FOR THE {whatever}}"
+- - [x] Skinny spikes don't look sharp.
 - - [ ] Crusher kills you from the platform end, if you touch a wall while rising. (it shouldn't)
 - - [ ] Dash while stopwatched -- Must allow the dash decoration to proceed and terminate.
+- - [ ] Both Toy School and the real challenges, it's too hard to get back home after completing. Warp back?
+- - [ ] Revist respawn. Prevent accidentally walking offscreen right after, prevent excessive auto-death.
+- - - I think the set-a-respawn-point when standing still logic has to go.
+- - - [ ] Try this: Respawn always at the entry point, and allow movement fast but prevent doors from working for a second or so
 - - [ ] Final maps.
 - - [ ] Dialogue.
 - - [ ] Sound effects.

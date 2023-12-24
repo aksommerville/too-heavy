@@ -7,6 +7,9 @@ import { Sprite } from "../Sprite.js";
 import { HeroSprite } from "../HeroSprite.js";
 
 const TILESIZE = 16;
+const BLINK_TIME_CLOSED = 0.200;
+const BLINK_TIME_MIN = 2.000;
+const BLINK_TIME_MAX = 4.000;
 
 export class ChestSprite extends Sprite {
   constructor(scene, col, row, args) {
@@ -19,6 +22,7 @@ export class ChestSprite extends Sprite {
     this.vh = 69;
     this.permanentStateKey = args[0] || "";
     this.sated = false;
+    this.blinkClock = BLINK_TIME_MAX;
     
     if (this.permanentStateKey) {
       if (this.scene.game.permanentState[this.permanentStateKey]) {
@@ -29,15 +33,9 @@ export class ChestSprite extends Sprite {
   }
   
   update(elapsed) {
-    // Turn to face the hero, as chests do.
-    if (this.scene.herox < this.x) {
-      if (this.flop) {
-        this.flop = false;
-      }
-    } else if (this.scene.herox > this.x + this.vw) {
-      if (!this.flop) {
-        this.flop = true;
-      }
+
+    if ((this.blinkClock -= elapsed) < 0) {
+      this.blinkClock = BLINK_TIME_MIN + Math.random() * (BLINK_TIME_MAX - BLINK_TIME_MIN);
     }
     
     // If we're not sated yet, and the hero is in our bounds and has an item equipped, eat it.
@@ -75,6 +73,34 @@ export class ChestSprite extends Sprite {
         if (!this.sated) return;
         this.sated = false;
         this.srcy = 287;
+      }
+    }
+  }
+
+  checkFlop() {
+    // Turn to face the hero, as chests do.
+    // Do this at render instead of update, to ensure the first frame comes out right.
+    if (this.scene.herox < this.x) {
+      if (this.flop) {
+        this.flop = false;
+      }
+    } else if (this.scene.herox > this.x + this.vw) {
+      if (!this.flop) {
+        this.flop = true;
+      }
+    }
+  }
+
+  render(context, dstx, dsty) {
+    this.checkFlop();
+    context.drawDecal(dstx, dsty, this.srcx, this.srcy, this.vw, this.vh, this.flop);
+    if (this.sated) {
+      let srcy = 138;
+      if (this.blinkClock <= BLINK_TIME_CLOSED) srcy = 151;
+      if (this.flop) {
+        context.drawDecal(dstx + this.vw - 29 - 21, dsty + 7, 327, srcy, 21, 12, true);
+      } else {
+        context.drawDecal(dstx + 29, dsty + 7, 327, srcy, 21, 12, false);
       }
     }
   }
