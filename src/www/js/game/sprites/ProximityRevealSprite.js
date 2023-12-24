@@ -21,6 +21,7 @@ export class ProximityRevealSprite extends Sprite {
     this.srcx = 262;
     this.srcy = 88;
     this.layer = 10;
+    this.timeless = true;
   }
   
   update(elapsed) {

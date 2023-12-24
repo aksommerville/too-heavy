@@ -9,6 +9,7 @@ import { Sprite } from "../Sprite.js";
 export class AnimateOnceSprite extends Sprite {
   constructor(scene) {
     super(scene);
+    this.timeless = true;
     
     // Whoever creates the sprite should overwrite:
     this.frameDuration = 0.250;

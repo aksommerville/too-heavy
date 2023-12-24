@@ -66,6 +66,7 @@ export class HeroSprite extends Sprite {
     this.ph.edges = false;
     this.ph.role = "fragile";
     this.layer = 100;
+    this.timeless = true;
     
     this.pvinput = 0;
     this.walkdx = 0; // -1,0,1

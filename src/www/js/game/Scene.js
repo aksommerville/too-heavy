@@ -54,7 +54,7 @@ export class Scene {
   update(elapsed, inputState) {
     this.timeSinceLoad += elapsed;
     for (const sprite of this.sprites) {
-      if (this.game.timeFrozen && !(sprite instanceof HeroSprite)) continue;
+      if (this.game.timeFrozen && !sprite.timeless) continue;
       sprite.update?.(elapsed, inputState);
     }
     this.physics.update(elapsed);

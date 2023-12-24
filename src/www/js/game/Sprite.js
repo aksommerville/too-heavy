@@ -17,6 +17,7 @@ export class Sprite {
     this.ph = null; // Extra data used by Physics. Null if the sprite is purely decorative.
     this.layer = 90; // Higher renders later, ie on top. Hero belongs at 100.
     this.renderAlways = false; // true if you want render() called even when offscreen, if you know something we don't.
+    this.timeless = false; // true if you should continue updating while the stopwatch is held.
   }
   
   /* Total output coverage {x,y,w,h} in world pixels.

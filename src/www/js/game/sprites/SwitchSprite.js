@@ -17,6 +17,7 @@ export class SwitchSprite extends Sprite {
     this.vw = 16;
     this.vh = 6;
     this.layer = 50;
+    this.timeless = true;
     this.pressState = false; // is she standing on me right now?
     this.value = false; // same as pressState for treadles; the sticky value for stompboxes.
     this.mode = args[0] || "treadle";

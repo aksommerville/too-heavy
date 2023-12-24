@@ -20,6 +20,7 @@ export class SoulballsSprite extends Sprite {
     this.frame = 0;
     this.frameClock = 0;
     this.t0 = 0;
+    this.timeless = true;
   }
   
   update(elapsed) {
