@@ -9,11 +9,8 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - By 1 January
-- - [x] Shuffle chest graphics so its body doesn't move when flopping.
 - - [ ] Dialogue for chest. "FEED ME" or "THANKS FOR THE {whatever}}"
-- - [x] Skinny spikes don't look sharp.
 - - [ ] Crusher kills you from the platform end, if you touch a wall while rising. (it shouldn't)
-- - [x] Dash while stopwatched -- Must allow the dash decoration to proceed and terminate.
 - - [ ] Stopwatch: Sound effect at transitions, and some visual feedback while running.
 - - [ ] Both Toy School and the real challenges, it's too hard to get back home after completing. Warp back?
 - - [ ] Revist respawn. Prevent accidentally walking offscreen right after, prevent excessive auto-death.
@@ -22,13 +19,36 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Final maps.
 - - [ ] Dialogue.
 - - [ ] Sound effects.
-- - [x] Music.
-- - - [x] Instrument voices. ...not overthinking this ;)
-- - - [x] Repair song end times -- last note must extend to the exact end.
-- - - - We have a different error. I think it's looping after the start of the final note, not waiting for it to complete.
-- - - - [x] Respect EOT instead. Repair both songs in midevil, and update the encoder to emit a final delay-until-EOT.
-- - - [x] What's in the box has tracks reversed. 0 should be bass and 1 lead
-- - - [x] Extra notes play after resuming from a hard pause.
+- - - [x] Jump
+- - - [x] Double-jump
+- - - [x] Triple-jump
+- - - [x] Long jump
+- - - [x] Wall jump
+- - - [x] Down jump
+- - - [x] Dash
+- - - [x] Die
+- - - [x] Land: Maybe multiple sounds, per landing force?
+- - - [ ] Switch on
+- - - [ ] Switch off
+- - - [x] Footstep? ...no
+- - - [ ] Bell
+- - - [ ] Stopwatch: ongoing "tick tick tick"
+- - - [ ] Camera snap
+- - - [ ] Camera teleport
+- - - [ ] Vacuum: ongoing "whrrrrr"
+- - - [ ] Can we add a "thunk" and then low-passed "whrrrr" when the vacuum reaches an edge and locks?
+- - - [ ] Umbrella deploy
+- - - [ ] Umbrella retract
+- - - [ ] Boots: Ongoing "flrggggggh"
+- - - [ ] Grapple throw
+- - - [ ] Grapple catch
+- - - [ ] Lifeboat deploy
+- - - [ ] Deliver item
+- - - [ ] Pause
+- - - [ ] Resume
+- - - [ ] UI motion
+- - - [ ] Cannonball noop
+- - - [ ] Cannonball crash
 - - [ ] Tutorial 1: Playing With Toys
 - - - [ ] Forbid using wrong items
 - - - [ ] Static education about broom height limit, it's not obvious.
@@ -44,6 +64,7 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Toggle fullscreen.
 - Stretch goals, or after submission
 - - [ ] More interesting song voices.
+- - [ ] Capture and playback of sound effects, rather than synthesizing from scratch each time.
 - - [ ] Clean up and improve minification.
 - - - [ ] Maps could probably reduce to 5/8 if we switch to a binary format and base64 it. Would we benefit from RLE or some other very simple compression? Row filtering?
 - - - [ ] Plenty of opportunity to eliminate whitespace in JS, inline constants, shorten private identifiers, etc. Or should we use an existing tool? They'll do it better.

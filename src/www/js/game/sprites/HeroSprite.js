@@ -123,7 +123,7 @@ export class HeroSprite extends Sprite {
     this.scene.physics.warp(this);
     this.interactedSinceSpawn = false;
     this.scene.clearTransientState();
-    //TODO sound effect
+    this.sound("die");
     //TODO fireworks
   }
   
@@ -434,12 +434,12 @@ export class HeroSprite extends Sprite {
       this.x -= DASH_DISTANCE * dx;
       const freedom = this.scene.physics.measureFreedom(this, dx, 0, DASH_DISTANCE);
       if (freedom <= 0) {
-        //TODO sound effect for dash rejection
+        this.sound("dashReject");
         return;
       }
       this.x += dx * freedom;
     }
-    //TODO sound effect
+    this.sound("dash");
     const fireworks = new AnimateOnceSprite(this.scene);
     this.scene.sprites.push(fireworks);
     if (this.flop) {
@@ -484,6 +484,7 @@ export class HeroSprite extends Sprite {
         this.beginLongJump(1);
       } else if (this.scene.physics.bypassOneWays(this)) {
         // Duck jumped thru oneway.
+        this.sound("jumpDown");
       } else {
         // Other duck jump -- should we do something?
       }
@@ -500,13 +501,19 @@ export class HeroSprite extends Sprite {
       this.jumpSequence = 0;
     }
     
+    switch (this.jumpSequence) {
+      case 0: this.sound("jump0"); break;
+      case 1: this.sound("jump1"); break;
+      case 2: this.sound("jump2"); break;
+    }
+    
     this.jumpDuration = 0;
     this.jumping = true;
     this.ph.gravity = false;
     this.jump2dv[0] = 0;
     this.jump2dv[1] = 0;
     this.resetAnimation();
-    //TODO sound effect -- different per jumpSequence. Plus some visual feedback for jumpSequence 1 and 2.
+    //TODO Visual feedback for jumpSequence 1 and 2.
   }
   
   beginWallJump(dx) {
@@ -523,7 +530,7 @@ export class HeroSprite extends Sprite {
     this.jumpSequencePoison = false;
     this.jumpSequence = 0;
     this.resetAnimation();
-    //TODO sound effect
+    this.sound("jumpWall");
   }
   
   beginLongJump(dx) {
@@ -538,7 +545,7 @@ export class HeroSprite extends Sprite {
     this.jumpSequencePoison = false; // duckEnd sets it true, but it should be false -- you can double-jump off a long-jump
     this.jumpSequence = 0;
     this.resetAnimation();
-    //TODO sound effect
+    this.sound("jumpLong");
   }
   
   jumpAbort() {
@@ -556,6 +563,7 @@ export class HeroSprite extends Sprite {
         this.reviveY = this.y;
       }
       if (!this.footState) {
+        if (this.footClock >= 0.100) this.sound("land");
         this.footState = true;
         this.footClock = 0;
         if (this.cannonball) {

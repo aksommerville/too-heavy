@@ -78,6 +78,48 @@ export class AudioManager {
     }
   }
   
+  soundEffect(sfxid) {
+    switch (sfxid) {
+      case "jump0": return this.beginSynthSound([
+          { f: [300, 0.300,600], l: [0.0, 0.080,1, 0.070,0.200, 0.150,0], mod: 1, range: [0, 0.300,3] },
+        ], 0.300);
+      case "jump1": return this.beginSynthSound([
+          { f: [450, 0.500,900], l: [0.0, 0.080,1, 0.070,0.200, 0.300,0], mod: 1, range: [0, 0.450,3] },
+        ], 0.400);
+      case "jump2": return this.beginSynthSound([
+          { f: 600, l: [0, 0.060,1, 0.090,0.200, 1.0,0], mod: 1, range: [0, 0.100,2, 1.0,0] },
+          { f: [600, 0.050,900], l: [0, 0.100,0.100, 1.0,0], mod: 1, range: [0, 0.100,2, 1.0,0] },
+          { f: [600, 0.050,1200], l: [0, 0.100,0.200, 1.0,0], mod: 1, range: [0, 0.100,2, 1.0,0] },
+          { f: [300, 0.750,600], l: [0, 0.090,0.200, 0.500,0] },
+        ], 0.300);
+      case "jumpWall": return this.beginSynthSound([
+          { f: [450, 0.200,500, 0.200,600], l: [0, 0.100,1, 0.100,0.200, 0.200,0], mod: 0.5, range: [2, 0.400,0] },
+        ], 0.250);
+      case "jumpLong": return this.beginSynthSound([
+          { f: [300, 0.200,1200, 0.500,600], l: [0, 0.100,1, 0.100,0.200, 0.500,0] },
+        ], 0.300);
+      case "jumpDown": return this.beginSynthSound([
+          { f: [600, 0.500,300], l: [0, 0.120,1, 0.080,0.250, 0.200,0] },
+        ], 0.300);
+      case "dash": return this.beginSynthSound([
+          { f: [600, 1.000,150], l: [0, 0.060,1, 0.060,0, 0.080,0.500, 0.080,0, 0.100,0.200,0.100,0, 0.150,0.100,0.150,0] },
+        ], 0.400);
+      case "dashReject": return this.beginSynthSound([
+          { f: 150, l: [0, 0.120,1, 0.100,0.200, 0.280,0], mod: 0.5, range: 3 },
+        ], 0.250);
+      case "die": return this.beginSynthSound([
+          { 
+            f: 200,       l: [0, 0.070,1, 0.060,0, 0.080,0.5, 0.080,0, 0.100,0.25, 0.150,0],
+            mod: 0.5, range: [0, 0.070,3, 0.060,0, 0.080,2.0, 0.080,0, 0.100,1.00, 0.150,0],
+          },
+        ], 0.300);
+      case "land": return this.beginSynthSound([
+          { f: [100, 0.250,40], l: [0, 0.050,1, 0.050,0.080, 0.200,0], mod: 1.1, range: [4, 0.250,1] },
+        ], 0.100);
+      default: console.log(`TODO AudioManager.soundEffect ${sfxid}`);
+    }
+  }
+  
   playNote(chid, noteid, velocity, dur, when) {
     if (!this.context) return;
     if (!when) when = this.context.currentTime;
@@ -88,8 +130,9 @@ export class AudioManager {
     };
     const oscillator = new OscillatorNode(this.context, oscillatorOptions);
     oscillator.start();
-    const attackLevel = 0.250;
-    const sustainLevel = 0.100;
+    const master = 0.200; // <-- overall music level here
+    const attackLevel = master;
+    const sustainLevel = master * 0.250;
     const attackTime = 0.030;
     const decayTime = 0.080;
     const releaseTime = 0.400;
@@ -111,7 +154,8 @@ export class AudioManager {
   playSound(noteid, velocity, when) {
     if (!this.context) return;
     if (!when) when = this.context.currentTime;
-    //TODO
+    //TODO. This was going to be for drums, but neither of our songs uses drums.
+    // I ended up not using any system of numbered sound effects, so if we do want this eventually, it will take some work setting that up.
   }
           
 /* ----- client shouldn't need anything below ----- */
@@ -213,6 +257,140 @@ export class AudioManager {
           return this.endSong();
         }
     }
+  }
+  
+  /* (voices) is an array of:
+   * {
+   *   f: Frequency, hz. Scalar or envelope.
+   *   l: Level envelope: [LEVEL0, DELAY1,LEVEL1, ..., DELAYN,LEVELN] Should begin and end with zero.
+   *   mod: Modulator rate, relative to carrier. Scalar only.
+   *   range: Modulator range, scalar or envelope.
+   * }
+   */
+  beginSynthSound(voices, trim) {
+    if (!this.context) return;
+    if ((voices || []).length < 1) return;
+    const when = this.context.currentTime;
+    const master = new GainNode(this.context);
+    master.gain.value = trim || 1;
+    let voiceCount = voices.length;
+    let endTime = 0;
+    let signaller = null;
+    
+    for (const voice of voices) {
+      const production = this.audioNodeForVoice(voice, when);
+      if (!production) continue;
+      production.node.connect(master);
+      if (!signaller) signaller = production.signaller;
+      if (production.endTime > endTime) endTime = production.endTime;
+    }
+    
+    if (signaller) {
+      signaller.stop(endTime);
+      signaller.onended = () => {
+        master.disconnect();
+      };
+    } else {
+      console.log(`!!! no signaller for sound effect. discarding`);
+      return;
+    }
+    master.connect(this.context.destination);
+  }
+  
+  /* => { node, signaller, endTime } | null
+   */
+  audioNodeForVoice(voice, when, onended) {
+    if (!voice) return null;
+    let oscillator = null;
+    if (voice.mod && voice.range) {
+      oscillator = this.fmOscillatorForVoice(voice, when);
+    } else if (voice.f instanceof Array) {
+      oscillator = this.slidingOscillatorForVoice(voice, when);
+    } else if (voice.f) {
+      oscillator = this.flatOscillatorForVoice(voice, when);
+    }
+    if (!oscillator) return null;
+    const master = this.gainNodeForVoice(voice, when);
+    oscillator.connect(master);
+    return { node: master, signaller: oscillator, endTime: when + this.calculateEndTimeForVoice(voice) };
+  }
+  
+  calculateEndTimeForVoice(voice) {
+    let endTime = 0;
+    for (let i=1; i<voice.l.length; i+=2) endTime += voice.l[i];
+    return endTime;
+  }
+  
+  fmOscillatorForVoice(voice, when) {
+    const carrier = new OscillatorNode(this.context, {
+      type: "sine",
+      frequency: (typeof(voice.f) === "number") ? voice.f : voice.f[0],
+    });
+    const modulator = new OscillatorNode(this.context, {
+      type: "sine",
+      frequency: carrier.frequency.value * voice.mod,
+    });
+    const modGain = new GainNode(this.context);
+    //TODO I don't get why we have to multiply range by frequency. It's definitely wrong, since we're only using the initial frequency.
+    // Not going to obsess over that... If it sounds OK, it's OK.
+    modGain.gain.value = ((typeof(voice.range) === "number") ? voice.range : voice.range[0]) * carrier.frequency.value;
+    modulator.connect(modGain);
+    modGain.connect(carrier.frequency);
+    
+    if (voice.f instanceof Array) {
+      for (let i=1, t=when; i<voice.f.length; i+=2) {
+        t += voice.f[i];
+        carrier.frequency.linearRampToValueAtTime(voice.f[i+1], t);
+        modulator.frequency.linearRampToValueAtTime(voice.f[i+1] * voice.mod, t);
+      }
+    }
+    
+    if (voice.range instanceof Array) {
+      for (let i=1, t=when; i<voice.range.length; i+=2) {
+        t += voice.range[i];
+        modGain.gain.linearRampToValueAtTime(voice.range[i+1] * carrier.frequency.value, t);
+      }
+    }
+    
+    carrier.start();
+    modulator.start();
+    return carrier;
+  }
+  
+  slidingOscillatorForVoice(voice, when) {
+    const options = {
+      frequency: voice.f[0],
+      type: "sine",
+    };
+    const node = new OscillatorNode(this.context, options);
+    for (let i=1, t=when; i<voice.f.length; i+=2) {
+      t += voice.f[i];
+      node.frequency.linearRampToValueAtTime(voice.f[i+1], t);
+    }
+    node.start();
+    return node;
+  }
+  
+  flatOscillatorForVoice(voice, when) {
+    const options = {
+      frequency: voice.f,
+      type: "sine",
+    };
+    const node = new OscillatorNode(this.context, options);
+    node.start();
+    return node;
+  }
+  
+  gainNodeForVoice(voice, when) {
+    const node = new GainNode(this.context);
+    node.gain.value = voice.l[0];
+    node.gain.setValueAtTime(voice.l[0], when);
+    let endTime = when;
+    for (let i=1; i<voice.l.length; i+=2) {
+      endTime += voice.l[i];
+      node.gain.linearRampToValueAtTime(voice.l[i+1], endTime);
+    }
+    return node;
   }
 }
 
