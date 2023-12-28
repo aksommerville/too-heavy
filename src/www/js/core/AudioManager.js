@@ -20,6 +20,7 @@ export class AudioManager {
     this.songTempo = 0; // s/tick
     this.songLastEventTime = 0; // sec, from context
     this.poller = null;
+    this.noise = null;
     
     this.oscillatorTypeByChid = [
       "sine",
@@ -116,6 +117,57 @@ export class AudioManager {
       case "land": return this.beginSynthSound([
           { f: [100, 0.250,40], l: [0, 0.050,1, 0.050,0.080, 0.200,0], mod: 1.1, range: [4, 0.250,1] },
         ], 0.100);
+      case "switchOn": return this.beginSynthSound([
+          { f: [160, 0.130,80], l: [0, 0.030,1, 0.100,0 ], mod: 1, range: [0, 0.130,2] },
+        ], 0.300);
+      case "switchOff": return this.beginSynthSound([
+          { f: [80, 0.160,160], l: [0, 0.030,1, 0.130,0 ], mod: 1, range: 2 },
+        ], 0.300);
+      case "deliverItem": return this.beginSynthSound([
+          {
+            f: [600, 0.600,600, 0.020,800],
+            l: [0,
+              0.120,0.900, 0.200,0.125, 0.080,0,
+              0.060,0.750, 0.100,0.100, 0.040,0,
+              0.070,1.000, 0.150,0.200, 0.400,0,
+            ],
+            mod: 2,
+            range: [0,
+              0.120,0.900, 0.280,0,
+              0.060,0.750, 0.140,0,
+              0.070,1.000, 0.550,0,
+            ],
+          },
+          {
+            f: [755, 0.600,755, 0.020,1200],
+            l: [0,
+              0.120,0.900, 0.200,0.125, 0.080,0,
+              0.060,0.750, 0.100,0.100, 0.040,0,
+              0.070,1.000, 0.150,0.200, 0.400,0,
+            ],
+            mod: 2,
+            range: 1,
+          },
+        ], 0.350);
+      case "pause": return this.beginSynthSound([
+          { f: [700, 0.300,600, 0.300,600], l: [0, 0.100,1, 0.80,0.300, 0.620,0], mod:0.5, range:1 },
+        ], 0.200);
+      case "resume": return this.beginSynthSound([
+          { f: [600, 0.300,700, 0.300,700], l: [0, 0.100,1, 0.80,0.300, 0.620,0], mod:0.5, range:1 },
+        ], 0.200);
+      case "uiMotion": return this.beginSynthSound([
+          { f: 1000, l: [0, 0.040,1, 0.080,0.125, 0.150,0], mod: 2, range: [3, 0.270,0] },
+        ], 0.125);
+      case "cannonballBreak": return this.beginSynthSound([
+          { f: [400, 0.000,400, 1.000,200], l: [0, 0.000,0, 0.100,1.000, 0.100,0.125, 0.775,0], mod: 1, range: [0, 2,3] },
+          { f: [420, 0.070,420, 1.000,200], l: [0, 0.070,0, 0.100,0.800, 0.100,0.100, 0.775,0], mod: 1, range: [0, 2,3] },
+          { f: [450, 0.140,450, 1.000,200], l: [0, 0.140,0, 0.100,0.600, 0.100,0.080, 0.775,0], mod: 1, range: [0, 2,3] },
+          { f: [500, 0.210,500, 1.000,200], l: [0, 0.210,0, 0.100,0.400, 0.100,0.060, 0.775,0], mod: 1, range: [0, 2,3] },
+          { f: [600, 0.280,600, 1.000,200], l: [0, 0.280,0, 0.100,0.200, 0.100,0.040, 0.775,0], mod: 1, range: [0, 2,3] },
+        ], 0.500);
+      case "cannonballNoop": return this.beginSynthSound([
+          { f: [300, 1.000,100], l: [0, 0.100,1, 0.100,0.125, 0.775,0], mod: 0.25, range: [2, 1,1] },
+        ], 0.200);
       default: console.log(`TODO AudioManager.soundEffect ${sfxid}`);
     }
   }
@@ -184,6 +236,11 @@ export class AudioManager {
         this.warnedAboutNotSupported = true;
       }
       return false;
+    }
+    if (!this.noise) {
+      this.noise = new AudioBuffer({ length: 10000, sampleRate: this.context.sampleRate });
+      const noiseRaw = this.noise.getChannelData(0);
+      for (let i=noiseRaw.length; i-->0; ) noiseRaw[i] = Math.random() * 2 - 1;
     }
     return true;
   }
@@ -261,10 +318,14 @@ export class AudioManager {
   
   /* (voices) is an array of:
    * {
+   * TUNED VOICES:
    *   f: Frequency, hz. Scalar or envelope.
-   *   l: Level envelope: [LEVEL0, DELAY1,LEVEL1, ..., DELAYN,LEVELN] Should begin and end with zero.
    *   mod: Modulator rate, relative to carrier. Scalar only.
    *   range: Modulator range, scalar or envelope.
+   * NOISE VOICES:
+   *   shape: "noise",
+   * ALL:
+   *   l: Level envelope: [LEVEL0, DELAY1,LEVEL1, ..., DELAYN,LEVELN] Should begin and end with zero.
    * }
    */
   beginSynthSound(voices, trim) {
@@ -302,7 +363,9 @@ export class AudioManager {
   audioNodeForVoice(voice, when, onended) {
     if (!voice) return null;
     let oscillator = null;
-    if (voice.mod && voice.range) {
+    if (voice.shape === "noise") {
+      oscillator = this.noiseOscillatorForVoice(voice, when);
+    } else if (voice.mod && voice.range) {
       oscillator = this.fmOscillatorForVoice(voice, when);
     } else if (voice.f instanceof Array) {
       oscillator = this.slidingOscillatorForVoice(voice, when);
@@ -319,6 +382,12 @@ export class AudioManager {
     let endTime = 0;
     for (let i=1; i<voice.l.length; i+=2) endTime += voice.l[i];
     return endTime;
+  }
+  
+  noiseOscillatorForVoice(voice, when) {
+    const node = new AudioBufferSourceNode(this.context, { buffer: this.noise, loop: true, loopEnd: 9999 });
+    node.start();
+    return node;
   }
   
   fmOscillatorForVoice(voice, when) {

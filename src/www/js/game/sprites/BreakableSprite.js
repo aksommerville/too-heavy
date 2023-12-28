@@ -28,6 +28,7 @@ export class BreakableSprite extends Sprite {
   }
   
   onCannonball(hero, distance) {
+    this.sound("cannonballBreak");
     this.scene.removeSprite(this);
     const midx = this.x + this.vw * 0.5;
     const midy = this.y + this.vh * 0.5;
@@ -56,5 +57,6 @@ export class BreakableSprite extends Sprite {
         case 7: fragment.srcx = 360; fragment.srcy = 100; fragment.vw = 4; fragment.vh = 1; break;
       }
     }
+    return true;
   }
 }

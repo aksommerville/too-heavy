@@ -28,8 +28,8 @@ https://github.com/aksommerville/too-heavy
 - - - [x] Dash
 - - - [x] Die
 - - - [x] Land: Maybe multiple sounds, per landing force?
-- - - [ ] Switch on
-- - - [ ] Switch off
+- - - [x] Switch on
+- - - [x] Switch off
 - - - [x] Footstep? ...no
 - - - [ ] Bell
 - - - [ ] Stopwatch: ongoing "tick tick tick"
@@ -43,12 +43,12 @@ https://github.com/aksommerville/too-heavy
 - - - [ ] Grapple throw
 - - - [ ] Grapple catch
 - - - [ ] Lifeboat deploy
-- - - [ ] Deliver item
-- - - [ ] Pause
-- - - [ ] Resume
-- - - [ ] UI motion
-- - - [ ] Cannonball noop
-- - - [ ] Cannonball crash
+- - - [x] Deliver item
+- - - [x] Pause
+- - - [x] Resume
+- - - [x] UI motion
+- - - [x] Cannonball noop
+- - - [x] Cannonball crash
 - - [ ] Tutorial 1: Playing With Toys
 - - - [ ] Forbid using wrong items
 - - - [ ] Static education about broom height limit, it's not obvious.
@@ -59,6 +59,8 @@ https://github.com/aksommerville/too-heavy
 - - - [ ] Keep score.
 - - [ ] Tutorial 3: Admin
 - - [ ] Victory cutscene.
+- - [ ] Can vacuum onto hazards safely -- should kill you.
+- - [ ] Cannonball isn't happening if you enter from the top with it already started. (visually right, but only getting the "land" sound). eg end of jump lessons.
 - By 7 January -- game jam submission
 - - [ ] Guess gamepad mapping for unknown devices.
 - - [ ] Toggle fullscreen.

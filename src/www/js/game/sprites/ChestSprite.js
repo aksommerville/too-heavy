@@ -45,7 +45,7 @@ export class ChestSprite extends Sprite {
       this.scene.game.inventory[this.scene.game.selectedItem] = false;
       const hero = this.scene.sprites.find(s => s instanceof HeroSprite);
       if (hero && hero.actionEnd) hero.actionEnd();
-      //TODO sound effect
+      this.sound("deliverItem");
       //TODO other feedback? this event is pretty much the biggest deal we do.
       if (this.permanentStateKey) {
         this.scene.game.setPermanentState(this.permanentStateKey, true);

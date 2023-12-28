@@ -58,7 +58,7 @@ export class Game {
         this.graphics = this.dataService.getResourceSync("image", 1);
         this.loaded = true;
         this.paused = true;
-        this.audioManager.playSong(this.dataService.getResourceSync("song", 1));
+        //this.audioManager.playSong(this.dataService.getResourceSync("song", 1));
       }).catch(e => {
         this.loadFailure = e;
         throw e;
@@ -130,9 +130,11 @@ export class Game {
   
   toggleMenu() {
     if (this.menu) {
+      this.audioManager.soundEffect("resume");
       this.menu.dismissing();
       this.menu = this.menu.onHold;
     } else {
+      this.audioManager.soundEffect("pause");
       this.menu = this.injector.get(PauseMenu);
     }
   }
@@ -146,6 +148,7 @@ export class Game {
       menu = menu.onHold;
     }
     if (!menu) return;
+    this.audioManager.soundEffect("resume");
     if (parent) {
       parent.onHold = controller.onHold;
     } else {

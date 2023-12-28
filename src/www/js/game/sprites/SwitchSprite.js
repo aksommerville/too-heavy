@@ -56,6 +56,7 @@ export class SwitchSprite extends Sprite {
   }
   
   onPress() {
+    this.sound("switchOn");
     this.srcy = 160;
     switch (this.mode) {
       case "treadle": {
@@ -68,6 +69,7 @@ export class SwitchSprite extends Sprite {
   }
   
   onRelease() {
+    this.sound("switchOff");
     this.srcy = 153;
     switch (this.mode) {
       case "treadle": {

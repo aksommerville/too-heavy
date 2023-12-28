@@ -51,7 +51,7 @@ export class PauseMenu {
     y += dy; if (y < 0) y = 2; else if (y >= 3) y = 0;
     this.game.selectedItem = y * 3 + x;
     this.highlightClock = 0; // reset highlight phase, make sure it's visible as it moves
-    //TODO sound effect
+    this.game.audioManager.soundEffect("uiMotion");
   }
   
   /* Caller draws the scene first, and no framing or anything before calling us.

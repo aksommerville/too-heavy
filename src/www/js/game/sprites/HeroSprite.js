@@ -297,13 +297,14 @@ export class HeroSprite extends Sprite {
       // Not far enough. No negative feedback or anything. Could be an accidental press of down, ignore it.
       return;
     }
-    //TODO sound effect
     //TODO visual feedback, can we shake the camera?
+    let ack = false;
     for (const other of this.scene.physics.findFloorSprites(this)) {
       if (typeof(other.onCannonball) === "function") {
-        other.onCannonball(this, distance);
+        if (other.onCannonball(this, distance)) ack = true;
       }
     }
+    if (!ack) this.sound("cannonballNoop");
   }
   
   /* Walk.
@@ -563,13 +564,16 @@ export class HeroSprite extends Sprite {
         this.reviveY = this.y;
       }
       if (!this.footState) {
-        if (this.footClock >= 0.100) this.sound("land");
-        this.footState = true;
-        this.footClock = 0;
         if (this.cannonball) {
           this.cannonball = false;
-          this.executeCannonball();
+          if (!this.executeCannonball() && (this.footClock >= 0.100)) {
+            this.sound("land");
+          }
+        } else if (this.footClock >= 0.100) {
+          this.sound("land");
         }
+        this.footState = true;
+        this.footClock = 0;
       } else {
         this.footClock += elapsed;
       }
