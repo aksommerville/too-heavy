@@ -5,7 +5,8 @@ PRECMD=echo "  $(@F)" ; mkdir -p $(@D) ;
 
 DST_HTML:=out/web/index.html
 SRCFILES:=$(shell find src/www src/data -type f)
-$(DST_HTML):etc/tool/mkhtml.js $(SRCFILES);$(PRECMD) node $^ -o$@
+ENCODERBITS:=etc/tool/reencodeSong.js etc/tool/minifyJavascript.js
+$(DST_HTML):etc/tool/mkhtml.js $(SRCFILES) $(ENCODERBITS);$(PRECMD) node etc/tool/mkhtml.js $(SRCFILES) -o$@
 all:$(DST_HTML)
 
 DST_WRAPPER:=out/web/wrapper.html

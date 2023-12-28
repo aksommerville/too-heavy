@@ -64,6 +64,7 @@ function readVlq(track) {
  *   { type: "Set Tempo", secPerQnote }
  *   { type: "Note On", chid, noteid, velocity }
  *   { type: "Note Off", chid, noteid, velocity }
+ *   { type: "EOT" }
  * We'll return other types too, but only as placeholders. Discard them.
  */
 function readEvent(track) {
@@ -123,6 +124,9 @@ function readEvent(track) {
               type: "Set Tempo",
               secPerQnote: ((track.src[track.p - 3] << 16) | (track.src[track.p - 2] << 8) | track.src[track.p - 1]) / 1000000,
             };
+            if (type === 0x2f) return {
+              type: "EOT",
+            };
             return { type: "Meta" }
           }
       }
@@ -140,6 +144,7 @@ function readEvent(track) {
  *   velocity: 0..127
  * }
  * We verify that every Note On got a corresponding Note Off, and hence has a valid duration.
+ * There will also be EOT events, with everything but (time) unset.
  */
 function flattenEvents(midi) {
   const events = [];
@@ -219,6 +224,11 @@ function flattenEvents(midi) {
             const pv = events.find(e => e.channel === track.chid && e.noteid === event.noteid && e.duration < 0);
             if (pv) pv.duration = time - pv.time;
           } break;
+        case "EOT": {
+            events.push({
+              time,
+            });
+          } break;
         // Unknown (event.type) is fine, ignore them.
       }
     }
@@ -274,6 +284,16 @@ function calculateFinalTiming(midi) {
       event.time -= rm;
     }
   }
+  
+  // There should now be multiple EOT events at the very end, and none elsewhere.
+  // Eliminate any EOT that isn't at the end.
+  // If we didn't get a terminal EOT, that's fine, roll with it.
+  for (let i=midi.events.length-1; i-->0; ) {
+    const event = midi.events[i];
+    if (!event.duration && !event.noteid && !event.velocity) {
+      midi.events.splice(i, 1);
+    }
+  }
 }
 
 /* With (events) finalized, generate the final output in our format.
@@ -315,7 +335,7 @@ function encodeOutput(midi) {
     if (event.channel === 10) {
       append(0xa0 | (event.velocity >> 2));
       append(event.noteid);
-    } else {
+    } else if (event.noteid || event.velocity) { // don't emit anything for EOT
       append(0x80 | (event.channel << 3) | (event.noteid >> 4));
       append((event.noteid << 4) | (event.velocity >> 3));
       append(event.duration);

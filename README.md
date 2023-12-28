@@ -24,8 +24,11 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Sound effects.
 - - [ ] Music.
 - - - [x] Instrument voices. ...not overthinking this ;)
-- - - [ ] Repair song end times -- last note must extend to the exact end.
+- - - [x] Repair song end times -- last note must extend to the exact end.
+- - - - We have a different error. I think it's looping after the start of the final note, not waiting for it to complete.
+- - - - [x] Respect EOT instead. Repair both songs in midevil, and update the encoder to emit a final delay-until-EOT.
 - - - [x] What's in the box has tracks reversed. 0 should be bass and 1 lead
+- - - [ ] Extra notes play after resuming from a hard pause.
 - - [ ] Tutorial 1: Playing With Toys
 - - - [ ] Forbid using wrong items
 - - - [ ] Static education about broom height limit, it's not obvious.
