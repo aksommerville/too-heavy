@@ -150,11 +150,11 @@ export class AudioManager {
           },
         ], 0.350);
       case "pause": return this.beginSynthSound([
-          { f: [700, 0.300,600, 0.300,600], l: [0, 0.100,1, 0.80,0.300, 0.620,0], mod:0.5, range:1 },
-        ], 0.200);
+          { f: [700, 0.100,600, 0.200,600], l: [0, 0.100,1, 0.80,0.100, 0.100,0], mod:0.5, range:1 },
+        ], 0.150);
       case "resume": return this.beginSynthSound([
-          { f: [600, 0.300,700, 0.300,700], l: [0, 0.100,1, 0.80,0.300, 0.620,0], mod:0.5, range:1 },
-        ], 0.200);
+          { f: [600, 0.100,700, 0.200,700], l: [0, 0.100,1, 0.80,0.100, 0.100,0], mod:0.5, range:1 },
+        ], 0.150);
       case "uiMotion": return this.beginSynthSound([
           { f: 1000, l: [0, 0.040,1, 0.080,0.125, 0.150,0], mod: 2, range: [3, 0.270,0] },
         ], 0.125);
@@ -168,6 +168,51 @@ export class AudioManager {
       case "cannonballNoop": return this.beginSynthSound([
           { f: [300, 1.000,100], l: [0, 0.100,1, 0.100,0.125, 0.775,0], mod: 0.25, range: [2, 1,1] },
         ], 0.200);
+      case "bell": return this.beginSynthSound([
+          { f: 1200, l: [0, 0.030,1, 0.040,0.100, 0.600,0], mod: 3.5, range: 5 },
+        ], 0.300);
+      case "tick": return this.beginSynthSound([
+          { shape: "noise", l: [0, 0.010,1, 0.030,0 ] },
+        ], 0.200);
+      case "cameraClick": return this.beginSynthSound([
+          { shape: "noise", l: [0, 0.015,1, 0.030,0, 0.150,0, 0.020,0.200, 0.020,0] },
+        ], 0.500);
+      case "cameraTeleport": return this.beginSynthSound([
+          {
+            f: [400, 0.100,1200, 0.100,800, 0.100,1600, 0.100,1200, 0.100,2000],
+            l: [0, 0.200,1, 0.300,0],
+          },
+        ], 0.300);
+      case "vacuum": return this.beginSynthSound([
+          { shape: "noise", l: [0, 0.200,1, 0.300,1, 0.200,0] },
+          { f: 60, l: [0, 0.100,0, 0.400,0.500, 0.200,0], mod:0.6, range:3 },
+        ], 0.200);
+      case "vacuumMuffled": return this.beginSynthSound([
+          { shape: "noise", l: [0, 0.200,1, 0.300,1, 0.200,0] },
+          { f: 60, l: [0, 0.100,0, 0.400,0.800, 0.200,0], mod:0.6, range:3 },
+        ], 0.150);
+      case "umbrellaDeploy": return this.beginSynthSound([
+          { f: [400, 0.500,800], l: [0, 0.100,1, 0.100,0.200, 0.300,0], mod: 2, range: [1, 0.500,2] },
+        ], 0.300);
+      case "umbrellaRetract": return this.beginSynthSound([
+          { f: [600, 0.500,400], l: [0, 0.100,1, 0.100,0.200, 0.300,0], mod: 2, range: [2, 0.500,1] },
+        ], 0.300);
+      case "boots": return this.beginSynthSound([
+          { f: [70, 0.080,80, 0.080,50], l: [0, 0.080,1, 0.080,0], mod: 1.4, range: [1, 0.080,4, 0.080,1] },
+          { shape: "noise", l: [0, 0.080,0.400, 0.080,0] },
+        ], 0.250);
+      case "grappleThrow": return this.beginSynthSound([
+          { f: [500, 0.200,1000], l: [0, 0.080,1, 0.050,0.200, 0.070,0], mod: 1, range: [0, 0.200,2] },
+        ], 0.300);
+      case "grappleCatch": return this.beginSynthSound([
+          { f: [160, 0.200,160, 0.050,220], l: [0, 0.020,1, 0.180,0, 0.030,0.500, 0.120,0], mod: 0.800, range: 4 },
+        ], 0.100);
+      case "raft": return this.beginSynthSound([
+          { f: [500, 0.200,300, 0.200,700], l: [0, 0.090,1, 0.120,0.125, 0.200,0], mod: 2, range: [3, 0.400,0] },
+        ], 0.300);
+      case "door": return this.beginSynthSound([
+          { f: [400, 0.400,450], l: [0, 0.100,1, 0.300,0], mod: 1, range: [2, 0.400,0] },
+        ], 0.150);
       default: console.log(`TODO AudioManager.soundEffect ${sfxid}`);
     }
   }

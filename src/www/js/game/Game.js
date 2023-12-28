@@ -58,7 +58,7 @@ export class Game {
         this.graphics = this.dataService.getResourceSync("image", 1);
         this.loaded = true;
         this.paused = true;
-        //this.audioManager.playSong(this.dataService.getResourceSync("song", 1));
+        this.audioManager.playSong(this.dataService.getResourceSync("song", 1));
       }).catch(e => {
         this.loadFailure = e;
         throw e;

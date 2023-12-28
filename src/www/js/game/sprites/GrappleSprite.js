@@ -57,7 +57,7 @@ export class GrappleSprite extends Sprite {
     if (this.stage === "fly") {
       if (this.collidesWithWall()) {
         this.stage = "hold";
-        // TODO sound effect "kachink"
+        this.sound("grappleCatch");
       } else {
         if ((this.flyTime += elapsed) >= FLY_LIMIT) {
           // Give up if we've flown too long.

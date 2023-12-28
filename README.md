@@ -18,7 +18,7 @@ https://github.com/aksommerville/too-heavy
 - - - [ ] Try this: Respawn always at the entry point, and allow movement fast but prevent doors from working for a second or so
 - - [ ] Final maps.
 - - [ ] Dialogue.
-- - [ ] Sound effects.
+- - [x] Sound effects.
 - - - [x] Jump
 - - - [x] Double-jump
 - - - [x] Triple-jump
@@ -31,24 +31,25 @@ https://github.com/aksommerville/too-heavy
 - - - [x] Switch on
 - - - [x] Switch off
 - - - [x] Footstep? ...no
-- - - [ ] Bell
-- - - [ ] Stopwatch: ongoing "tick tick tick"
-- - - [ ] Camera snap
-- - - [ ] Camera teleport
-- - - [ ] Vacuum: ongoing "whrrrrr"
-- - - [ ] Can we add a "thunk" and then low-passed "whrrrr" when the vacuum reaches an edge and locks?
-- - - [ ] Umbrella deploy
-- - - [ ] Umbrella retract
-- - - [ ] Boots: Ongoing "flrggggggh"
-- - - [ ] Grapple throw
-- - - [ ] Grapple catch
-- - - [ ] Lifeboat deploy
+- - - [x] Bell
+- - - [x] Stopwatch: ongoing "tick tick tick"
+- - - [x] Camera snap
+- - - [x] Camera teleport
+- - - [x] Vacuum: ongoing "whrrrrr"
+- - - [x] Can we add a "thunk" and then low-passed "whrrrr" when the vacuum reaches an edge and locks?
+- - - [x] Umbrella deploy
+- - - [x] Umbrella retract
+- - - [x] Boots: Ongoing "flrggggggh"
+- - - [x] Grapple throw
+- - - [x] Grapple catch
+- - - [x] Lifeboat deploy
 - - - [x] Deliver item
 - - - [x] Pause
 - - - [x] Resume
 - - - [x] UI motion
 - - - [x] Cannonball noop
 - - - [x] Cannonball crash
+- - - [x] Enter door
 - - [ ] Tutorial 1: Playing With Toys
 - - - [ ] Forbid using wrong items
 - - - [ ] Static education about broom height limit, it's not obvious.

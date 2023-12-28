@@ -35,6 +35,11 @@ const BROOM_DOWN_VELOCITY = 200;
 const UMBRELLA_GRAVITY = 40; // px/sec, no acceleration
 const VACUUM_DISTANCE_LIMIT = 120; // pixels
 const BOOTS_VELOCITY = 400;
+const STOPWATCH_SOUND_TIME = 0.500;
+const VACUUM_SOUND_TIME_INITIAL = 0.300;
+const VACUUM_SOUND_TIME_REPEAT = 0.300;
+const BOOTS_SOUND_TIME_INITIAL = 0.040;
+const BOOTS_SOUND_TIME_REPEAT = 0.100;
 
 const ITEM_STOPWATCH = 0;
 const ITEM_BROOM = 1;
@@ -99,6 +104,9 @@ export class HeroSprite extends Sprite {
     this.vacuumDy = 0;
     this.dustBunnies = []; // Decoration while vacuuming. [srcx,x,y,dx,dy,ttl] (x,y) relative to sprite
     this.interactedSinceSpawn = false;
+    this.stopwatchSoundClock = 0;
+    this.vacuumSoundClock = 0;
+    this.bootsSoundClock = 0;
   }
   
   collideHazard(hazard) {
@@ -197,6 +205,7 @@ export class HeroSprite extends Sprite {
       if (y >= door.y + door.h) continue;
       this.scene.load(door.dstmapid, this, door);
       this.adjustForNewMap(null);
+      this.sound("door");
       return true;
     }
   }
@@ -674,6 +683,7 @@ export class HeroSprite extends Sprite {
   
   actionUpdate(elapsed) {
     switch (this.itemInProgress) {
+      case ITEM_STOPWATCH: this.stopwatchUpdate(elapsed); break;
       case ITEM_BROOM: this.broomUpdate(elapsed); break;
       case ITEM_VACUUM: this.vacuumUpdate(elapsed); break;
       case ITEM_UMBRELLA: this.umbrellaUpdate(elapsed); break;
@@ -688,13 +698,20 @@ export class HeroSprite extends Sprite {
   stopwatchBegin() {
     this.scene.game.timeFrozen = true;
     this.itemInProgress = 0;
-    //TODO sound effect
+    this.stopwatchSoundClock = STOPWATCH_SOUND_TIME;
+    this.sound("tick");
   }
   
   stopwatchEnd() {
     this.scene.game.timeFrozen = false;
     this.itemInProgress = -1;
-    //TODO sound effect
+  }
+  
+  stopwatchUpdate(elapsed) {
+    if ((this.stopwatchSoundClock -= elapsed) <= 0) {
+      this.stopwatchSoundClock += STOPWATCH_SOUND_TIME;
+      this.sound("tick");
+    }
   }
   
   /* Broom.
@@ -741,14 +758,14 @@ export class HeroSprite extends Sprite {
       this.y = selfie.y;
       this.scene.physics.warp(this);
       this.scene.removeSprite(selfie);
-      //TODO sound effect "vwwwwwwooop!"
+      this.sound("cameraTeleport");
       return;
     }
     selfie = new SelfieSprite(this.scene);
     this.scene.sprites.push(selfie);
     selfie.x = this.x;
     selfie.y = this.y;
-    //TODO sound effect "click!"
+    this.sound("cameraClick");
   }
   
   /* Vacuum.
@@ -765,6 +782,8 @@ export class HeroSprite extends Sprite {
     this.vacuumUpdate(0); // force a more refined choice of (dx,dy), avoids flicker
     this.resetDustBunnies();
     this.resetAnimation();
+    this.vacuumSoundClock = VACUUM_SOUND_TIME_INITIAL;
+    this.sound("vacuum");
   }
   
   vacuumEnd(inputState) {
@@ -804,8 +823,10 @@ export class HeroSprite extends Sprite {
     this.ph.gravity = true;
     const VACUUM_VELOCITY = 500; // Gravity peaks at 300 px/sec; Vacuum must be stronger than that.
     const freedom = this.scene.physics.measureFreedom(this, this.vacuumDx, this.vacuumDy, VACUUM_DISTANCE_LIMIT);
+    let stuck = false;
     if (freedom < 2) {
       // Stuck to a wall. If we're oriented horizontally, cancel gravity.
+      stuck = true;
       this.ph.gravity = false;
       this.ph.gravityRate = 0;
       this.x += this.vacuumDx * freedom;
@@ -816,6 +837,12 @@ export class HeroSprite extends Sprite {
       const force = VACUUM_VELOCITY * normForce;
       this.x += this.vacuumDx * force * elapsed;
       this.y += this.vacuumDy * force * elapsed;
+    }
+    
+    // Update sound effect.
+    if ((this.vacuumSoundClock -= elapsed) <= 0) {
+      this.vacuumSoundClock += VACUUM_SOUND_TIME_REPEAT;
+      this.sound(stuck ? "vacuumMuffled" : "vacuum");
     }
   }
   
@@ -866,7 +893,7 @@ export class HeroSprite extends Sprite {
    ***********************************************************************/
   
   bellBegin() {
-    //TODO sound effect
+    this.sound("bell");
     //TODO animation
   }
   
@@ -879,6 +906,7 @@ export class HeroSprite extends Sprite {
     this.jumping = false;
     this.ph.gravity = false;
     this.resetAnimation();
+    this.sound("umbrellaDeploy");
   }
   
   umbrellaEnd() {
@@ -886,6 +914,7 @@ export class HeroSprite extends Sprite {
     this.ph.gravity = true;
     this.ph.gravityRate = 0;
     this.resetAnimation();
+    this.sound("umbrellaRetract");
   }
   
   umbrellaUpdate(elapsed) {
@@ -904,6 +933,8 @@ export class HeroSprite extends Sprite {
     this.walkEnd();
     this.ph.gravity = false;
     this.resetAnimation();
+    this.bootsSoundTime = BOOTS_SOUND_TIME_INITIAL;
+    this.sound("boots");
   }
   
   bootsEnd() {
@@ -915,6 +946,12 @@ export class HeroSprite extends Sprite {
   }
   
   bootsUpdate(elapsed) {
+  
+    if ((this.bootsSoundTime -= elapsed) <= 0) {
+      this.bootsSoundTime += BOOTS_SOUND_TIME_REPEAT;
+      this.sound("boots");
+    }
+  
     if (this.y < -30) return; // Maps with open ceiling, stop at some point for sanity's sake.
     this.y -= BOOTS_VELOCITY * elapsed;
     
@@ -948,6 +985,7 @@ export class HeroSprite extends Sprite {
     }
     grapple.setup(this, dx, dy);
     this.itemInProgress = ITEM_GRAPPLE;
+    this.sound("grappleThrow");
   }
   
   grappleEnd(inputState) {
@@ -996,6 +1034,7 @@ export class HeroSprite extends Sprite {
     }
     raft.y = this.y - raft.vh;
     this.scene.sprites.push(raft);
+    this.sound("raft");
   }
   
   /* Render.
