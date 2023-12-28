@@ -22,13 +22,13 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Final maps.
 - - [ ] Dialogue.
 - - [ ] Sound effects.
-- - [ ] Music.
+- - [x] Music.
 - - - [x] Instrument voices. ...not overthinking this ;)
 - - - [x] Repair song end times -- last note must extend to the exact end.
 - - - - We have a different error. I think it's looping after the start of the final note, not waiting for it to complete.
 - - - - [x] Respect EOT instead. Repair both songs in midevil, and update the encoder to emit a final delay-until-EOT.
 - - - [x] What's in the box has tracks reversed. 0 should be bass and 1 lead
-- - - [ ] Extra notes play after resuming from a hard pause.
+- - - [x] Extra notes play after resuming from a hard pause.
 - - [ ] Tutorial 1: Playing With Toys
 - - - [ ] Forbid using wrong items
 - - - [ ] Static education about broom height limit, it's not obvious.
@@ -43,6 +43,7 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Guess gamepad mapping for unknown devices.
 - - [ ] Toggle fullscreen.
 - Stretch goals, or after submission
+- - [ ] More interesting song voices.
 - - [ ] Clean up and improve minification.
 - - - [ ] Maps could probably reduce to 5/8 if we switch to a binary format and base64 it. Would we benefit from RLE or some other very simple compression? Row filtering?
 - - - [ ] Plenty of opportunity to eliminate whitespace in JS, inline constants, shorten private identifiers, etc. Or should we use an existing tool? They'll do it better.

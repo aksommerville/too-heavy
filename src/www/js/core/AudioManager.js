@@ -36,7 +36,6 @@ export class AudioManager {
     if (this.context.state === "suspended") {
       this.context.resume();
     }
-    this.songLastEventTime = this.context.currentTime;
     if (this.song && !this.poller) {
       this.poller = this.window.setInterval(() => this.update(), POLL_INTERVAL_MS);
       this.update();
