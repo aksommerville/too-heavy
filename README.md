@@ -9,7 +9,7 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - By 1 January
-- - [ ] Dialogue for chest. "FEED ME" or "THANKS FOR THE {whatever}}"
+- - [x] Dialogue for chest. "FEED ME" or "THANKS FOR THE {whatever}}"
 - - [ ] Crusher kills you from the platform end, if you touch a wall while rising. (it shouldn't)
 - - [ ] Stopwatch: Sound effect at transitions, and some visual feedback while running.
 - - [ ] Both Toy School and the real challenges, it's too hard to get back home after completing. Warp back?
@@ -17,39 +17,7 @@ https://github.com/aksommerville/too-heavy
 - - - I think the set-a-respawn-point when standing still logic has to go.
 - - - [ ] Try this: Respawn always at the entry point, and allow movement fast but prevent doors from working for a second or so
 - - [ ] Final maps.
-- - [ ] Dialogue.
-- - [x] Sound effects.
-- - - [x] Jump
-- - - [x] Double-jump
-- - - [x] Triple-jump
-- - - [x] Long jump
-- - - [x] Wall jump
-- - - [x] Down jump
-- - - [x] Dash
-- - - [x] Die
-- - - [x] Land: Maybe multiple sounds, per landing force?
-- - - [x] Switch on
-- - - [x] Switch off
-- - - [x] Footstep? ...no
-- - - [x] Bell
-- - - [x] Stopwatch: ongoing "tick tick tick"
-- - - [x] Camera snap
-- - - [x] Camera teleport
-- - - [x] Vacuum: ongoing "whrrrrr"
-- - - [x] Can we add a "thunk" and then low-passed "whrrrr" when the vacuum reaches an edge and locks?
-- - - [x] Umbrella deploy
-- - - [x] Umbrella retract
-- - - [x] Boots: Ongoing "flrggggggh"
-- - - [x] Grapple throw
-- - - [x] Grapple catch
-- - - [x] Lifeboat deploy
-- - - [x] Deliver item
-- - - [x] Pause
-- - - [x] Resume
-- - - [x] UI motion
-- - - [x] Cannonball noop
-- - - [x] Cannonball crash
-- - - [x] Enter door
+- - [x] Dialogue.
 - - [ ] Tutorial 1: Playing With Toys
 - - - [ ] Forbid using wrong items
 - - - [ ] Static education about broom height limit, it's not obvious.
@@ -63,6 +31,7 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Can vacuum onto hazards safely -- should kill you.
 - - [ ] Cannonball isn't happening if you enter from the top with it already started. (visually right, but only getting the "land" sound). eg end of jump lessons.
 - By 7 January -- game jam submission
+- - [ ] Fireworks on special jumps.
 - - [ ] Guess gamepad mapping for unknown devices.
 - - [ ] Toggle fullscreen.
 - Stretch goals, or after submission

@@ -37,6 +37,13 @@ export class Sprite {
   }
   /**/
   
+  /* Same as render, but happens after all sprites have rendered normally.
+   * eg for word bubbles.
+   *
+  postRender(context, dstx, dsty) {
+  }
+  /**/
+  
   /* Called each frame.
    * Sprite controller should update its (x,y).
    * No need to validate it, there will be a generic rectifaction pass after all sprites position themselves.

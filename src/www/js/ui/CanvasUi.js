@@ -3,6 +3,7 @@
  */
  
 import { Game } from "../game/Game.js";
+import { WordBubbler } from "./WordBubbler.js";
 
 const TILESIZE = 16;
 
@@ -17,10 +18,12 @@ export class CanvasUi {
     // RootUi should set this when configuration is in progress.
     this.inputConfigurationContext = null;
     
+    this.wordBubbler = new WordBubbler(this);
     this.element.width = 320;
     this.element.height = 160;
     this.context = this.element.getContext("2d");
     this.context.drawDecal = (dstx, dsty, srcx, srcy, w, h, flop) => this.drawDecal(dstx, dsty, srcx, srcy, w, h, flop);
+    this.context.drawDialogue = (focusx, focusy, text) => this.wordBubbler.draw(focusx, focusy, text);
   }
   
   drawDecal(dstx, dsty, srcx, srcy, w, h, flop) {
@@ -121,6 +124,7 @@ export class CanvasUi {
   renderSprites(sprites, worldBounds) {
     const worldRight = worldBounds.x + worldBounds.w;
     const worldBottom = worldBounds.y + worldBounds.h;
+    let havePost = false;
     for (const sprite of sprites) {
       const sbounds = sprite.getRenderBounds();
       if (!sprite.renderAlways) {
@@ -130,6 +134,20 @@ export class CanvasUi {
         if (sbounds.y + sbounds.h <= worldBounds.y) continue;
       }
       this.renderSprite(sprite, sbounds.x - worldBounds.x, sbounds.y - worldBounds.y, sbounds);
+      if (sprite.postRender) havePost = true;
+    }
+    if (havePost) {
+      for (const sprite of sprites) {
+        if (!sprite.postRender) continue;
+        const sbounds = sprite.getRenderBounds();
+        if (!sprite.renderAlways) {
+          if (sbounds.x >= worldRight) continue;
+          if (sbounds.y >= worldBottom) continue;
+          if (sbounds.x + sbounds.w <= worldBounds.x) continue;
+          if (sbounds.y + sbounds.h <= worldBounds.y) continue;
+        }
+        sprite.postRender(this.context, sbounds.x - worldBounds.x, sbounds.y - worldBounds.y, sbounds);
+      }
     }
   }
   

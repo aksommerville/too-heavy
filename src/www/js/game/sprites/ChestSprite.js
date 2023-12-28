@@ -10,6 +10,21 @@ const TILESIZE = 16;
 const BLINK_TIME_CLOSED = 0.200;
 const BLINK_TIME_MIN = 2.000;
 const BLINK_TIME_MAX = 4.000;
+const SPEECH_JAWS_TIME = 0.500;
+const SPEECH_TOTAL_TIME = 3.000;
+const SILENT_TIME = 6.000;
+
+const ITEM_NAMES = [
+  "stopwatch",
+  "broom",
+  "camera",
+  "vacuum cleaner",
+  "bell",
+  "umbrella",
+  "boots",
+  "grappling hook",
+  "raft",
+];
 
 export class ChestSprite extends Sprite {
   constructor(scene, col, row, args) {
@@ -23,6 +38,10 @@ export class ChestSprite extends Sprite {
     this.permanentStateKey = args[0] || "";
     this.sated = false;
     this.blinkClock = BLINK_TIME_MAX;
+    this.renderAlways = false; // true if we have a word bubble
+    this.speech = "";
+    this.speechClock = SILENT_TIME;
+    this.jawsClock = 0;
     
     if (this.permanentStateKey) {
       if (this.scene.game.permanentState[this.permanentStateKey]) {
@@ -48,11 +67,43 @@ export class ChestSprite extends Sprite {
       this.sound("deliverItem");
       //TODO other feedback? this event is pretty much the biggest deal we do.
       if (this.permanentStateKey) {
-        this.scene.game.setPermanentState(this.permanentStateKey, true);
+        this.scene.game.setPermanentState(this.permanentStateKey, 1 + this.scene.game.selectedItem);
       }
     }
     
-    //TODO I'd really get a kick out of making the lid go up and down and a word bubble appear like "FEED ME!"
+    if ((this.speechClock -= elapsed) <= 0) {
+      if (this.speech) { // become silent
+        this.speech = "";
+        this.renderAlways = false;
+        this.speechClock += SILENT_TIME;
+        //this.srcy = this.sated ? 217 : 287;
+      } else { // say something
+        if (this.sated) {
+          if (this.permanentStateKey) {
+            this.speech = `Thanks for the ${ITEM_NAMES[this.scene.game.permanentState[this.permanentStateKey] - 1]}!`;
+          } else {
+            this.speech = `Thanks!`;
+          }
+        } else {
+          this.speech = "Feed me!";
+        }
+        this.renderAlways = true;
+        this.speechClock += SPEECH_TOTAL_TIME;
+        this.jawsClock = 0.001;
+      }
+    }
+    if (this.jawsClock > 0) {
+      if ((this.jawsClock -= elapsed) <= 0) {
+        if (this.speech) {
+          this.jawsClock += SPEECH_JAWS_TIME;
+          if (this.srcy === 217) this.srcy = 287;
+          else this.srcy = 217;
+        } else {
+          this.jawsClock = 0;
+          this.srcy = this.sated ? 217 : 287;
+        }
+      }
+    }
   }
   
   touchesHero() {
@@ -94,7 +145,7 @@ export class ChestSprite extends Sprite {
   render(context, dstx, dsty) {
     this.checkFlop();
     context.drawDecal(dstx, dsty, this.srcx, this.srcy, this.vw, this.vh, this.flop);
-    if (this.sated) {
+    if (this.srcy === 217) { // closed; draw eyeballs
       let srcy = 138;
       if (this.blinkClock <= BLINK_TIME_CLOSED) srcy = 151;
       if (this.flop) {
@@ -102,6 +153,12 @@ export class ChestSprite extends Sprite {
       } else {
         context.drawDecal(dstx + 29, dsty + 7, 327, srcy, 21, 12, false);
       }
+    }
+  }
+  
+  postRender(context, dstx, dsty) {
+    if (this.speech) {
+      context.drawDialogue(dstx + (this.vw >> 1), dsty - 1, this.speech);
     }
   }
 }
