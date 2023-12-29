@@ -7,7 +7,7 @@ const TILESIZE = 16;
 const GLYPH_W = 8;
 const GLYPH_H = 8;
 const BUBBLE_MARGIN_BOTTOM = 7;
-const TARGET_RATIO = 2.0; // Glyphs are square, but an ideal word bubble is about twice as wide as tall.
+const TARGET_RATIO = 5.5; // Glyphs are square, but an ideal word bubble is about twice as wide as tall.
  
 export class WordBubbler {
   constructor(canvas) {
@@ -27,7 +27,7 @@ export class WordBubbler {
     
     const lw = layout.bubcolc * TILESIZE;
     const lh = layout.bubrowc * TILESIZE;
-    const lx = Math.floor(focusx - lw / 2);
+    const lx = Math.floor(focusx - lw / 2); // TODO incorrect! We want (focusx) to be exactly where the stem ends up
     const ly = Math.floor(focusy - lh);
     this.drawBackground(lx, ly, layout.bubcolc, layout.bubrowc);
     
@@ -89,6 +89,8 @@ export class WordBubbler {
     if (words.length < 1) return { text, bubcolc: 2, bubrowc: 2, tcolc: 0, trowc: 0, grid: "" };
     const layout = { text };
     
+    //XXX I'm not happy with this algorithm, surely we can do better
+    
     /* Estimate grid dimensions assuming we can land right on TARGET_RATIO.
      * If that ends up narrower than the longest word, use the longest word length instead.
      */
@@ -137,6 +139,8 @@ export class WordBubbler {
     const gridh = layout.trowc * GLYPH_H;
     layout.bubcolc = Math.ceil((gridw + 4) / TILESIZE);
     layout.bubrowc = Math.ceil((gridh + 4 + BUBBLE_MARGIN_BOTTOM) / TILESIZE);
+    if (layout.bubcolc < 3) layout.bubcolc = 3;
+    if (layout.bubrowc < 2) layout.bubrowc = 2;
     
     return layout;
   }

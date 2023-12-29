@@ -19,6 +19,8 @@ export class AudioManager {
     this.songpLoop = 0;
     this.songTempo = 0; // s/tick
     this.songLastEventTime = 0; // sec, from context
+    this.songNotes = [];
+    this.songRepeat = true;
     this.poller = null;
     this.noise = null;
     
@@ -56,20 +58,21 @@ export class AudioManager {
    * We hold on to the provided array and read from it on the fly. Do not modify content.
    * It's OK to do this when paused or not initialized; it will take effect when we resume.
    */
-  playSong(serial) {
-    this.endSong();
+  playSong(serial, repeat=true) {
+    this.endSong(true);
     if (!serial || !serial.length || (serial.length < 3)) return;
     const tempo = serial[0];
     const startp = serial[1];
     const loopp = serial[2];
     if (tempo < 1) return;
     if (startp < 3) return;
-    if (loopp && (loopp < startp)) return; // loopp zero means never loop, it's legal
+    if (loopp && (loopp < startp)) return; // loopp zero means never loop, it's legal (except we're not respecting it)
     if ((startp >= serial.length) || (loopp >= serial.length)) return;
     this.song = serial;
     this.songp = startp;
     this.songpLoop = loopp;
     this.songTempo = tempo / 1000;
+    this.songRepeat = repeat;
     if (this.context) {
       this.songLastEventTime = this.context.currentTime;
     }
@@ -245,7 +248,12 @@ export class AudioManager {
     oscillator.stop(when + attackTime + decayTime + dur + releaseTime);
     oscillator.onended = () => {
       oscillator.disconnect();
+      const p = this.songNotes.findIndex(n => n.oscillator === oscillator);
+      if (p >= 0) {
+        this.songNotes.splice(p, 1);
+      }
     };
+    this.songNotes.push({ oscillator });
   }
   
   playSound(noteid, velocity, when) {
@@ -257,8 +265,9 @@ export class AudioManager {
           
 /* ----- client shouldn't need anything below ----- */
   
-  endSong() {
+  endSong(hard) {
     //TODO drop any notes in flight? (everything is self-terminating so maybe it's ok not to)
+    // ...it's not ok not to. We schedule notes like 2 seconds in advance.
     this.song = null;
     this.songp = 0;
     this.songpLoop = 0;
@@ -266,6 +275,12 @@ export class AudioManager {
     if (this.poller) {
       this.window.clearInterval(this.poller);
       this.poller = null;
+    }
+    if (hard) {
+      for (const note of this.songNotes) {
+        note.oscillator.disconnect();
+      }
+      this.songNotes = [];
     }
   }
   
@@ -295,13 +310,17 @@ export class AudioManager {
       if (!this.song) return; // can end during processing
       if (panic >= 1000) {
         this.window.console.error(`Processed 1000 song events without an interruption. Is the song empty? Is its tempo broken? Dropping it.`);
-        this.endSong();
+        this.endSong(true);
         return;
       }
       const [delayS, delayLen] = this.readSongDelay();
       const adjustedDelay = this.songLastEventTime + delayS - this.context.currentTime;
       if (adjustedDelay > POLL_SCHEDULE_LENGTH_S) return;
       if ((this.songp += delayLen) >= this.song.length) {
+        if (!this.songRepeat) {
+          this.endSong(false);
+          return;
+        }
         this.songp = this.songpLoop;
       }
       this.songLastEventTime = this.context.currentTime + adjustedDelay;
@@ -314,9 +333,9 @@ export class AudioManager {
     let delayTicks = 0, len = 0;
     while (1) {
       if (futurep >= this.song.length) {
-        if (!this.songpLoop) {
+        if (!this.songpLoop || !this.songRepeat) {
           if (!delayTicks) {
-            this.endSong();
+            this.endSong(false);
             return [9999, 0];
           }
           break;
@@ -329,7 +348,7 @@ export class AudioManager {
       futurep++;
       if (len >= this.song.length) {
         this.window.console.error(`Song consists only of delays. The hell, guy? Don't do that.`);
-        this.endSong();
+        this.endSong(true);
         return [9999, 0];
       }
     }
@@ -356,7 +375,7 @@ export class AudioManager {
         } break;
       default: {
           this.window.console.error(`Unexpected leading byte ${a} in song`);
-          return this.endSong();
+          return this.endSong(true);
         }
     }
   }

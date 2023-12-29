@@ -7,6 +7,7 @@ import { Scene } from "./Scene.js";
 import { InputManager, InputBtn } from "../core/InputManager.js";
 import { DataService } from "./DataService.js";
 import { PauseMenu } from "./menu/PauseMenu.js";
+import { VictoryMenu } from "./menu/VictoryMenu.js";
 import { Injector } from "../core/Injector.js";
 import { AudioManager } from "../core/AudioManager.js";
  
@@ -39,12 +40,21 @@ export class Game {
     this.pendingAnimationFrame = null;
     this.lastFrameTime = 0;
     this.graphics = null; // Image; required if loaded.
+    this.resetGame();
+    if (true) this.inventory = this.inventory.map(() => false);//XXX give away all items, to test ending
+  }
+  
+  resetGame() {
+    this.playTime = 0;
+    this.deathCount = 0;
+    this.scene.grid = null;
     this.pvinput = 0;
     this.menu = null;
     this.selectedItem = 4; // 0..9. 4=bell
     this.inventory = [true, true, true, true, true, true, true, true, true]; // indexed by itemid
     this.timeFrozen = false;
     this.permanentState = {};
+    this.itemUseCount = 0;
   }
   
   /* Returns a Promise that resolves when our content is all loaded and ready to go.
@@ -123,16 +133,22 @@ export class Game {
       if (!this.scene.grid) {
         this.scene.load(1);
       }
+      this.playTime += elapsed;
       this.scene.update(elapsed, inputState);
       this.scene.sortSpritesForRender();
     }
   }
   
   toggleMenu() {
-    if (this.menu) {
+    if (this.menu instanceof PauseMenu) {
       this.audioManager.soundEffect("resume");
       this.menu.dismissing();
       this.menu = this.menu.onHold;
+    } else if (this.menu instanceof VictoryMenu) {
+      this.menu.dismissing();
+      this.menu = null;
+      this.resetGame();
+      this.audioManager.playSong(this.dataService.getResourceSync("song", 1));
     } else {
       this.audioManager.soundEffect("pause");
       this.menu = this.injector.get(PauseMenu);
@@ -164,6 +180,12 @@ export class Game {
     for (const sprite of this.scene.sprites) {
       if (sprite.onPermanentState) sprite.onPermanentState(k, v);
     }
+  }
+  
+  win() {
+    this.scene.grid = null; // Force reload of game if the menu gets dismissed.
+    this.menu = this.injector.get(VictoryMenu);
+    this.audioManager.playSong(this.dataService.getResourceSync("song", 2), false);
   }
 }
 

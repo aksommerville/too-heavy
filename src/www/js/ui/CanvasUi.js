@@ -39,32 +39,34 @@ export class CanvasUi {
   }
   
   renderNow() {
-    if (this.game.scene.grid) {
-      this.context.fillStyle = this.game.scene.backgroundColor;
-      this.context.fillRect(0, 0, this.element.width, this.element.height);
-      const worldBounds = this.game.scene.camera.getWorldBounds();
-      if (this.game.scene.grid) this.renderGrid(this.game.scene.grid, worldBounds);
-      this.renderSprites(this.game.scene.sprites, worldBounds);
+    if (!this.game.menu || !this.game.menu.opaque) {
+      if (this.game.scene.grid) {
+        this.context.fillStyle = this.game.scene.backgroundColor;
+        this.context.fillRect(0, 0, this.element.width, this.element.height);
+        const worldBounds = this.game.scene.camera.getWorldBounds();
+        if (this.game.scene.grid) this.renderGrid(this.game.scene.grid, worldBounds);
+        this.renderSprites(this.game.scene.sprites, worldBounds);
       
-      /*XXX TEMP Show all physical borders *
-      this.context.globalAlpha = 0.75;
-      for (const sprite of this.game.scene.sprites) {
-        if (!sprite.ph) continue;
-        switch (sprite.ph.role) {
-          case "fragile": this.context.fillStyle = "#ff0"; break;
-          case "hazard": this.context.fillStyle = "#f00"; break;
-          case "oneway": this.context.fillStyle = "#00f"; break;
-          case "solid": this.context.fillStyle = "#840"; break;
-          default: this.context.fillStyle = "#0f0"; break;
+        /*XXX TEMP Show all physical borders *
+        this.context.globalAlpha = 0.75;
+        for (const sprite of this.game.scene.sprites) {
+          if (!sprite.ph) continue;
+          switch (sprite.ph.role) {
+            case "fragile": this.context.fillStyle = "#ff0"; break;
+            case "hazard": this.context.fillStyle = "#f00"; break;
+            case "oneway": this.context.fillStyle = "#00f"; break;
+            case "solid": this.context.fillStyle = "#840"; break;
+            default: this.context.fillStyle = "#0f0"; break;
+          }
+          this.context.fillRect(sprite.ph.x - worldBounds.x + 1, sprite.ph.y - worldBounds.y + 1, sprite.ph.w - 2, sprite.ph.h - 2);
         }
-        this.context.fillRect(sprite.ph.x - worldBounds.x + 1, sprite.ph.y - worldBounds.y + 1, sprite.ph.w - 2, sprite.ph.h - 2);
-      }
-      this.context.globalAlpha = 1;
-      /**/
+        this.context.globalAlpha = 1;
+        /**/
       
-    } else {
-      this.context.fillStyle = "#888";
-      this.context.fillRect(0, 0, this.element.width, this.element.height);
+      } else {
+        this.context.fillStyle = "#888";
+        this.context.fillRect(0, 0, this.element.width, this.element.height);
+      }
     }
     
     //TODO weather. eg this.game.timeFrozen

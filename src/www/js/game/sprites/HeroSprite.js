@@ -132,6 +132,7 @@ export class HeroSprite extends Sprite {
     this.interactedSinceSpawn = false;
     this.scene.clearTransientState();
     this.sound("die");
+    this.scene.game.deathCount++;
     //TODO fireworks
   }
   
@@ -188,6 +189,13 @@ export class HeroSprite extends Sprite {
     this.animationUpdate(elapsed);
     this.checkEdgeDoors();
     this.reportLocationToScene();
+  }
+  
+  dropMotion() {
+    this.walkEnd();
+    this.jumpAbort();
+    this.actionEnd();
+    this.walkresidual = 0;
   }
   
   /* UP: If we're standing in front of a door, travel thru it and return true.
@@ -660,12 +668,13 @@ export class HeroSprite extends Sprite {
       case ITEM_BROOM: this.broomBegin(); break;
       case ITEM_CAMERA: this.cameraBegin(); break;
       case ITEM_VACUUM: this.vacuumBegin(); break;
-      case ITEM_BELL: this.bellBegin(); break;
+      case ITEM_BELL: this.bellBegin(); return; // sic return -- don't increment itemUseCount; the bell doesn't count.
       case ITEM_UMBRELLA: this.umbrellaBegin(); break;
       case ITEM_BOOTS: this.bootsBegin(); break;
       case ITEM_GRAPPLE: this.grappleBegin(); break;
       case ITEM_RAFT: this.raftBegin(); break;
     }
+    this.scene.game.itemUseCount++;
   }
   
   // Returns mangled inputState. A silly hack so item terminators can make us pretend the dpad was off, and re-notice it next update.

@@ -32,6 +32,8 @@ https://github.com/aksommerville/too-heavy
 - - [ ] Cannonball isn't happening if you enter from the top with it already started. (visually right, but only getting the "land" sound). eg end of jump lessons.
 - By 7 January -- game jam submission
 - - [ ] Fireworks on special jumps.
+- - [ ] WordBubbler: Exact stem alignment
+- - [ ] WordBubbler: Rewrite text breaking, it's making poor choices
 - - [ ] Guess gamepad mapping for unknown devices.
 - - [ ] Toggle fullscreen.
 - Stretch goals, or after submission

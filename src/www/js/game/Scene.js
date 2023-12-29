@@ -18,6 +18,7 @@ import { PlatformSprite } from "./sprites/PlatformSprite.js";
 import { SwitchSprite } from "./sprites/SwitchSprite.js";
 import { BlockSprite } from "./sprites/BlockSprite.js";
 import { ChestSprite } from "./sprites/ChestSprite.js";
+import { BoxSprite } from "./sprites/BoxSprite.js";
 
 const TILESIZE = 16;
  
@@ -186,6 +187,7 @@ export class Scene {
       case "BlockSprite": return new BlockSprite(this, col, row, cmd.slice(4));
       case "ChestSprite": return new ChestSprite(this, col, row, cmd.slice(4));
       case "FlagSprite": return new FlagSprite(this, col, row, cmd.slice(4));
+      case "BoxSprite": return new BoxSprite(this, col, row, cmd.slice(4));
     }
     throw new Error(`Unknown spriteId ${JSON.stringify(spriteId)}`);
   }

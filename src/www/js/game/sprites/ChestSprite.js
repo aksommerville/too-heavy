@@ -65,6 +65,9 @@ export class ChestSprite extends Sprite {
       const hero = this.scene.sprites.find(s => s instanceof HeroSprite);
       if (hero && hero.actionEnd) hero.actionEnd();
       this.sound("deliverItem");
+      if (this.speech && (this.speechClock > 0)) { // if we were saying "Feed me", stop saying that.
+        this.speechClock = 0.001;
+      }
       //TODO other feedback? this event is pretty much the biggest deal we do.
       if (this.permanentStateKey) {
         this.scene.game.setPermanentState(this.permanentStateKey, 1 + this.scene.game.selectedItem);
