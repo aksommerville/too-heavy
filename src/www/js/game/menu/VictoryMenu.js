@@ -93,7 +93,7 @@ export class VictoryMenu {
     }
     
     const scoresHeight = this.scores.length * GLYPH_H;
-    const scoresTop = 104;
+    const scoresTop = 102;
     for (let y=scoresTop, i=0; i<this.scores.length; i++, y+=GLYPH_H) {
       const row = this.scores[i];
       let x = row.x;
@@ -115,6 +115,15 @@ export class VictoryMenu {
    ******************************************************************************/
    
   drawCinema(context) {
+    context.save();
+    context.beginPath();
+    context.rect(0, 0, 150, 100);
+    context.clip();
+    this.drawCinemaClipped(context);
+    context.restore();
+  }
+   
+  drawCinemaClipped(context) {
     let clock = this.clock;
     { const len = 12; // Post Office.
       if (clock < len) return this.drawPostOffice(context, clock / len);
@@ -146,37 +155,145 @@ export class VictoryMenu {
   
   drawPostOffice(context, t) {
     context.drawDecal(0, 0, 463, 1, 150, 100);
-    //TODO
+    
+    // box travels in an arc from loading dock to truck.
+    const boxstarttime = 0.400, boxendtime = 0.650;
+    if ((t >= boxstarttime) && (t < boxendtime)) {
+      const startx = 30, endx = 60;
+      const bottomy = 60, topy = 30;
+      const xtravel = (t - boxstarttime) / (boxendtime - boxstarttime);
+      const x = Math.round(startx + xtravel * (endx - startx));
+      const midtime = (boxstarttime + boxendtime) * 0.5;
+      const ytravel = Math.sqrt(((t < midtime) ? (t - boxstarttime) : (boxendtime - t)) / (boxendtime - boxstarttime));
+      const y = Math.round(bottomy + ytravel * (topy - bottomy));
+      context.drawDecal(x, y, 329, 178, 32, 14);
+      
+      // plus hands on each side
+      context.drawDecal(26, 62, 452, 54, 10, 6, true);
+      context.drawDecal(82, 62, 452, 54, 10, 6, false);
+    }
+    
+    // mail truck
+    let truckx = 90;
+    if (t >= 0.75) {
+      truckx += Math.floor((t - 0.75) * 300);
+    }
+    context.drawDecal(truckx, 50, 353, 121, 65, 41);
   }
   
   drawAirport(context, t) {
     context.drawDecal(0, 0, 463, 102, 150, 100);
-    //TODO
+    // plane: dst=33,0 src=614,304 size=117,86
+    // ramp: dst=74,79 src=614,391 size=55,11
+    // truck: dst=*,49 src=353,121 size=65,41
+    
+    // Ramp and truck are visible for the first half or so.
+    if (t < 0.600) {
+      context.drawDecal(74, 79, 614, 391, 55, 11);
+      const truckxa = -70, truckxz = 120;
+      const truckx = truckxa + Math.round((t / 0.600) * (truckxz - truckxa));
+      let trucky = 49;
+      if (truckx >= 40) { // up the ramp
+        trucky -= Math.floor((truckx - 40) / 20);
+      }
+      context.drawDecal(truckx, trucky, 353, 121, 65, 41);
+    }
+    
+    // Plane sits still until the truck enters, then taxis off rightward.
+    let planex = 33;
+    if (t >= 0.600) planex += Math.floor((t - 0.600) * 300);
+    context.drawDecal(planex, 0, 614, 304, 117, 86);
   }
   
   drawWorldMap(context, t) {
     context.drawDecal(0, 0, 463, 203, 150, 100);
-    //TODO
+    const wichitax = 14, wichitay = 67;
+    const londonx = 142, londony = 32;
+    const dotCountMax = 20;
+    const dotCount = Math.ceil(t * dotCountMax);
+    const dotRadius = 2;
+    const dx = (londonx - wichitax) / dotCountMax;
+    const dy = (londony - wichitay) / dotCountMax;
+    context.fillStyle = "#fff";
+    context.strokeStyle = "#000";
+    for (let i=dotCount, x=wichitax, y=wichitay; i-->0; x+=dx, y+=dy) {
+      // If I do these all in one path, they go screwy. I dunno... just do a separate path for each.
+      context.beginPath();
+      context.ellipse(Math.round(x), Math.round(y), dotRadius, dotRadius, 0, 0, 3 * Math.PI);
+      context.fill();
+    }
   }
   
   drawAbbeyRoad(context, t) {
     context.drawDecal(0, 0, 463, 304, 150, 100);
-    //TODO
+    const dotxa = 20, dotxz = 130, doty = 61;
+    const dotx = dotxa + Math.floor(t * (dotxz - dotxa));
+    let srcx = 296 + (Math.floor(t * 20) & 3) * 17;
+    context.drawDecal(dotx, doty, srcx, 1, 16, 29, true);
   }
   
   drawStonehenge(context, t) {
     context.drawDecal(0, 0, 614, 1, 150, 100);
-    //TODO
+    // dot: dst=26,0 src=367,207 size=51,70
+    // arm: (l)dst=18,16 (r)dst=56,17 src=395,163(185) size=22,21. 2 frames, same size and anchor. flop for left.
+    const armsrcy = (~(t * 20) & 1) ? 163 : 185;
+    context.drawDecal(18, 16, 395, armsrcy, 22, 21, true);
+    context.drawDecal(56, 17, 395, armsrcy, 22, 21, false);
+    context.drawDecal(26, 0, 367, 207, 51, 70);
   }
   
   drawCandyShoppe(context, t) {
     context.drawDecal(0, 0, 614, 102, 150, 100);
-    //TODO
+    // old lady blink: dst=72,10 src=329,193 size=32,17
+    // dot eyes: dst=36,57 src=381,193 size=13,6
+    // dot tongue: dst=38..44,67 src=392,200 size=2,3
+    
+    if (~~(t * 20) % 10 > 8) { // old lady blinks periodically
+      context.drawDecal(72, 10, 329, 193, 32, 17);
+    }
+    
+    if ((~~(t * 10)) & 1) { // dot's eyes dart back and forth
+      context.drawDecal(36, 57, 381, 193, 13, 6);
+    }
+    
+    // dot's tongue appears and traverses her upper lip twice, in different directions
+    if (t < 0.25) {
+    } else if (t < 0.35) {
+      const t0 = (t - 0.25) * 10;
+      const dstx = Math.round(38 * t0 + 44 * (1 - t0));
+      context.drawDecal(dstx, 67, 392, 200, 2, 3);
+    } else if (t < 0.75) {
+    } else if (t < 0.85) {
+      const t0 = (t - 0.75) * 10;
+      const dstx = Math.round(38 * (1 - t0) + 44 * t0);
+      context.drawDecal(dstx, 67, 392, 200, 2, 3);
+    }
   }
   
-  drawUkPostOffice(context, t) {
+  drawUkPostOffice(context, t) { // (t) can exceed 1
     context.drawDecal(0, 0, 614, 203, 150, 100);
-    //TODO
+    
+    // empty box on the counter and dot walks in from the right
+    if (t < 0.200) {
+      context.drawDecal(68, 65, 329, 164, 32, 13, true);
+      const dotx = 150 + Math.round(t * 5 * (75 - 150));
+      const dotsrcx = 296 + ((t * 30) & 3) * 17;
+      context.drawDecal(dotx, 71, dotsrcx, 1, 16, 29);
+      return;
+    }
+    
+    // dot in a box
+    context.drawDecal(68, 50, 362, 164, 32, 28, true);
+    
+    // dialogue
+    if (t < 0.300) {
+    } else if (t < 0.700) {
+      context.drawDialogue(76, 49, "OK mail me back to Kansas");
+    } else if (t < 0.980) {
+    } else {
+      context.drawDialogue(34, 46, "Too heavy");
+      context.drawDecal(72, 54, 368, 193, 12, 13);
+    }
   }
   
   /* Prepare the scores report.
@@ -242,7 +359,7 @@ export class VictoryMenu {
   }
   
   generateMedals() {
-    const dsty = 128;
+    const dsty = 127;
     if (!this.game.deathCount) {
       this.medals.push({ dstx: 0, dsty, srcx: 419, srcy: 116 });
     }

@@ -27,10 +27,15 @@ https://github.com/aksommerville/too-heavy
 - - - [ ] Forbid using items.
 - - - [ ] Keep score.
 - - [ ] Tutorial 3: Admin
-- - [ ] Victory cutscene.
+- - [x] Victory cutscene.
 - - [ ] Can vacuum onto hazards safely -- should kill you.
 - - [ ] Cannonball isn't happening if you enter from the top with it already started. (visually right, but only getting the "land" sound). eg end of jump lessons.
+- - [ ] Persist high score.
 - By 7 January -- game jam submission
+- - [ ] Change the "V" in the font, I don't like the slanted look.
+- - [ ] Pretty up sound effects, after some review.
+- - - [ ] Pause/resume, yuck
+- - - [ ] Down-jump and dash sound too much alike.
 - - [ ] Fireworks on special jumps.
 - - [ ] WordBubbler: Exact stem alignment
 - - [ ] WordBubbler: Rewrite text breaking, it's making poor choices
