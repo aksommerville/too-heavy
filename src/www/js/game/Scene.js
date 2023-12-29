@@ -20,6 +20,7 @@ import { BlockSprite } from "./sprites/BlockSprite.js";
 import { ChestSprite } from "./sprites/ChestSprite.js";
 import { BoxSprite } from "./sprites/BoxSprite.js";
 import { TattleSprite } from "./sprites/TattleSprite.js";
+import { BellRevelatorSprite } from "./sprites/BellRevelatorSprite.js";
 
 const TILESIZE = 16;
  
@@ -208,6 +209,7 @@ export class Scene {
       case "FlagSprite": return new FlagSprite(this, col, row, cmd.slice(4));
       case "BoxSprite": return new BoxSprite(this, col, row, cmd.slice(4));
       case "TattleSprite": return new TattleSprite(this, col, row, cmd.slice(4));
+      case "BellRevelatorSprite": return new BellRevelatorSprite(this, col, row, cmd.slice(4));
     }
     throw new Error(`Unknown spriteId ${JSON.stringify(spriteId)}`);
   }

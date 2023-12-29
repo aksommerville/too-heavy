@@ -16,12 +16,12 @@ https://github.com/aksommerville/too-heavy
 - - - I think the set-a-respawn-point when standing still logic has to go.
 - - - [ ] Try this: Respawn always at the entry point, and allow movement fast but prevent doors from working for a second or so
 - - [ ] Final maps.
-- - [ ] Tutorial 1: Playing With Toys
+- - [x] Tutorial 1: Playing With Toys
 - - - [x] Forbid using wrong items
-- - - [ ] Static education about broom height limit, it's not obvious.
+- - - [x] Static education about broom height limit, it's not obvious.
 - - - [x] Keep score.
 - - - [x] Camera: Add switch door, once that's made
-- - - [ ] Bell: How is this going to work?
+- - - [x] Bell: How is this going to work?
 - - [x] Tutorial 2: The Magic Is In You
 - - - [x] Forbid using items.
 - - - [x] Keep score.

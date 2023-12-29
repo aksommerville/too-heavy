@@ -8,7 +8,8 @@ import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
 import { SelfieSprite } from "./SelfieSprite.js";
 import { GrappleSprite } from "./GrappleSprite.js";
 import { RaftSprite } from "./RaftSprite.js";
-import { SoulballsSprites } from "./SoulballsSprite.js";
+import { SoulballsSprite } from "./SoulballsSprite.js";
+import { BellRevelatorSprite } from "./BellRevelatorSprite.js";
 
 const JUMP_LIMIT_TIME = [0.300, 0.390, 0.450]; // s, indexed by jumpSequence
 const JUMP_SPEED_MAX = [380, 410, 450]; // px/sec, ''
@@ -918,6 +919,12 @@ export class HeroSprite extends Sprite {
       if (this.scene.game.permanentState[this.scene.itemConstraintFlag] !== false) {
         this.scene.game.setPermanentState(this.scene.itemConstraintFlag, true);
       }
+    }
+    
+    // Actually, one more thing: If there's a BellRevelatorSprite, kill it. There won't be more than one.
+    const revelator = this.scene.sprites.find(s => s instanceof BellRevelatorSprite);
+    if (revelator) {
+      this.scene.removeSprite(revelator);
     }
   }
   
