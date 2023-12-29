@@ -71,6 +71,7 @@ export class HeroSprite extends Sprite {
     this.ph.invmass = 0.5;
     this.ph.edges = false;
     this.ph.role = "fragile";
+    this.ph.collisions = [];
     this.layer = 100;
     this.timeless = true;
     
@@ -117,6 +118,7 @@ export class HeroSprite extends Sprite {
     soulballs.x = this.x;
     soulballs.y = this.y - 12;
     this.blackout = DEATH_BLACKOUT_TIME;
+    console.log(`${Date.now()} HeroSprite.collideHazard interactedSinceSpawn=${this.interactedSinceSpawn}`);
     if (this.interactedSinceSpawn) {
       // Normal case: Return to (reviveX, reviveY), should be the last place we stood still on solid ground.
       this.x = this.reviveX;
@@ -138,6 +140,7 @@ export class HeroSprite extends Sprite {
       this.scene.game.setPermanentState(k, v);
     }
     //TODO fireworks
+    console.log(`...collideHazard`);
   }
   
   reportLocationToScene() {
@@ -149,6 +152,9 @@ export class HeroSprite extends Sprite {
   
   update(elapsed, inputState) {
     if ((this.immortalClock -= elapsed) <= 0) this.immortalClock = 0;
+    if ((inputState !== this.pvinput) && !this.blackout) {
+      this.interactedSinceSpawn = true;
+    }
     if (this.blackout > 0) {
       if ((this.blackout -= elapsed) <= 0) {
         this.blackout = 0;
@@ -157,7 +163,6 @@ export class HeroSprite extends Sprite {
       }
     }
     if (inputState !== this.pvinput) {
-      this.interactedSinceSpawn = true;
       if ((inputState & InputBtn.DOWN) && !(this.pvinput & InputBtn.DOWN)) {
         this.duckBegin();
       } else if (!(inputState & InputBtn.DOWN) && (this.pvinput & InputBtn.DOWN)) {
@@ -581,8 +586,12 @@ export class HeroSprite extends Sprite {
     if (this.itemInProgress === ITEM_BROOM) return;
     if (this.scene.physics.measureFreedom(this, 0, 1, 2) <= 0) {
       if (!this.walkdx && !this.walkresidual && !this.scene.spawnAtEntranceOnly) { // standing still and grounded -- mark a revive point
-        this.reviveX = this.x;
-        this.reviveY = this.y;
+        if (this.ph.collisions.find(s => !s.staticFromGrid)) {
+          // We're involved in a collision with something that isn't a static solid. Don't revive here.
+        } else {
+          this.reviveX = this.x;
+          this.reviveY = this.y;
+        }
       }
       if (!this.footState) {
         if (this.cannonball) {
@@ -839,7 +848,7 @@ export class HeroSprite extends Sprite {
     // Attract toward walls.
     this.ph.gravity = true;
     const VACUUM_VELOCITY = 500; // Gravity peaks at 300 px/sec; Vacuum must be stronger than that.
-    const freedom = this.scene.physics.measureFreedom(this, this.vacuumDx, this.vacuumDy, VACUUM_DISTANCE_LIMIT);
+    const freedom = this.scene.physics.measureFreedom(this, this.vacuumDx, this.vacuumDy, VACUUM_DISTANCE_LIMIT, true);
     let stuck = false;
     if (freedom < 2) {
       // Stuck to a wall. If we're oriented horizontally, cancel gravity.

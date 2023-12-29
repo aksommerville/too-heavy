@@ -9,24 +9,17 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - By 1 January
-- - [ ] Crusher kills you from the platform end, if you touch a wall while rising. (it shouldn't)
+- - [x] Crusher kills you from the platform end, if you touch a wall while rising. (it shouldn't)
 - - [ ] Stopwatch: Visual feedback while running.
-- - [ ] Both Toy School and the real challenges, it's too hard to get back home after completing. Warp back?
-- - [ ] Revist respawn. Prevent accidentally walking offscreen right after, prevent excessive auto-death.
+- - [x] Both Toy School and the real challenges, it's too hard to get back home after completing. Warp back?
+- - - Nevermind. I like it this way, the return journey is part of the challenge.
+- - [x] Revist respawn. Prevent accidentally walking offscreen right after, prevent excessive auto-death.
 - - - I think the set-a-respawn-point when standing still logic has to go.
-- - - [ ] Try this: Respawn always at the entry point, and allow movement fast but prevent doors from working for a second or so
+- - - [x] Try this: Respawn always at the entry point, and allow movement fast but prevent doors from working for a second or so
+- - - With no-respawn-with-nonstatic-collisions and some adjustments to the maps' doorways, I think this isn't such a problem anymore.
 - - [ ] Final maps.
-- - [x] Tutorial 1: Playing With Toys
-- - - [x] Forbid using wrong items
-- - - [x] Static education about broom height limit, it's not obvious.
-- - - [x] Keep score.
-- - - [x] Camera: Add switch door, once that's made
-- - - [x] Bell: How is this going to work?
-- - [x] Tutorial 2: The Magic Is In You
-- - - [x] Forbid using items.
-- - - [x] Keep score.
 - - [ ] Tutorial 3: Admin
-- - [ ] Can vacuum onto hazards safely -- should kill you.
+- - [x] Can vacuum onto hazards safely -- should kill you.
 - - [ ] Cannonball isn't happening if you enter from the top with it already started. (visually right, but only getting the "land" sound). eg end of jump lessons.
 - By 7 January -- game jam submission
 - - [ ] Pretty up sound effects, after some review.

@@ -64,13 +64,34 @@ export class CrusherSprite extends Sprite {
           if (hero.collideHazard) hero.collideHazard(this);
           else this.scene.removeSprite(hero);
         } else {
-          if (this.scene.physics.measureFreedom(hero, 0, -1, 2) < 2) {
+          if (this.heroReallyAtCeiling(hero)) {
             if (hero.collideHazard) hero.collideHazard(this);
             else this.scene.removeSprite(hero);
           }
         }
       }
     }
+  }
+  
+  /* We'd like to just Physics.measureFreedom(), but it's entirely possible the hero is 
+   * in an intermediate state of collision and would report zero freedom upward, when she's really just dragging on a wall.
+   * Mitigate by faking her position a little bit in each horizontal direction, and confirm that there's no freedom even after the jiggle.
+   */
+  heroReallyAtCeiling(hero) {
+    const fudge = 4;
+    const x0 = hero.x;
+    hero.x = x0 - fudge;
+    if (this.scene.physics.measureFreedom(hero, 0, -1, 2) >= 2) {
+      hero.x = x0;
+      return false;
+    }
+    hero.x = x0 + fudge;
+    if (this.scene.physics.measureFreedom(hero, 0, -1, 2) >= 2) {
+      hero.x = x0;
+      return false;
+    }
+    hero.x = x0;
+    return true;
   }
   
   /* Render.

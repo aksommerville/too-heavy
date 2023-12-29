@@ -69,7 +69,7 @@ export class Physics {
    * (limit) is a hint that we can stop looking beyond that magnitude. We might return more.
    * One of (dx,dy) must be zero and the other nonzero.
    */
-  measureFreedom(sprite, dx, dy, limit) {
+  measureFreedom(sprite, dx, dy, limit, ignoreHazards) {
     if (!sprite.ph) return limit;
     if (!sprite.ph.invmass) return 0;
     sprite.ph.x = sprite.x + sprite.ph.pleft;
@@ -88,6 +88,7 @@ export class Physics {
       distance = (other) => {
         if (!other.ph) return limit;
         if (other.ph.role === "oneway") return limit;
+        if (ignoreHazards && (other.ph.role === "hazard")) return limit;
         if (other.ph.y >= bottom) return limit;
         if (other.ph.y + other.ph.h <= top) return limit;
         if (other.ph.x >= back) return limit;
@@ -105,6 +106,7 @@ export class Physics {
       distance = (other) => {
         if (!other.ph) return limit;
         if (other.ph.role === "oneway") return limit;
+        if (ignoreHazards && (other.ph.role === "hazard")) return limit;
         if (other.ph.y >= bottom) return limit;
         if (other.ph.y + other.ph.h <= top) return limit;
         if (other.ph.x + other.ph.w <= back) return limit;
@@ -121,6 +123,7 @@ export class Physics {
       distance = (other) => {
         if (!other.ph) return limit;
         if (other.ph.role === "oneway") return limit;
+        if (ignoreHazards && (other.ph.role === "hazard")) return limit;
         if (other.ph.x >= right) return limit;
         if (other.ph.x + other.ph.w <= left) return limit;
         if (other.ph.y >= back) return limit;
@@ -138,6 +141,7 @@ export class Physics {
       distance = (other) => {
         if (!other.ph) return limit;
         // do check "oneway"
+        if (ignoreHazards && (other.ph.role === "hazard")) return limit;
         if (other.ph.x >= right) return limit;
         if (other.ph.x + other.ph.w <= left) return limit;
         if (other.ph.y + other.ph.h <= back) return limit;

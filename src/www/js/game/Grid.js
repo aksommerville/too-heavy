@@ -91,10 +91,11 @@ export class Grid {
         sprite.ph.ptop = 0;
         sprite.ph.invmass = 0;
         sprite.ph.gravity = false;
+        sprite.staticFromGrid = true;
         switch (phtype) {
           case 1: sprite.ph.role = "solid"; break;
           case 2: sprite.ph.role = "oneway"; break;
-          case 3: sprite.ph.role = "hazard"; break;
+          case 3: sprite.ph.role = "hazard"; sprite.staticFromGrid = false; break;
         }
         sprites.push(sprite);
         
