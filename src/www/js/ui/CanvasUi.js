@@ -6,6 +6,8 @@ import { Game } from "../game/Game.js";
 import { WordBubbler } from "./WordBubbler.js";
 
 const TILESIZE = 16;
+const CHRONFLAKE_COUNT = 100;
+const CHRONFLAKE_TTL = 60; // frames; we don't get real time
 
 export class CanvasUi {
   static getDependencies() {
@@ -24,6 +26,8 @@ export class CanvasUi {
     this.context = this.element.getContext("2d");
     this.context.drawDecal = (dstx, dsty, srcx, srcy, w, h, flop) => this.drawDecal(dstx, dsty, srcx, srcy, w, h, flop);
     this.context.drawDialogue = (focusx, focusy, text) => this.wordBubbler.draw(focusx, focusy, text);
+    
+    this.chronflakes = []; // {x,y,ttl} when time frozen
   }
   
   drawDecal(dstx, dsty, srcx, srcy, w, h, flop) {
@@ -69,7 +73,11 @@ export class CanvasUi {
       }
     }
     
-    //TODO weather. eg this.game.timeFrozen
+    if (this.game.timeFrozen) {
+      this.renderStoppedTime();
+    } else {
+      this.chronflakes = [];
+    }
     
     if (this.game.menu) {
       this.game.menu.render(this.context, this.element);
@@ -167,5 +175,37 @@ export class CanvasUi {
         this.context.drawImage(this.game.graphics, sprite.srcx, sprite.srcy, sbounds.w, sbounds.h, dstx, dsty, sbounds.w, sbounds.h);
       }
     }
+  }
+  
+  renderStoppedTime() {
+    while (this.chronflakes.length < CHRONFLAKE_COUNT) {
+      this.chronflakes.push({
+        x: Math.floor(Math.random() * this.element.width),
+        y: Math.floor(Math.random() * this.element.height),
+        ttl: Math.ceil(Math.random() * CHRONFLAKE_TTL),
+      });
+    }
+    const halfttl = CHRONFLAKE_TTL >> 1;
+    const alphamax = 0.5;
+    const radius = 2;
+    this.context.fillStyle = "#fff";
+    for (const chronflake of this.chronflakes) {
+      if (chronflake.ttl > 0) {
+        chronflake.ttl--;
+        this.context.beginPath();
+        this.context.ellipse(chronflake.x, chronflake.y, radius, radius, 0, 0, Math.PI * 2);
+        if (chronflake.ttl >= halfttl) {
+          this.context.globalAlpha = ((CHRONFLAKE_TTL - chronflake.ttl) * alphamax) / halfttl;
+        } else {
+          this.context.globalAlpha = (chronflake.ttl * alphamax) / halfttl;
+        }
+        this.context.fill();
+      } else {
+        chronflake.x = Math.floor(Math.random() * this.element.width);
+        chronflake.y = Math.floor(Math.random() * this.element.height);
+        chronflake.ttl = CHRONFLAKE_TTL;
+      }
+    }
+    this.context.globalAlpha = 1.0;
   }
 }
