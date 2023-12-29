@@ -118,7 +118,6 @@ export class HeroSprite extends Sprite {
     soulballs.x = this.x;
     soulballs.y = this.y - 12;
     this.blackout = DEATH_BLACKOUT_TIME;
-    console.log(`${Date.now()} HeroSprite.collideHazard interactedSinceSpawn=${this.interactedSinceSpawn}`);
     if (this.interactedSinceSpawn) {
       // Normal case: Return to (reviveX, reviveY), should be the last place we stood still on solid ground.
       this.x = this.reviveX;
@@ -140,7 +139,6 @@ export class HeroSprite extends Sprite {
       this.scene.game.setPermanentState(k, v);
     }
     //TODO fireworks
-    console.log(`...collideHazard`);
   }
   
   reportLocationToScene() {
@@ -253,7 +251,7 @@ export class HeroSprite extends Sprite {
     // If an edge is provided, keep us close to it (mind that it's backward; "edge" is from the door that got us here).
     switch (edge) {
       case "n": if (this.y < this.scene.worldh - 8) this.y = this.scene.worldh - 8; break;
-      case "s": if (this.y > 8) this.y = 8; break;
+      case "s": if (this.y > 8) this.y = 8; this.cannonballStartY = -100; break;
       case "w": if (this.x < this.scene.worldw - 8) this.x = this.scene.worldw - 8; break;
       case "e": if (this.x > 8) this.x = 8; break;
     }
@@ -512,6 +510,8 @@ export class HeroSprite extends Sprite {
       } else if (this.scene.physics.bypassOneWays(this)) {
         // Duck jumped thru oneway.
         this.sound("jumpDown");
+        this.cannonball = true;
+        this.cannonballStartY = this.y;
       } else {
         // Other duck jump -- should we do something?
       }
