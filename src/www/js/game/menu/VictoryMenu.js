@@ -42,7 +42,7 @@ export class VictoryMenu {
     
     this.scores = []; // {x,tileid[]} one row at a time
     this.appendScores("Time", this.reprTime(this.game.playTime));
-    this.appendScores("Best", "(TODO)");//TODO
+    this.appendScores("Best", this.reprTime(this.dataService.getBestTime()));
     this.appendScores("Death", this.game.deathCount.toString());
     
     this.medals = []; // {dstx,dsty,srcx,srcy}
@@ -347,10 +347,13 @@ export class VictoryMenu {
   }
   
   reprTime(t) {
+    if (typeof(t) !== "number") return "99:99.999";
+    if (t < 0) return "99:99.999";
     let ms = Math.floor(t * 1000);
     let s = Math.floor(ms / 1000);
     ms %= 1000;
     let min = Math.floor(s / 60);
+    if (min >= 100) return "99:99.999";
     s %= 60;
     if (s < 10) s = "0" + s;
     if (ms < 10) ms = "00" + ms;

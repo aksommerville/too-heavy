@@ -11,7 +11,7 @@ https://github.com/aksommerville/too-heavy
 - By 1 January
 - - [x] Dialogue for chest. "FEED ME" or "THANKS FOR THE {whatever}}"
 - - [ ] Crusher kills you from the platform end, if you touch a wall while rising. (it shouldn't)
-- - [ ] Stopwatch: Sound effect at transitions, and some visual feedback while running.
+- - [ ] Stopwatch: Visual feedback while running.
 - - [ ] Both Toy School and the real challenges, it's too hard to get back home after completing. Warp back?
 - - [ ] Revist respawn. Prevent accidentally walking offscreen right after, prevent excessive auto-death.
 - - - I think the set-a-respawn-point when standing still logic has to go.
@@ -30,9 +30,9 @@ https://github.com/aksommerville/too-heavy
 - - [x] Victory cutscene.
 - - [ ] Can vacuum onto hazards safely -- should kill you.
 - - [ ] Cannonball isn't happening if you enter from the top with it already started. (visually right, but only getting the "land" sound). eg end of jump lessons.
-- - [ ] Persist high score.
+- - [x] Persist high score.
 - By 7 January -- game jam submission
-- - [ ] Change the "V" in the font, I don't like the slanted look.
+- - [x] Change the "V" in the font, I don't like the slanted look.
 - - [ ] Pretty up sound effects, after some review.
 - - - [ ] Pause/resume, yuck
 - - - [ ] Down-jump and dash sound too much alike.
@@ -40,7 +40,7 @@ https://github.com/aksommerville/too-heavy
 - - [ ] WordBubbler: Exact stem alignment
 - - [ ] WordBubbler: Rewrite text breaking, it's making poor choices
 - - [ ] Guess gamepad mapping for unknown devices.
-- - [ ] Toggle fullscreen.
+- - [x] Toggle fullscreen. ...nevermind. Itch does its own fullscreening, it's the wrapper's responsibility.
 - Stretch goals, or after submission
 - - [ ] More interesting song voices.
 - - [ ] Capture and playback of sound effects, rather than synthesizing from scratch each time.

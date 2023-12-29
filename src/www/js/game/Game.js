@@ -41,7 +41,7 @@ export class Game {
     this.lastFrameTime = 0;
     this.graphics = null; // Image; required if loaded.
     this.resetGame();
-    if (true) this.inventory = this.inventory.map(() => false);//XXX give away all items, to test ending
+    //if (true) this.inventory = this.inventory.map(() => false);//XXX give away all items, to test ending
   }
   
   resetGame() {
@@ -184,6 +184,7 @@ export class Game {
   
   win() {
     this.scene.grid = null; // Force reload of game if the menu gets dismissed.
+    this.dataService.setBestTimeIfBetter(this.playTime);
     this.menu = this.injector.get(VictoryMenu);
     this.audioManager.playSong(this.dataService.getResourceSync("song", 2), false);
   }

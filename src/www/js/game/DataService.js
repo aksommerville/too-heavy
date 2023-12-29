@@ -1,10 +1,11 @@
 /* DataService.js
+ * Manages the data files inlined in our index.html.
+ * Also responsible for high score persistence.
+ * (but not input config persistence; that's InputManager).
  */
  
 import { Grid } from "./Grid.js";
  
-export const RESTYPES = ["image", "map"];
-
 // (string) => ArrayBuffer, kind of crazy that browsers still don't supply a straightforward way to do this...
 export function decodeBase64(src) {
   const dsta = Math.ceil(src.length * 0.75); // Maximum output length 3/4 input.
@@ -48,6 +49,29 @@ export class DataService {
     this.files = []; // {tid,rid,serial,name,path,object} ; object gets instantiated lazily
     this.loaded = false;
     this.loadPromise = null;
+    this.bestTime = 0; // sec; don't touch directly
+  }
+  
+  getBestTime() {
+    if (this.bestTime) return this.bestTime;
+    try {
+      this.bestTime = JSON.parse(this.window.localStorage.getItem("bestTime"));
+      if ((typeof(this.bestTime) !== "number") || isNaN(this.bestTime) || (this.bestTime < 0)) {
+        this.bestTime = 0;
+      }
+    } catch (e) {
+      this.bestTime = 0;
+    }
+    if (this.bestTime) return this.bestTime;
+    return 999999; // overflow our printing and it will display as "99:99.999"
+  }
+  
+  setBestTimeIfBetter(incoming) {
+    const previous = this.getBestTime();
+    if (incoming < previous) {
+      this.bestTime = incoming;
+      this.window.localStorage.setItem("bestTime", JSON.stringify(this.bestTime));
+    }
   }
   
   getResourceSync(tid, rid) {
