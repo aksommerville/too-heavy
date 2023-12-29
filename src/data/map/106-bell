@@ -10,3 +10,7 @@ c2101010101010101010101010101010101010c0
 c3b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1c4
 
 edgedoor n 0 20 101 0
+sprite 2 1 TattleSprite schoolBell
+resetPermanent schoolBell
+itemConstraint bell schoolBell
+setPermanentStateOnDeath schoolBell null

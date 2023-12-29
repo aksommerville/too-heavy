@@ -133,6 +133,9 @@ export class HeroSprite extends Sprite {
     this.scene.clearTransientState();
     this.sound("die");
     this.scene.game.deathCount++;
+    for (const [k, v] of this.scene.setPermanentStateOnDeath) {
+      this.scene.game.setPermanentState(k, v);
+    }
     //TODO fireworks
   }
   
@@ -663,6 +666,7 @@ export class HeroSprite extends Sprite {
     if (!this.scene.game.inventory[this.scene.game.selectedItem]) {
       return;
     }
+    this.scene.enforceItemConstraint(this.scene.game.selectedItem);
     switch (this.scene.game.selectedItem) {
       case ITEM_STOPWATCH: this.stopwatchBegin(); break;
       case ITEM_BROOM: this.broomBegin(); break;
@@ -674,7 +678,10 @@ export class HeroSprite extends Sprite {
       case ITEM_GRAPPLE: this.grappleBegin(); break;
       case ITEM_RAFT: this.raftBegin(); break;
     }
-    this.scene.game.itemUseCount++;
+    if (!this.scene.itemConstraintFlag) {
+      // Items don't count toward the "No Item" medal when used under a constraint (ie in school).
+      this.scene.game.itemUseCount++;
+    }
   }
   
   // Returns mangled inputState. A silly hack so item terminators can make us pretend the dpad was off, and re-notice it next update.
@@ -904,6 +911,14 @@ export class HeroSprite extends Sprite {
   bellBegin() {
     this.sound("bell");
     //TODO animation
+    
+    // There's only one thing the bell really does: One room in the school, where we teach about each item, you have to ring it.
+    // Look for the itemConstraint, and set the global flag accordingly.
+    if (this.scene.itemConstraintFlag && (this.scene.itemConstraintId === 4)) {
+      if (this.scene.game.permanentState[this.scene.itemConstraintFlag] !== false) {
+        this.scene.game.setPermanentState(this.scene.itemConstraintFlag, true);
+      }
+    }
   }
   
   /* Umbrella: Disable normal gravity and reimplement more gently.

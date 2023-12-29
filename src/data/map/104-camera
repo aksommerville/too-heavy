@@ -6,10 +6,15 @@ c210101010101010101010c0c1c23810101038c0
 c3b1b1b1b1b1b1b1b21010c0c1c23810101038c0
 c1c1b3d1d1d1d1d1d21010c0c1c23810101038c0
 c1c1c21010101010101010c0c1c23810101038c0
-c1c1c21010eb1010101010c0c1c23810101038c0
+c1c1c21010101010101010c0c1c23810101038c0
 c1c1c3b1b1b1b1b1b1b1b1c4c1c3b1b1b1b1b1c4
 
 edgedoor w 0 10 101 0
 spawnAtEntranceOnly
 sprite 16 8 SwitchSprite stompbox unlock
 sprite 9 7 BlockSprite unlock
+sprite 5 8 TattleSprite schoolCamera
+sprite 6 8 SwitchSprite once _ schoolCamera
+resetPermanent schoolCamera
+itemConstraint camera schoolCamera
+setPermanentStateOnDeath schoolCamera null

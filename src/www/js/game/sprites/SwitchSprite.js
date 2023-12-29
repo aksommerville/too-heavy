@@ -1,6 +1,8 @@
 /* SwitchSprite.js
  * Treadle or stompbox.
- * args: mode("treadle","stompbox"), transientStateKey, permanentStateKey
+ * args: mode("treadle","stompbox","once"), transientStateKey, permanentStateKey
+ * "_" as either key, same as unset.
+ * "once" mode, we set the flag true only if it is null or undefined.
  */
  
 import { Sprite } from "../Sprite.js";
@@ -23,8 +25,10 @@ export class SwitchSprite extends Sprite {
     this.mode = args[0] || "treadle";
     this.transientStateKey = args[1] || "";
     this.permanentStateKey = args[2] || "";
+    if (this.transientStateKey === "_") this.transientStateKey = "";
+    if (this.permanentStateKey === "_") this.permanentStateKey = "";
     if (this.permanentStateKey) {
-      // TODO read value from persistent store... Game or Scene?
+      this.value = this.scene.game.permanentState[this.permanentStateKey];
     }
   }
   
@@ -65,6 +69,9 @@ export class SwitchSprite extends Sprite {
       case "stompbox": {
           this.changeValue(!this.value);
         } break;
+      case "once": {
+          this.pressOnce();
+        } break;
     }
   }
   
@@ -75,8 +82,20 @@ export class SwitchSprite extends Sprite {
       case "treadle": {
           this.changeValue(false);
         } break;
-      case "stompbox": {
-        } break;
+    }
+  }
+  
+  pressOnce() {
+    this.value = true;
+    if (this.transientStateKey) {
+      if (typeof(this.scene.transientState[this.transientStateKey]) !== "boolean") {
+        this.scene.deliverTransientState(this.transientStateKey, true);
+      }
+    }
+    if (this.permanentStateKey) {
+      if (typeof(this.scene.game.permanentState[this.permanentStateKey]) !== "boolean") {
+        this.scene.game.setPermanentState(this.permanentStateKey, true);
+      }
     }
   }
   
@@ -84,11 +103,7 @@ export class SwitchSprite extends Sprite {
     if (this.value === nv) return;
     this.value = nv;
     if (this.transientStateKey) this.scene.deliverTransientState(this.transientStateKey, this.value);
-    if (this.permanentStatekey) this.deliverPermanentState(this.permanentStateKey, this.value);
-  }
-  
-  deliverPermanentState(k, v) {
-    //TODO Toggle something in Scene or Game that persists the state.
+    if (this.permanentStatekey) this.scene.game.setPermanentState(this.permanentStateKey, this.value);
   }
   
   // We're normally write-only to the shared state, but we do read from it on clears (when the hero dies).

@@ -369,7 +369,7 @@ export class VictoryMenu {
     if (!this.game.itemUseCount) {
       this.medals.push({ dstx: 0, dsty, srcx: 419, srcy: 149 });
     }
-    if (true) { // TODO detect completion of both school rooms
+    if (this.deservesEducationMedal()) {
       this.medals.push({ dstx: 0, dsty, srcx: 419, srcy: 182 });
     }
     if (!this.medals.length) return;
@@ -379,5 +379,20 @@ export class VictoryMenu {
     for (let i=0, x=spaceOne; i<this.medals.length; i++, x+=32+spaceOne) {
       this.medals[i].dstx = x;
     }
+  }
+  
+  deservesEducationMedal() {
+    // The various flags feeding this are all true/false/null -- everything must be true.
+    if (!this.game.permanentState.schoolJump) return false;
+    if (!this.game.permanentState.schoolStopwatch) return false;
+    if (!this.game.permanentState.schoolBroom) return false;
+    if (!this.game.permanentState.schoolCamera) return false;
+    if (!this.game.permanentState.schoolVacuum) return false;
+    if (!this.game.permanentState.schoolBell) return false;
+    if (!this.game.permanentState.schoolUmbrella) return false;
+    if (!this.game.permanentState.schoolBoots) return false;
+    if (!this.game.permanentState.schoolGrapple) return false;
+    if (!this.game.permanentState.schoolRaft) return false;
+    return true;
   }
 }

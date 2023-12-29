@@ -19,6 +19,7 @@ import { SwitchSprite } from "./sprites/SwitchSprite.js";
 import { BlockSprite } from "./sprites/BlockSprite.js";
 import { ChestSprite } from "./sprites/ChestSprite.js";
 import { BoxSprite } from "./sprites/BoxSprite.js";
+import { TattleSprite } from "./sprites/TattleSprite.js";
 
 const TILESIZE = 16;
  
@@ -44,6 +45,9 @@ export class Scene {
     this.worldw = 0;
     this.worldh = 0;
     this.transientState = {};
+    this.itemConstraintId = -1;
+    this.itemConstraintFlag = ""; // permanentState, goes false if an item other than (itemConstraintId) gets used
+    this.setPermanentStateOnDeath = []; // [k,v]
     
     // HeroSprite should set these after it updates each time, for other sprites to observe.
     this.herox = 0;
@@ -77,6 +81,9 @@ export class Scene {
     this.spawnAtEntranceOnly = false;
     this.timeSinceLoad = 0;
     this.transientState = {};
+    this.itemConstraintId = -1;
+    this.itemConstraintFlag = "";
+    this.setPermanentStateOnDeath = [];
     
     /* If we were given a hero sprite, keep it.
      * And if there's also a door (or edgeDoor), adjust the hero's position accordingly.
@@ -160,6 +167,18 @@ export class Scene {
         case "spawnAtEntranceOnly": {
             this.spawnAtEntranceOnly = true;
           } break;
+        case "resetPermanent": {
+            if (this.game.permanentState[cmd[1]] !== true) {
+              this.game.setPermanentState(cmd[1], null);
+            }
+          } break;
+        case "itemConstraint": {
+            this.itemConstraintId = this.evalItem(cmd[1]);
+            this.itemConstraintFlag = cmd[2];
+          } break;
+        case "setPermanentStateOnDeath": {
+            this.setPermanentStateOnDeath.push([cmd[1], JSON.parse(cmd[2])]);
+          } break;
       }
     }
     
@@ -188,6 +207,7 @@ export class Scene {
       case "ChestSprite": return new ChestSprite(this, col, row, cmd.slice(4));
       case "FlagSprite": return new FlagSprite(this, col, row, cmd.slice(4));
       case "BoxSprite": return new BoxSprite(this, col, row, cmd.slice(4));
+      case "TattleSprite": return new TattleSprite(this, col, row, cmd.slice(4));
     }
     throw new Error(`Unknown spriteId ${JSON.stringify(spriteId)}`);
   }
@@ -212,5 +232,26 @@ export class Scene {
       }
     }
     this.transientState = {};
+  }
+  
+  evalItem(src) {
+    switch (src) {
+      case "stopwatch": return 0;
+      case "broom": return 1;
+      case "camera": return 2;
+      case "vacuum": return 3;
+      case "bell": return 4;
+      case "umbrella": return 5;
+      case "boots": return 6;
+      case "grapple": return 7;
+      case "raft": return 8;
+    }
+    return -1;
+  }
+  
+  enforceItemConstraint(itemid) {
+    if (!this.itemConstraintFlag) return;
+    if (itemid === this.itemConstraintId) return;
+    this.game.setPermanentState(this.itemConstraintFlag, false);
   }
 }

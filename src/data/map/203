@@ -11,3 +11,5 @@ e0e1e2c0c3b1b1b1b1b1b1c4c1c1c1c1c1c1c1c1
 
 edgedoor w 0 10 202 0
 edgedoor n 0 20 204 0
+itemConstraint all schoolJump
+sprite 1 5 TattleSprite schoolJump

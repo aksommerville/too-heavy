@@ -12,3 +12,5 @@ b1b1b1b1b1b1b1b1b1b1b1c4c1c1c1c2101010c0
 edgedoor s 0 20 203 0
 edgedoor w 0 10 205 0
 sprite 9 7 BreakableSprite
+itemConstraint all schoolJump
+sprite 4 5 TattleSprite schoolJump

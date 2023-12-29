@@ -11,4 +11,6 @@ c238101038c0c1c1c1c1c1c1c1c1c1c3b1b1b1b1
 
 edgedoor s 0 20 202 0
 edgedoor e 0 10 204 0
-sprite 8 2 ProximityRevealSprite
+sprite 8 2 ProximityRevealSprite schoolJump
+itemConstraint all schoolJump
+sprite 14 1 TattleSprite schoolJump

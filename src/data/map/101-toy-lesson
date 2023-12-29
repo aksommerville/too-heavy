@@ -6,7 +6,7 @@ d4353636363636371010101035363636363637d4
 10e7fa1010101010101010101010101010fce810
 d3353636363637101007081010353636363637d4
 1010101010101010101718101010101010101010
-10e7fd10eafb1010102728101010feea10ffe810
+10e7fd1010eafb101027281010feea1010ffe810
 e0e1e235363637e0e1e1e1e1e235363637e0e1e2
 
 door 9 7 2 2 1 19 28
@@ -19,3 +19,12 @@ edgedoor e 7 2 110 0
 edgedoor n 0 20 103 0
 edgedoor s 3 4 106 0
 edgedoor s 13 4 109 0
+sprite 3 8 TattleSprite schoolBoots
+sprite 7 8 TattleSprite schoolBell
+sprite 12 8 TattleSprite schoolGrapple
+sprite 16 8 TattleSprite schoolRaft
+sprite 3 5 TattleSprite schoolVacuum
+sprite 16 5 TattleSprite schoolUmbrella
+sprite 3 2 TattleSprite schoolStopwatch
+sprite 11 2 TattleSprite schoolBroom
+sprite 16 2 TattleSprite schoolCamera
