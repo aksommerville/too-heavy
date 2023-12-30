@@ -11,7 +11,7 @@ https://github.com/aksommerville/too-heavy
 - By 1 January
 - - [x] Stopwatch: Visual feedback while running.
 - - [ ] Final maps.
-- - [ ] Tutorial 3: Admin
+- - [x] Tutorial 3: Admin
 - - [x] Cannonball isn't happening if you enter from the top with it already started. (visually right, but only getting the "land" sound). eg end of jump lessons.
 - By 7 January -- game jam submission
 - - [ ] Pretty up sound effects, after some review.

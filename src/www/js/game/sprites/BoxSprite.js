@@ -57,6 +57,7 @@ export class BoxSprite extends Sprite {
   }
   
   beginCutscene() {
+    this.scene.game.setPermanentState("mailAttempted", true);
     this.stage = STAGE_MAIL_ME;
     this.stageClock = 2.0;
     this.y -= 28 - this.vh;
