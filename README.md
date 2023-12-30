@@ -8,18 +8,11 @@ https://github.com/aksommerville/too-heavy
 
 ## TODO
 
-- By 1 January
-- - [x] Stopwatch: Visual feedback while running.
-- - [ ] Final maps.
-- - [x] Tutorial 3: Admin
-- - [x] Cannonball isn't happening if you enter from the top with it already started. (visually right, but only getting the "land" sound). eg end of jump lessons.
 - By 7 January -- game jam submission
 - - [ ] Pretty up sound effects, after some review.
 - - - [ ] Pause/resume, yuck
 - - - [ ] Down-jump and dash sound too much alike.
 - - [ ] Fireworks on special jumps.
-- - [x] WordBubbler: Exact stem alignment, and avoid going offscreen.
-- - [x] WordBubbler: Rewrite text breaking, it's making poor choices
 - - [ ] Guess gamepad mapping for unknown devices.
 - Stretch goals, or after submission
 - - [ ] More interesting song voices.
