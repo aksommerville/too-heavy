@@ -6,8 +6,8 @@
 const TILESIZE = 16;
 const GLYPH_W = 8;
 const GLYPH_H = 8;
+const BUBBLE_MARGIN = 3;
 const BUBBLE_MARGIN_BOTTOM = 7;
-const TARGET_RATIO = 5.5; // Glyphs are square, but an ideal word bubble is about twice as wide as tall.
  
 export class WordBubbler {
   constructor(canvas) {
@@ -85,63 +85,69 @@ export class WordBubbler {
   }
   
   calculateLayout(text) {
-    const words = text.split(' ');
-    if (words.length < 1) return { text, bubcolc: 2, bubrowc: 2, tcolc: 0, trowc: 0, grid: "" };
-    const layout = { text };
+    text = (text || "").trim();
     
-    //XXX I'm not happy with this algorithm, surely we can do better
-    
-    /* Estimate grid dimensions assuming we can land right on TARGET_RATIO.
-     * If that ends up narrower than the longest word, use the longest word length instead.
+    /* The dumb way: Set an arbitrary width limit, break lines against that, then eliminate unnecessary width.
+     * I guess that's not the dumbest thing we could do, actually.
      */
-    let rowc = Math.ceil(Math.sqrt(text.length / TARGET_RATIO));
-    let colc = Math.ceil(text.length / rowc);
-    const longestWordLength = words.reduce((a, v) => Math.max(a, v.length), 0);
-    if (colc < longestWordLength) {
-      colc = longestWordLength;
-      rowc = Math.ceil(text.length / colc);
+    const fbw = 320;
+    const wlimit = Math.ceil((fbw / 3) / GLYPH_W);
+    
+    const lineStarts = [];
+    for (let textp=0; textp<text.length; ) {
+      let spacep = text.indexOf(" ", textp);
+      if (spacep < 0) spacep = text.length;
+      if (spacep <= textp) {
+        textp++;
+        continue;
+      }
+      if (lineStarts.length < 1) {
+        lineStarts.push(textp);
+        textp = spacep + 1;
+        continue;
+      }
+      const linep = lineStarts[lineStarts.length - 1];
+      const lineLenWith = spacep - linep;
+      if (lineLenWith <= wlimit) {
+        // keep it
+      } else {
+        // new line
+        lineStarts.push(textp);
+      }
+      textp = spacep + 1;
     }
     
-    /* Pack one word at a time into the grid, adding rows whenever we need them.
-     * Grid will be an array of tile IDs -- ASCII code points minus 0x20.
-     */
-    let realrowc = 1;
-    let x = 0, gridp = 0;
+    // Rephrase as [p,c] for each line and record the widest. We now know the geometry of the text area.
+    let tcolc = 0;
+    const lines = lineStarts.map((p, i) => {
+      let c = (lineStarts[i + 1] || text.length) - p;
+      while ((c > 0) && (text[p + c - 1] === " ")) c--;
+      if (c > tcolc) tcolc = c;
+      return [p, c];
+    });
+    const trowc = lines.length;
+    
+    // Pad each line with spaces and subtract 0x20 from each byte, write out into the grid.
     const grid = [];
-    for (let i=colc; i-->0; ) grid.push(0);
-    for (const word of words) {
-      if (x + word.length > colc) {
-        realrowc++;
-        gridp = grid.length;
-        for (let i=colc; i-->0; ) grid.push(0);
-        x = 0;
+    for (const [p, c] of lines) {
+      const extra = tcolc - c;
+      const leftPad = extra >> 1;
+      const rightPad = extra - leftPad;
+      for (let i=leftPad; i-->0; ) grid.push(0);
+      for (let i=0; i<c; i++) {
+        let tileid = text.charCodeAt(p + i) - 0x20;
+        if ((tileid < 0) || (tileid >= 0x60)) tileid = 0x1f;
+        grid.push(tileid);
       }
-      for (let i=0; i<word.length; i++) {
-        let tileid = word.charCodeAt(i) - 0x20;
-        if ((tileid < 0) || (tileid >= 0x60)) tileid = 0x1f; // '?' for invalid bytes
-        grid[gridp++] = tileid;
-      }
-      x += word.length;
-      if (x < colc ) {
-        grid[gridp++] = 0x00;
-        x++;
-      }
+      for (let i=rightPad; i-->0; ) grid.push(0);
     }
     
-    // Done breaking words, commit to layout.
-    layout.tcolc = colc;
-    layout.trowc = realrowc;
-    layout.grid = grid;
+    // Geometry of the bubble can easily be calculated from the text area.
+    let bubcolc = Math.ceil((tcolc * GLYPH_W + BUBBLE_MARGIN * 2) / TILESIZE);
+    if (bubcolc < 3) bubcolc = 3;
+    let bubrowc = Math.ceil((trowc * GLYPH_H + BUBBLE_MARGIN * 2 + BUBBLE_MARGIN_BOTTOM) / TILESIZE);
+    if (bubrowc < 2) bubrowc = 2;
     
-    /* Calculate how many tiles we need for the surrounding bubble.
-     */
-    const gridw = layout.tcolc * GLYPH_W;
-    const gridh = layout.trowc * GLYPH_H;
-    layout.bubcolc = Math.ceil((gridw + 4) / TILESIZE);
-    layout.bubrowc = Math.ceil((gridh + 4 + BUBBLE_MARGIN_BOTTOM) / TILESIZE);
-    if (layout.bubcolc < 3) layout.bubcolc = 3;
-    if (layout.bubrowc < 2) layout.bubrowc = 2;
-    
-    return layout;
+    return { text, bubcolc, bubrowc, tcolc, trowc, grid };
   }
 }
