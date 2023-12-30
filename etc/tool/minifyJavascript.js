@@ -30,6 +30,41 @@ function extractImportPath(line, refpath, lineno) {
   }
   return dir + "/" + relpath;
 }
+
+function isident(ch) {
+  return (
+    ((ch >= "a") && (ch <= "z")) ||
+    ((ch >= "A") && (ch <= "Z")) ||
+    ((ch >= "0") && (ch <= "9")) ||
+    (ch === "_")
+    // Javascript allows other things in identifiers, LOTS of other things, but we don't use them.
+  );
+}
+
+/* Eliminate anything obviously unnecessary from one line of Javascript.
+ * Probably just whitespace.
+ */
+function minifyLine(src) {
+  // I don't want to do proper tokenization. For the lines with a string literal, just let them thru, spaces and all.
+  if ((src.indexOf("\"") >= 0) || (src.indexOf("'") >= 0) || (src.indexOf("`") >= 0)) {
+    return src;
+  }
+  let dst = "";
+  for (let srcp=0; srcp<src.length; ) {
+    const spacep = src.indexOf(" ", srcp);
+    if (spacep < 0) {
+      dst += src.substring(srcp);
+      break;
+    }
+    if (isident(src[spacep - 1]) && isident(src[spacep + 1])) {
+      dst += src.substring(srcp, spacep + 1);
+    } else {
+      dst += src.substring(srcp, spacep);
+    }
+    srcp = spacep + 1;
+  }
+  return dst;
+}
  
 module.exports = function minifyJavascript(src, path) {
   const context = { src: "", path, imports: [] };
@@ -79,7 +114,7 @@ module.exports = function minifyJavascript(src, path) {
     // I didn't put this symbol in a good shareable place and ended it defining it all over. oops. Outer layer inserts it in the main script block.
     if (line === "const TILESIZE = 16;") continue;
     
-    context.src += line;
+    context.src += minifyLine(line);
   }
   return context;
 };
