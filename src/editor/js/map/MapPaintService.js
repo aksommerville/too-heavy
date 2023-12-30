@@ -460,7 +460,13 @@ MapPaintService.TILEPROPS = [{
   tileid: 0x80,
   mode: "fat5x3",
 }, {
+  tileid: 0x99,
+  mode: "fat5x3",
+}, {
   tileid: 0xb0,
+  mode: "fat5x3",
+}, {
+  tileid: 0xcb,
   mode: "fat5x3",
 }, {
   tileid: 0xe0,

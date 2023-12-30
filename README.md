@@ -9,7 +9,7 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - [ ] Confirm it runs sanely with a high-frequency monitor. Ask Rick.
-- [ ] Enrich graphics.
+- [x] Enrich graphics.
 - [ ] Can I loosen the trigger for long jump while running? I miss it a lot.
 
 ## High Scores
@@ -18,3 +18,4 @@ https://github.com/aksommerville/too-heavy
 |--------|----------|------------|---------|
 | DIE    | 4:31.098 | 2023-12-30 | |
 | DI-    | 2:17.146 | 2023-12-30 | |
+| ---    | 1:51.608 | 2023-12-30 | |
