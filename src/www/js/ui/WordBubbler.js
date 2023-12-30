@@ -27,18 +27,28 @@ export class WordBubbler {
     
     const lw = layout.bubcolc * TILESIZE;
     const lh = layout.bubrowc * TILESIZE;
-    const lx = Math.floor(focusx - lw / 2); // TODO incorrect! We want (focusx) to be exactly where the stem ends up
     const ly = Math.floor(focusy - lh);
-    this.drawBackground(lx, ly, layout.bubcolc, layout.bubrowc);
+    let stemcol = layout.bubcolc >> 1;
+    let lx = Math.floor(focusx - (stemcol + 0.5) * TILESIZE);
+    while ((lx < 0) && (stemcol > 1)) {
+      lx += TILESIZE;
+      stemcol--;
+    }
+    while ((lx + lw > this.canvas.width) && (stemcol < layout.bubcolc - 2)) {
+      lx -= TILESIZE;
+      stemcol++;
+    }
     
     const gw = layout.tcolc * GLYPH_W;
     const gh = layout.trowc * GLYPH_H;
     const gx = lx + (lw >> 1) - (gw >> 1);
     const gy = ly + ((lh - BUBBLE_MARGIN_BOTTOM) >> 1) - (gh >> 1);
+    
+    this.drawBackground(lx, ly, layout.bubcolc, layout.bubrowc, stemcol);
     this.drawGlyphs(gx, gy, layout.grid, layout.tcolc);
   }
   
-  drawBackground(x0, y0, colc, rowc) {
+  drawBackground(x0, y0, colc, rowc, stemcol) {
     if ((colc < 2) || (rowc < 2)) return;
     const srcx = 48;
     const srcy = 336;
@@ -67,8 +77,8 @@ export class WordBubbler {
     }
     
     // bottom edge
-    for (let x=x0+TILESIZE, xi=mw; xi-->0; x+=TILESIZE) {
-      const tsrcx = (xi === mw >> 1) ? (srcx + TILESIZE) : (srcx + TILESIZE * 3);
+    for (let x=x0+TILESIZE, xi=mw, col=1; xi-->0; x+=TILESIZE, col++) {
+      const tsrcx = (col === stemcol) ? (srcx + TILESIZE) : (srcx + TILESIZE * 3);
       this.canvas.drawDecal(x, y0 + (rowc - 1) * TILESIZE, tsrcx, srcy + TILESIZE * 2, TILESIZE, TILESIZE);
     }
   }

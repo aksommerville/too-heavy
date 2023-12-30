@@ -18,7 +18,7 @@ https://github.com/aksommerville/too-heavy
 - - - [ ] Pause/resume, yuck
 - - - [ ] Down-jump and dash sound too much alike.
 - - [ ] Fireworks on special jumps.
-- - [ ] WordBubbler: Exact stem alignment, and avoid going offscreen.
+- - [x] WordBubbler: Exact stem alignment, and avoid going offscreen.
 - - [x] WordBubbler: Rewrite text breaking, it's making poor choices
 - - [ ] Guess gamepad mapping for unknown devices.
 - Stretch goals, or after submission

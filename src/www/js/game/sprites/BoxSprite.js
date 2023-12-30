@@ -115,8 +115,8 @@ export class BoxSprite extends Sprite {
   postRender(context, dstx, dsty) {
     switch (this.stage) {
       case STAGE_MAIL_ME: context.drawDialogue(dstx + this.vw - 8, dsty, "Mail me to England"); break;
-      case STAGE_TOO_HEAVY: context.drawDialogue(dstx + this.vw + 8, dsty, "Too heavy"); break;
-      case STAGE_OK: context.drawDialogue(dstx + this.vw + 8, dsty, "OK"); break;
+      case STAGE_TOO_HEAVY: context.drawDialogue(dstx + this.vw + 14, dsty, "Too heavy"); break;
+      case STAGE_OK: context.drawDialogue(dstx + this.vw + 14, dsty - 13, "OK"); break;
     }
   }
 }
