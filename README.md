@@ -9,6 +9,11 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - By 7 January -- game jam submission
+- - [x] Nerf the broom room.
+- - [x] Graphics for the grapple room.
+- - [x] Cannonball doesn't always happen when you start right after walking off a ledge.
+- - - I think in these cases, the duck begins while grounded, and walkresidual takes us off the edge.
+- - [x] Can we avoid using a N edge door if we're going to fall right back?
 - - [ ] Pretty up sound effects, after some review.
 - - - [ ] Pause/resume, yuck
 - - - [ ] Down-jump and dash sound too much alike.

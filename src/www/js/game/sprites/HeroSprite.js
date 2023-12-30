@@ -243,6 +243,16 @@ export class HeroSprite extends Sprite {
       if (y < door.y) continue;
       if (x >= door.x + door.w) continue;
       if (y >= door.y + door.h) continue;
+      
+      if (door.edge === "n") {
+        // N edge doors are a little dicey: Reject navigation if it looks like she'll fall right back.
+        if (this.itemInProgress === ITEM_BROOM) ;
+        else if (this.itemInProgress === ITEM_BOOTS) ;
+        else if (y < -21) ;
+        else if (this.jumpDuration < 0.100) ;
+        else continue;
+      }
+      
       this.scene.load(door.dstmapid, this, door);
       this.adjustForNewMap(door.edge);
       return true;
@@ -311,8 +321,13 @@ export class HeroSprite extends Sprite {
   }
   
   duckUpdate(elapsed) {
-    if (this.ducking && this.cannonball) {
-      this.y += elapsed * CANNONBALL_SPEED;
+    if (this.ducking) {
+      if (this.cannonball) {
+        this.y += elapsed * CANNONBALL_SPEED;
+      } else if (this.scene.physics.measureFreedom(this, 0, 1, 1) >= 1) {
+        this.cannonball = true;
+        this.cannonballStartY = this.y;
+      }
     }
   }
   
@@ -776,7 +791,9 @@ export class HeroSprite extends Sprite {
   }
   
   broomUpdate(elapsed) {
+    this.ph.edges = true; // let broom treat bottom of world as a floor
     const footRoom = this.scene.physics.measureFreedom(this, 0, 1, BROOM_ELEVATION_LIMIT);
+    this.ph.edges = false;
     if (footRoom >= BROOM_ELEVATION_LIMIT) {
       if (!this.ph.gravity) {
         this.ph.gravity = true;
