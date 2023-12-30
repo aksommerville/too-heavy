@@ -8,15 +8,9 @@ https://github.com/aksommerville/too-heavy
 
 ## TODO
 
-- By 7 January -- game jam submission
-- - [ ] Confirm it runs sanely with a high-frequency monitor. Ask Rick.
-- - [ ] Enrich graphics.
-- Stretch goals, or after submission
-- - [x] More interesting song voices.
-- - [x] Capture and playback of sound effects, rather than synthesizing from scratch each time.
-- - - I'm not seeing any performance impact for the synth approach, no need to trade memory for it.
-- - [x] Touch input.
-- - - Scratch it; I'll never play on a phone, so it would not get maintained.
+- [ ] Confirm it runs sanely with a high-frequency monitor. Ask Rick.
+- [ ] Enrich graphics.
+- [ ] Can I loosen the trigger for long jump while running? I miss it a lot.
 
 ## High Scores
 
