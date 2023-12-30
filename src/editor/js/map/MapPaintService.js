@@ -233,6 +233,7 @@ export class MapPaintService {
       case "fat5x3": tileid = this.fat5x3(p, x, y, family); break;
       case "hotdog3x1": tileid = this.hotdog3x1(p, x, y, family); break;
       case "pillar1x3": tileid = this.pillar1x3(p, x, y, family); break;
+      case "schoolWallpaper": tileid = family.tileid; switch (Math.floor(Math.random() * 3)) { case 1: tileid += 0x20; break; case 2: tileid += 0x21; } break;
       default: throw new Error(`Tileprops mode ${JSON.stringify(family.mode)} not implemented at healMotion`);
     }
     if (tileid === this.map.v[p]) return false;
@@ -375,6 +376,7 @@ export class MapPaintService {
         case "fat5x3": fill(family.tileid, 5, 3, family); break;
         case "hotdog3x1": fill(family.tileid, 3, 1, family); break;
         case "pillar1x3": fill(family.tileid, 1, 3, family); break;
+        case "schoolWallpaper": byTile[family.tileid] = byTile[family.tileid + 0x20] = byTile[family.tileid + 0x21] = family; break;
         default: throw new Error(`Please add unpacking rules for tileprops mode ${JSON.stringify(family.mode)}`);
       }
     }
@@ -442,6 +444,9 @@ MapPaintService.TILEPROPS = [{
 }, {
   tileid: 0x0d,
   mode: "pillar1x3",
+}, {
+  tileid: 0x10,
+  mode: "schoolWallpaper",
 }, {
   tileid: 0x35,
   mode: "hotdog3x1",
