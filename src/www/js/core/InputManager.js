@@ -321,6 +321,17 @@ export class InputManager {
     if (map) this.zeroGamepadMap(map);
   }
   
+  zeroGamepadMap(map) {
+    for (const axis of map.axes) {
+      if (!axis.v) continue;
+      this.adjustState(axis.btnid, 0);
+    }
+    for (const button of map.buttons) {
+      if (!button.v) continue;
+      this.adjustState(button.btnid, 0);
+    }
+  }
+  
   pollGamepads() {
     if (!this.window.navigator.getGamepads) return; // old browser, or unsecure connection
     for (const gamepad of this.window.navigator.getGamepads()) {
@@ -335,7 +346,7 @@ export class InputManager {
       if (!map) continue;
       for (const axis of map.axes) {
         const srcv = gamepad.axes[axis.p] || 0;
-        const v = axis.test(srcv); //(srcv < -0.25) ? -1 : (srcv > 0.25) ? 1 : 0; //TODO configurable threshold?
+        const v = axis.test(srcv);
         if (v === axis.v) continue;
         axis.v = v;
         this.adjustState(axis.btnid, v);
@@ -384,10 +395,7 @@ export class InputManager {
   // Null if we decline to map it, and it's fine to insert that in (this.gamepadMap).
   generateMapForGamepad(gamepad) {
     const t = this.gamepadMapTemplates.find(t => t.id === gamepad.id);
-    if (!t) {
-      //TODO generic guess
-      return null;
-    }
+    if (!t) return this.synthesizeMapForUnknownGamepad(gamepad);
     const map = {
       id: t.id,
       axes: t.axes.map(axis => ({
@@ -402,6 +410,52 @@ export class InputManager {
         v: 0,
       })),
     };
+    return map;
+  }
+  
+  synthesizeMapForUnknownGamepad(gamepad) {
+    // Return null if it's not going to work. Require 3 buttons and either 2 axes or 4 more buttons.
+    if (gamepad.buttons.length < 3) return null;
+    if (
+      (gamepad.axes.length < 2) &&
+      (gamepad.buttons.length < 7)
+    ) return null;
+    const map = {
+      id: gamepad.id,
+      axes: [],
+      buttons: [],
+    };
+    // Axes map even/odd to horz/vert.
+    for (let p=0; p<gamepad.axes.length; p++) {
+      map.axes.push({
+        p,
+        test: v => v <= -0.5,
+        btnid: (p & 1) ? InputBtn.UP : InputBtn.LEFT,
+        v: 0,
+      });
+      map.axes.push({
+        p,
+        test: v => v >= 0.5,
+        btnid: (p & 1) ? InputBtn.DOWN : InputBtn.RIGHT,
+        v: 0,
+      });
+    }
+    // Buttons cycle thru [JUMP,ACTION,PAUSE] or [...,LEFT,RIGHT,UP,DOWN].
+    const btnids = [InputBtn.JUMP, InputBtn.ACTION, InputBtn.PAUSE];
+    if (gamepad.axes.length < 2) {
+      btnids.push(InputBtn.LEFT);
+      btnids.push(InputBtn.RIGHT);
+      btnids.push(InputBtn.UP);
+      btnids.push(InputBtn.DOWN);
+    }
+    for (let p=0, btnidp=0; p<gamepad.buttons.length; p++, btnidp++) {
+      if (btnidp >= btnids.length) btnidp = 0;
+      map.buttons.push({
+        p,
+        btnid: btnids[btnidp],
+        v: 0,
+      });
+    }
     return map;
   }
 }
