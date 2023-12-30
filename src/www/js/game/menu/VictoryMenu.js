@@ -157,7 +157,7 @@ export class VictoryMenu {
     context.drawDecal(0, 0, 463, 1, 150, 100);
     
     // box travels in an arc from loading dock to truck.
-    const boxstarttime = 0.400, boxendtime = 0.650;
+    const boxstarttime = 0.450, boxendtime = 0.600;
     if ((t >= boxstarttime) && (t < boxendtime)) {
       const startx = 30, endx = 60;
       const bottomy = 60, topy = 30;

@@ -10,6 +10,7 @@ import { GrappleSprite } from "./GrappleSprite.js";
 import { RaftSprite } from "./RaftSprite.js";
 import { SoulballsSprite } from "./SoulballsSprite.js";
 import { BellRevelatorSprite } from "./BellRevelatorSprite.js";
+import { JumpballsSprite } from "./JumpballsSprite.js";
 
 const JUMP_LIMIT_TIME = [0.300, 0.390, 0.450]; // s, indexed by jumpSequence
 const JUMP_SPEED_MAX = [380, 410, 450]; // px/sec, ''
@@ -88,6 +89,7 @@ export class HeroSprite extends Sprite {
     this.jumpSequencePoison = false; // if true, the next jump must be seq 0. (dx changed, or anything else that forces break in triple-jump)
     this.jump2dv = [0, 0];
     this.jump2decay = [0, 0];
+    this.longJump = false;
     this.footState = false; // True if we're on the ground.
     this.footClock = 0; // How long since footState changed.
     this.animTime = 0; // Duration of next frame.
@@ -490,6 +492,8 @@ export class HeroSprite extends Sprite {
     if (this.itemInProgress === ITEM_BROOM) return;
     if (this.itemInProgress === ITEM_VACUUM) return;
     if (this.itemInProgress === ITEM_BOOTS) return;
+    
+    this.longJump = false;
   
     if (this.wallSlide) {
       return this.beginWallJump(-this.wallSlide);
@@ -530,8 +534,8 @@ export class HeroSprite extends Sprite {
     
     switch (this.jumpSequence) {
       case 0: this.sound("jump0"); break;
-      case 1: this.sound("jump1"); break;
-      case 2: this.sound("jump2"); break;
+      case 1: this.sound("jump1"); this.spawnJumpballs(); break;
+      case 2: this.sound("jump2"); this.spawnJumpballs(); break;
     }
     
     this.jumpDuration = 0;
@@ -541,6 +545,19 @@ export class HeroSprite extends Sprite {
     this.jump2dv[1] = 0;
     this.resetAnimation();
     //TODO Visual feedback for jumpSequence 1 and 2.
+  }
+  
+  spawnJumpballs(style) {
+    const jumpballs = new JumpballsSprite(this.scene);
+    this.scene.sprites.push(jumpballs);
+    jumpballs.x = this.x;
+    jumpballs.y = this.y - 16;
+    switch (style || this.jumpSequence) {
+      case 1: jumpballs.setupMinor(); break;
+      case 2: jumpballs.setupMajor(); break;
+      case 3: jumpballs.setupLong(-1); break;
+      case 4: jumpballs.setupLong(1); break;
+    }
   }
   
   beginWallJump(dx) {
@@ -568,11 +585,13 @@ export class HeroSprite extends Sprite {
     this.jumping = true;
     this.ph.gravity = false;
     this.jumpDuration = 0;
+    this.longJump = true;
     this.duckEnd();
     this.jumpSequencePoison = false; // duckEnd sets it true, but it should be false -- you can double-jump off a long-jump
     this.jumpSequence = 0;
     this.resetAnimation();
     this.sound("jumpLong");
+    this.spawnJumpballs((dx < 0) ? 3 : 4);
   }
   
   jumpAbort() {
@@ -700,6 +719,7 @@ export class HeroSprite extends Sprite {
       case ITEM_STOPWATCH: this.stopwatchEnd(); break;
       case ITEM_BROOM: this.broomEnd(); break;
       case ITEM_VACUUM: return this.vacuumEnd(inputState);
+      case ITEM_BELL: this.bellEnd(); break;
       case ITEM_UMBRELLA: this.umbrellaEnd(); break;
       case ITEM_BOOTS: this.bootsEnd(); break;
       case ITEM_GRAPPLE: return this.grappleEnd(inputState);
@@ -920,7 +940,7 @@ export class HeroSprite extends Sprite {
   
   bellBegin() {
     this.sound("bell");
-    //TODO animation
+    this.itemInProgress = ITEM_BELL;
     
     // There's only one thing the bell really does: One room in the school, where we teach about each item, you have to ring it.
     // Look for the itemConstraint, and set the global flag accordingly.
@@ -935,6 +955,10 @@ export class HeroSprite extends Sprite {
     if (revelator) {
       this.scene.removeSprite(revelator);
     }
+  }
+  
+  bellEnd() {
+    this.itemInProgress = -1;
   }
   
   /* Umbrella: Disable normal gravity and reimplement more gently.
@@ -1122,13 +1146,26 @@ export class HeroSprite extends Sprite {
       return;
     }
     
+    /* Long jump.
+     */
+    if (this.jumping && this.longJump && (Math.abs(this.jump2dv[0]) > 150)) {
+      context.drawDecal(dstx, dsty, 415, 1, 28, 29, this.flop);
+      return;
+    }
+    
     /* Most times carrying an item possessed but not currently in use, it's a second decal behind the first.
      * These are arranged in a uniform row, all the same size.
      * Don't draw it if ducking or wall-sliding, just don't show the item.
      * Grapple: Use defaults, just don't draw our arm when in use. (GrappleSprite does the fun parts)
+     * Bell has a different frame while the button is down, but it works exactly like the others.
      */
     if (!this.ducking && !this.wallSlide) {
-      if (this.itemInProgress !== ITEM_GRAPPLE) {
+      if (this.itemInProgress === ITEM_BELL) {
+        let idstx = dstx, idsty = dsty + 1;
+        if (this.flop) idstx += 11;
+        else idstx -= 7;
+        context.drawDecal(idstx, idsty, 432, 34, 12, 26, this.flop);
+      } else if (this.itemInProgress !== ITEM_GRAPPLE) {
         if (this.scene.game.inventory[this.scene.game.selectedItem]) {
           let idstx = dstx, idsty = dsty + 1;
           if (this.flop) idstx += 11;
