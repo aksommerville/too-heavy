@@ -9,13 +9,14 @@ https://github.com/aksommerville/too-heavy
 ## TODO
 
 - By 7 January -- game jam submission
-- - [x] Guess gamepad mapping for unknown devices.
-- - [x] Cannonball in school shows slivers of blue. Can we change background color?
 - - [ ] Confirm it runs sanely with a high-frequency monitor. Ask Rick.
+- - [ ] Enrich graphics.
 - Stretch goals, or after submission
-- - [ ] More interesting song voices.
-- - [ ] Capture and playback of sound effects, rather than synthesizing from scratch each time.
-- - [ ] Touch input.
+- - [x] More interesting song voices.
+- - [x] Capture and playback of sound effects, rather than synthesizing from scratch each time.
+- - - I'm not seeing any performance impact for the synth approach, no need to trade memory for it.
+- - [x] Touch input.
+- - - Scratch it; I'll never play on a phone, so it would not get maintained.
 
 ## High Scores
 

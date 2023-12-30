@@ -23,13 +23,6 @@ export class AudioManager {
     this.songRepeat = true;
     this.poller = null;
     this.noise = null;
-    
-    this.oscillatorTypeByChid = [
-      "sine",
-      "sawtooth",
-      "sine",
-      "sine",
-    ];
   }
   
   /* This must be done after the first user interaction, we can't do it at construction.
@@ -224,36 +217,18 @@ export class AudioManager {
     if (!this.context) return;
     if (!when) when = this.context.currentTime;
     const frequency = 440 * 2 ** ((noteid - 0x45) / 12);
-    const oscillatorOptions = {
-      frequency,
-      type: this.oscillatorTypeByChid[chid & 3],
-    };
-    const oscillator = new OscillatorNode(this.context, oscillatorOptions);
-    oscillator.start();
-    const master = 0.200; // <-- overall music level here
-    const attackLevel = master;
-    const sustainLevel = master * 0.250;
-    const attackTime = 0.030;
-    const decayTime = 0.080;
-    const releaseTime = 0.400;
-    const gainNode = new GainNode(this.context);
-    gainNode.gain.value = 0;
-    gainNode.gain.setValueAtTime(0, when);
-    gainNode.gain.linearRampToValueAtTime(attackLevel, when + attackTime);
-    gainNode.gain.linearRampToValueAtTime(sustainLevel, when + attackTime + decayTime);
-    gainNode.gain.setValueAtTime(sustainLevel, when + attackTime + decayTime + dur);
-    gainNode.gain.linearRampToValueAtTime(0, when + attackTime + decayTime + dur + releaseTime);
-    oscillator.connect(gainNode);
-    gainNode.connect(this.context.destination);
-    oscillator.stop(when + attackTime + decayTime + dur + releaseTime);
-    oscillator.onended = () => {
-      oscillator.disconnect();
-      const p = this.songNotes.findIndex(n => n.oscillator === oscillator);
-      if (p >= 0) {
-        this.songNotes.splice(p, 1);
-      }
-    };
-    this.songNotes.push({ oscillator });
+    // chid: 1=lead 2=bass, no others used
+    switch (chid) {
+      case 1: return this.playFmNote(frequency, velocity, dur, when, 1,
+          [0, 0.100,1, 0.250,2, 0.500,1],
+          [0, 0.030,2, 0.270,2, 0.500,1]
+        );
+      case 2: return this.playFmNote(frequency, velocity, dur, when, 1,
+          [0, 0.100,1.5, 0.250,0.25],
+          [0, 0.010,2.5, 0.290,0.25]
+        );
+      default: return this.playOscNote(frequency, velocity, dur, when, "sine");
+    }
   }
   
   playSound(noteid, velocity, when) {
@@ -266,8 +241,6 @@ export class AudioManager {
 /* ----- client shouldn't need anything below ----- */
   
   endSong(hard) {
-    //TODO drop any notes in flight? (everything is self-terminating so maybe it's ok not to)
-    // ...it's not ok not to. We schedule notes like 2 seconds in advance.
     this.song = null;
     this.songp = 0;
     this.songpLoop = 0;
@@ -380,6 +353,83 @@ export class AudioManager {
     }
   }
   
+  playFmNote(frequency, velocity, dur, when, mod, rangelo, rangehi) {
+    const range = this.applyVelocity(velocity, rangelo, rangehi);
+    const carrier = new OscillatorNode(this.context, {
+      type: "sine",
+      frequency,
+    });
+    const modulator = new OscillatorNode(this.context, {
+      type: "sine",
+      frequency: frequency * mod,
+    });
+    const modGain = new GainNode(this.context);
+    modGain.gain.value = ((range instanceof Array) ? range[0] : range) * frequency;
+    modGain.gain.setValueAtTime(((range instanceof Array) ? range[0] : range) * frequency, when);
+    modulator.connect(modGain);
+    modGain.connect(carrier.frequency);
+    if (range instanceof Array) {
+      for (let i=1, t=when; i<range.length; i+=2) {
+        t += range[i];
+        modGain.gain.linearRampToValueAtTime(range[i+1] * frequency, t);
+      }
+    }
+    carrier.start();
+    modulator.start();
+    this.setNoteEnvelopeAndConnect(carrier, velocity, dur, when, modulator);
+  }
+  
+  playOscNote(frequency, velocity, dur, when, type) {
+    const oscillatorOptions = { frequency, type };
+    const oscillator = new OscillatorNode(this.context, oscillatorOptions);
+    oscillator.start();
+    this.setNoteEnvelopeAndConnect(oscillator, velocity, dur, when, null);
+  }
+  
+  setNoteEnvelopeAndConnect(oscillator, velocity, dur, when, addl) {
+    const master = 0.150; // <-- overall music level here
+    const attackLevel = master;
+    const sustainLevel = master * 0.250;
+    const attackTime = 0.030;
+    const decayTime = 0.080;
+    const releaseTime = 0.400;
+    const gainNode = new GainNode(this.context);
+    gainNode.gain.value = 0;
+    gainNode.gain.setValueAtTime(0, when);
+    gainNode.gain.linearRampToValueAtTime(attackLevel, when + attackTime);
+    gainNode.gain.linearRampToValueAtTime(sustainLevel, when + attackTime + decayTime);
+    gainNode.gain.setValueAtTime(sustainLevel, when + attackTime + decayTime + dur);
+    gainNode.gain.linearRampToValueAtTime(0, when + attackTime + decayTime + dur + releaseTime);
+    oscillator.connect(gainNode);
+    gainNode.connect(this.context.destination);
+    oscillator.stop(when + attackTime + decayTime + dur + releaseTime);
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      if (addl) {
+        addl.stop();
+        addl.disconnect();
+      }
+      const p = this.songNotes.findIndex(n => n.oscillator === oscillator);
+      if (p >= 0) {
+        this.songNotes.splice(p, 1);
+      }
+    };
+    this.songNotes.push({ oscillator });
+  }
+  
+  applyVelocity(velocity, lo, hi) {
+    velocity /= 127;
+    if (velocity <= 0) return lo;
+    if (velocity >= 1) return hi;
+    if (typeof(lo) === "number") return lo * (1 - velocity) + hi * velocity;
+    if (lo.length !== hi.length) throw new Error(`mismatched envelopes: ${JSON.stringify(lo)} ${JSON.stringify(hi)}`);
+    const dst = [];
+    for (let i=0; i<lo.length; i++) {
+      dst.push(lo[i] * (1 - velocity) + hi[i] * velocity);
+    }
+    return dst;
+  }
+  
   /* (voices) is an array of:
    * {
    * TUNED VOICES:
@@ -401,12 +451,14 @@ export class AudioManager {
     let voiceCount = voices.length;
     let endTime = 0;
     let signaller = null;
+    const stoppables = [];
     
     for (const voice of voices) {
       const production = this.audioNodeForVoice(voice, when);
       if (!production) continue;
       production.node.connect(master);
       if (!signaller) signaller = production.signaller;
+      if (production.stoppables) for (const node of production.stoppables) stoppables.push(node);
       if (production.endTime > endTime) endTime = production.endTime;
     }
     
@@ -414,6 +466,10 @@ export class AudioManager {
       signaller.stop(endTime);
       signaller.onended = () => {
         master.disconnect();
+        for (const node of stoppables) {
+          node.stop?.();
+          node.disconnect();
+        }
       };
     } else {
       console.log(`!!! no signaller for sound effect. discarding`);
@@ -427,19 +483,20 @@ export class AudioManager {
   audioNodeForVoice(voice, when, onended) {
     if (!voice) return null;
     let oscillator = null;
+    const stoppables = [];
     if (voice.shape === "noise") {
-      oscillator = this.noiseOscillatorForVoice(voice, when);
+      oscillator = this.noiseOscillatorForVoice(voice, when, stoppables);
     } else if (voice.mod && voice.range) {
-      oscillator = this.fmOscillatorForVoice(voice, when);
+      oscillator = this.fmOscillatorForVoice(voice, when, stoppables);
     } else if (voice.f instanceof Array) {
-      oscillator = this.slidingOscillatorForVoice(voice, when);
+      oscillator = this.slidingOscillatorForVoice(voice, when, stoppables);
     } else if (voice.f) {
-      oscillator = this.flatOscillatorForVoice(voice, when);
+      oscillator = this.flatOscillatorForVoice(voice, when, stoppables);
     }
     if (!oscillator) return null;
     const master = this.gainNodeForVoice(voice, when);
     oscillator.connect(master);
-    return { node: master, signaller: oscillator, endTime: when + this.calculateEndTimeForVoice(voice) };
+    return { node: master, signaller: oscillator, stoppables, endTime: when + this.calculateEndTimeForVoice(voice) };
   }
   
   calculateEndTimeForVoice(voice) {
@@ -448,13 +505,13 @@ export class AudioManager {
     return endTime;
   }
   
-  noiseOscillatorForVoice(voice, when) {
+  noiseOscillatorForVoice(voice, when, stoppables) {
     const node = new AudioBufferSourceNode(this.context, { buffer: this.noise, loop: true, loopEnd: 9999 });
     node.start();
     return node;
   }
   
-  fmOscillatorForVoice(voice, when) {
+  fmOscillatorForVoice(voice, when, stoppables) {
     const carrier = new OscillatorNode(this.context, {
       type: "sine",
       frequency: (typeof(voice.f) === "number") ? voice.f : voice.f[0],
@@ -467,6 +524,7 @@ export class AudioManager {
     //TODO I don't get why we have to multiply range by frequency. It's definitely wrong, since we're only using the initial frequency.
     // Not going to obsess over that... If it sounds OK, it's OK.
     modGain.gain.value = ((typeof(voice.range) === "number") ? voice.range : voice.range[0]) * carrier.frequency.value;
+    modGain.gain.setValueAtTime(((typeof(voice.range) === "number") ? voice.range : voice.range[0]) * carrier.frequency.value, when);
     modulator.connect(modGain);
     modGain.connect(carrier.frequency);
     
@@ -487,10 +545,11 @@ export class AudioManager {
     
     carrier.start();
     modulator.start();
+    stoppables.push(modulator);
     return carrier;
   }
   
-  slidingOscillatorForVoice(voice, when) {
+  slidingOscillatorForVoice(voice, when, stoppables) {
     const options = {
       frequency: voice.f[0],
       type: "sine",
@@ -504,7 +563,7 @@ export class AudioManager {
     return node;
   }
   
-  flatOscillatorForVoice(voice, when) {
+  flatOscillatorForVoice(voice, when, stoppables) {
     const options = {
       frequency: voice.f,
       type: "sine",
