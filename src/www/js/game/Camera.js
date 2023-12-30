@@ -61,6 +61,10 @@ export class Camera {
       }
     }
     
+    if (this.scene.earthquakeClock > 0) {
+      bounds.y += Math.round(Math.sin(this.scene.earthquakeClock * 25) * 2 * this.scene.earthquakeClock);
+    }
+    
     this.pvx = bounds.x;
     this.pvy = bounds.y;
     return bounds;

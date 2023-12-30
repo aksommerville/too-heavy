@@ -13,7 +13,7 @@ https://github.com/aksommerville/too-heavy
 - - - [ ] Pause/resume, yuck
 - - - [ ] Down-jump and dash sound too much alike.
 - - [x] Fireworks on special jumps.
-- - [ ] Shake camera after a cannonball.
+- - [x] Shake camera after a cannonball.
 - - [ ] Guess gamepad mapping for unknown devices.
 - Stretch goals, or after submission
 - - [ ] More interesting song voices.

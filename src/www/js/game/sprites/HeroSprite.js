@@ -323,7 +323,7 @@ export class HeroSprite extends Sprite {
       // Not far enough. No negative feedback or anything. Could be an accidental press of down, ignore it.
       return;
     }
-    //TODO visual feedback, can we shake the camera?
+    this.scene.earthquakeClock = 1.0;
     let ack = false;
     for (const other of this.scene.physics.findFloorSprites(this)) {
       if (typeof(other.onCannonball) === "function") {

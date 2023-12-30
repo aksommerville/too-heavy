@@ -50,6 +50,7 @@ export class Scene {
     this.itemConstraintId = -1;
     this.itemConstraintFlag = ""; // permanentState, goes false if an item other than (itemConstraintId) gets used
     this.setPermanentStateOnDeath = []; // [k,v]
+    this.earthquakeClock = 0;
     
     // HeroSprite should set these after it updates each time, for other sprites to observe.
     this.herox = 0;
@@ -60,6 +61,9 @@ export class Scene {
   
   update(elapsed, inputState) {
     this.timeSinceLoad += elapsed;
+    if ((this.earthquakeClock -= elapsed) <= 0) {
+      this.earthquakeClock = 0;
+    }
     for (const sprite of this.sprites) {
       if (this.game.timeFrozen && !sprite.timeless) continue;
       sprite.update?.(elapsed, inputState);
