@@ -6,12 +6,6 @@ https://aksommerville.itch.io/too-heavy password "hocus-pocus".
 
 https://github.com/aksommerville/too-heavy
 
-## TODO
-
-- [ ] Confirm it runs sanely with a high-frequency monitor. Ask Rick.
-- [x] Enrich graphics.
-- [ ] Can I loosen the trigger for long jump while running? I miss it a lot.
-
 ## High Scores
 
 | Medals | Time     | Date       | Comment |
@@ -19,3 +13,4 @@ https://github.com/aksommerville/too-heavy
 | DIE    | 4:31.098 | 2023-12-30 | |
 | DI-    | 2:17.146 | 2023-12-30 | |
 | ---    | 1:51.608 | 2023-12-30 | |
+| -IE    | 3:58.454 | 2023-12-30 | |

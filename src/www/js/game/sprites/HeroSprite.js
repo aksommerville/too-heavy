@@ -174,7 +174,7 @@ export class HeroSprite extends Sprite {
         default: this.walkEnd(); break;
       }
       if ((inputState & InputBtn.JUMP) && !(this.pvinput & InputBtn.JUMP)) {
-        this.jumpBegin();
+        this.jumpBegin(inputState);
       } else if (!(inputState & InputBtn.JUMP) && (this.pvinput & InputBtn.JUMP)) {
         this.jumpAbort();
       }
@@ -502,7 +502,7 @@ export class HeroSprite extends Sprite {
   /* Jump.
    **************************************************************************/
   
-  jumpBegin() {
+  jumpBegin(inputState) {
   
     if (this.itemInProgress === ITEM_BROOM) return;
     if (this.itemInProgress === ITEM_VACUUM) return;
@@ -521,10 +521,10 @@ export class HeroSprite extends Sprite {
       // Coyote time. Let her run off a cliff and jump from midair, for just a tiny fraction of a second.
       // Otherwise one feels cheated on pressing the button a frame or two too late.
     }
-    if (this.pvinput & InputBtn.DOWN) { // DOWN button, not (this.ducking) -- these should still work when we have a duck-resistant item in play, eg grapple
-      if ((this.pvinput & (InputBtn.LEFT | InputBtn.RIGHT)) === InputBtn.LEFT) {
+    if (inputState & InputBtn.DOWN) { // DOWN button, not (this.ducking) -- these should still work when we have a duck-resistant item in play, eg grapple
+      if ((inputState & (InputBtn.LEFT | InputBtn.RIGHT)) === InputBtn.LEFT) {
         this.beginLongJump(-1);
-      } else if ((this.pvinput & (InputBtn.LEFT | InputBtn.RIGHT)) === InputBtn.RIGHT) {
+      } else if ((inputState & (InputBtn.LEFT | InputBtn.RIGHT)) === InputBtn.RIGHT) {
         this.beginLongJump(1);
       } else if (this.scene.physics.bypassOneWays(this)) {
         // Duck jumped thru oneway.
@@ -559,7 +559,6 @@ export class HeroSprite extends Sprite {
     this.jump2dv[0] = 0;
     this.jump2dv[1] = 0;
     this.resetAnimation();
-    //TODO Visual feedback for jumpSequence 1 and 2.
   }
   
   spawnJumpballs(style) {
