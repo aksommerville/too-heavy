@@ -45,10 +45,9 @@ export class CanvasUi {
   renderNow() {
     if (!this.game.menu || !this.game.menu.opaque) {
       if (this.game.scene.grid) {
-        this.context.fillStyle = this.game.scene.backgroundColor;
-        this.context.fillRect(0, 0, this.element.width, this.element.height);
         const worldBounds = this.game.scene.camera.getWorldBounds();
-        if (this.game.scene.grid) this.renderGrid(this.game.scene.grid, worldBounds);
+        this.fillSceneBackground(worldBounds);
+        this.renderGrid(this.game.scene.grid, worldBounds);
         this.renderSprites(this.game.scene.sprites, worldBounds);
       
         /*XXX TEMP Show all physical borders *
@@ -106,6 +105,25 @@ export class CanvasUi {
         this.context.fillText("F1 (at any time) to configure input.", 10, this.element.height - 10);
         this.context.fillText("Click to resume.", 10, this.element.height - 25);
       }
+    }
+  }
+  
+  fillSceneBackground(worldBounds) {
+    if (
+      (worldBounds.x < 0) ||
+      (worldBounds.y < 0) ||
+      (worldBounds.x + worldBounds.w > this.game.scene.worldw) ||
+      (worldBounds.y + worldBounds.h > this.game.scene.worldh)
+    ) {
+      // Camera goes offscreen. Black for the OOB space, and backgroundColor for the valid space.
+      this.context.fillStyle = "#000";
+      this.context.fillRect(0, 0, this.element.width, this.element.height);
+      this.context.fillStyle = this.game.scene.backgroundColor;
+      this.context.fillRect(-worldBounds.x, -worldBounds.y, this.game.scene.worldw, this.game.scene.worldh);
+    } else {
+      // Camera fully within the world bounds -- typical -- fill framebuffer with backgroundColor.
+      this.context.fillStyle = this.game.scene.backgroundColor;
+      this.context.fillRect(0, 0, this.element.width, this.element.height);
     }
   }
   

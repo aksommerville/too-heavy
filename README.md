@@ -10,6 +10,7 @@ https://github.com/aksommerville/too-heavy
 
 - By 7 January -- game jam submission
 - - [x] Guess gamepad mapping for unknown devices.
+- - [x] Cannonball in school shows slivers of blue. Can we change background color?
 - - [ ] Confirm it runs sanely with a high-frequency monitor. Ask Rick.
 - Stretch goals, or after submission
 - - [ ] More interesting song voices.
@@ -21,4 +22,4 @@ https://github.com/aksommerville/too-heavy
 | Medals | Time     | Date       | Comment |
 |--------|----------|------------|---------|
 | DIE    | 4:31.098 | 2023-12-30 | |
-| ---    | 2:18.716 | 2023-12-30 | Not even close. Under 2:00 is possible for sure. |
+| DI-    | 2:17.146 | 2023-12-30 | |
