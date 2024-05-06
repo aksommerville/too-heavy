@@ -72,11 +72,13 @@ export class JumpballsSprite extends Sprite {
           context.drawDecal(Math.round(dstx + this.elapsed * -20 * this.d), Math.round(dsty + this.elapsed * -10), 445, srcy, 6, 6);
           context.drawDecal(Math.round(dstx + this.elapsed * -30 * this.d), Math.round(dsty + this.elapsed * -8), 445, srcy, 6, 6);
           context.drawDecal(Math.round(dstx + this.elapsed * -50 * this.d), Math.round(dsty + this.elapsed * -2), 445, srcy, 6, 6);
+          /*TODO Does this line matter? Figure something out.
           context.beginPath();
           context.moveTo(dstx + this.d * 20, dsty);
           context.lineTo(dstx + this.d * this.elapsed * 20, dsty - this.elapsed * 3 + 4);
           context.strokeStyle = "#fff";
           context.stroke();
+          /**/
         } break;
     }
   }

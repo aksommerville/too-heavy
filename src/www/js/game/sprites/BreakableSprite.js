@@ -5,8 +5,8 @@
 import { Sprite } from "../Sprite.js";
 import { Physics } from "../Physics.js";
 import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
+import { TILESIZE } from "../../constants.js";
 
-const TILESIZE = 16;
 const FRAGMENT_SPEED = 200;
 const FRAGMENT_TIME = 0.700;
 

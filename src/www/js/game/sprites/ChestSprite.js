@@ -5,8 +5,8 @@
  
 import { Sprite } from "../Sprite.js";
 import { HeroSprite } from "../HeroSprite.js";
+import { TILESIZE } from "../../constants.js";
 
-const TILESIZE = 16;
 const BLINK_TIME_CLOSED = 0.200;
 const BLINK_TIME_MIN = 2.000;
 const BLINK_TIME_MAX = 4.000;

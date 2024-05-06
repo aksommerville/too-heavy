@@ -21,17 +21,17 @@ const MAXIMUM_UPDATE_TIME_MS = 25;
  
 export class Game {
   static getDependencies() {
-    return [Window, Scene, InputManager, DataService, Injector, AudioManager];
+    return [/*Window,*/ Scene, InputManager, DataService, Injector, AudioManager];
   }
-  constructor(window, scene, inputManager, dataService, injector, audioManager) {
-    this.window = window;
+  constructor(/*window,*/ scene, inputManager, dataService, injector, audioManager) {
+    //this.window = window;
     this.scene = scene;
     this.inputManager = inputManager;
     this.dataService = dataService;
     this.injector = injector;
     this.audioManager = audioManager;
     
-    this.render = () => {}; // RootUi should set.
+    //this.render = () => {}; // RootUi should set.
     
     this.scene.game = this;
     this.loaded = false;
@@ -57,22 +57,16 @@ export class Game {
     this.itemUseCount = 0;
   }
   
-  /* Returns a Promise that resolves when our content is all loaded and ready to go.
-   * We will be paused at that time, and you can begin play with resume().
-   */
   load() {
-    if (this.loadFailure) return Promise.reject(this.loadFailure);
-    if (this.loaded) return Promise.resolve();
-    return this.dataService.load()
-      .then(() => {
-        this.graphics = this.dataService.getResourceSync("image", 1);
-        this.loaded = true;
-        this.paused = true;
-        this.audioManager.playSong(this.dataService.getResourceSync("song", 1));
-      }).catch(e => {
-        this.loadFailure = e;
-        throw e;
-      });
+    if (this.loaded) return;
+    //this.graphics = this.dataService.getResourceSync("image", 1);
+    this.graphicsTexid = egg.texture_new();
+    this.tilesheetTexid = egg.texture_new();
+    if (egg.texture_load_image(this.graphicsTexid, 0, 1) < 0) throw new Error(`Failed to load image:0:1`);
+    if (egg.texture_load_image(this.tilesheetTexid, 0, 2) < 0) throw new Error(`Failed to load image:0:2`);
+    this.loaded = true;
+    this.paused = true;
+    this.audioManager.playSong(1);
   }
   
   pause() {
@@ -80,41 +74,26 @@ export class Game {
     if (this.paused) return;
     this.audioManager.stop();
     this.paused = true;
+    /*XXX
     if (this.pendingAnimationFrame) {
       this.window.cancelAnimationFrame(this.pendingAnimationFrame);
       this.pendingAnimationFrame = null;
     }
+    /**/
     this.render();
   }
   
   resume() {
+    if (!this.loaded) return;
+    this.paused = false;
+    /*XXX
     if (!this.loaded) return;
     if (!this.paused) return;
     this.audioManager.reset();
     this.paused = false;
     this.lastFrameTime = this.window.Date.now();
     this.pendingAnimationFrame = this.window.requestAnimationFrame(() => this.update());
-  }
-  
-  update() {
-    this.pendingAnimationFrame = null;
-    if (this.paused) return;
-    const now = this.window.Date.now();
-    let elapsedMs = now - this.lastFrameTime;
-    if (elapsedMs < MINIMUM_UPDATE_TIME_MS) {
-      // Updating too fast. High-frequency monitor maybe? Skip this frame.
-    } else {
-      if (elapsedMs > MAXIMUM_UPDATE_TIME_MS) {
-        // Updating too slow. Clamp to the limit and let the game go slow-motion.
-        // TODO Watch for persistent slowdown and pause the game when it happens.
-        elapsedMs = MAXIMUM_UPDATE_TIME_MS;
-      }
-      const elapsedS = elapsedMs / 1000;
-      this.updateModel(elapsedS);
-      this.render();
-      this.lastFrameTime = now;
-    }
-    this.pendingAnimationFrame = this.window.requestAnimationFrame(() => this.update());
+    /**/
   }
   
   updateModel(elapsed) {
@@ -148,7 +127,7 @@ export class Game {
       this.menu.dismissing();
       this.menu = null;
       this.resetGame();
-      this.audioManager.playSong(this.dataService.getResourceSync("song", 1));
+      this.audioManager.playSong(1);
     } else {
       this.audioManager.soundEffect("pause");
       this.menu = this.injector.get(PauseMenu);
@@ -186,7 +165,8 @@ export class Game {
     this.scene.grid = null; // Force reload of game if the menu gets dismissed.
     this.dataService.setBestTimeIfBetter(this.playTime);
     this.menu = this.injector.get(VictoryMenu);
-    this.audioManager.playSong(this.dataService.getResourceSync("song", 2), false);
+    this.menu.reset();
+    this.audioManager.playSong(2, false);
   }
 }
 

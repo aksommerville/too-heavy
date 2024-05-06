@@ -3,7 +3,8 @@
  * Private to CanvasUi.
  */
  
-const TILESIZE = 16;
+import { TILESIZE } from "../constants.js";
+ 
 const GLYPH_W = 8;
 const GLYPH_H = 8;
 const BUBBLE_MARGIN = 3;

@@ -2,8 +2,8 @@
  */
  
 import { Sprite } from "../Sprite.js";
+import { TILESIZE } from "../../constants.js";
 
-const TILESIZE = 16;
 const IDLE_TIME = 2.000;
 const SPEECH_TIME = 4.000;
 

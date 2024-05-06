@@ -4,8 +4,7 @@
  */
  
 import { Sprite } from "../Sprite.js";
-
-const TILESIZE = 16;
+import { TILESIZE } from "../../constants.js";
 
 export class FlagSprite extends Sprite {
   constructor(scene, col, row, args) {

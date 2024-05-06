@@ -22,8 +22,7 @@ import { BoxSprite } from "./sprites/BoxSprite.js";
 import { TattleSprite } from "./sprites/TattleSprite.js";
 import { BellRevelatorSprite } from "./sprites/BellRevelatorSprite.js";
 import { GoodySprite } from "./sprites/GoodySprite.js";
-
-const TILESIZE = 16;
+import { TILESIZE } from "../constants.js";
  
 export class Scene {
   static getDependencies() {
@@ -36,7 +35,7 @@ export class Scene {
     this.game = null; // owner must provide
     this.physics.scene = this;
     
-    this.backgroundColor = "#66bbff";
+    this.backgroundColor = 0x66bbffff;
     this.grid = null; // Grid
     this.sprites = []; // Sprite
     this.camera = new Camera(this);

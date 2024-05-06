@@ -115,6 +115,7 @@ export class GrappleSprite extends Sprite {
   
   render(context, dstx, dsty) {
     if (this.hero) {
+      /*TODO We don't have anything like this in Egg, not even "trace straight line". Figure something out.
       const ax = Math.round(dstx + this.vw * 0.5);
       const ay = Math.round(dsty + this.vh * 0.5);
       const bx = Math.round(this.hero.x - this.hero.vx + this.hero.vw * 0.5 + dstx - this.x);
@@ -140,6 +141,7 @@ export class GrappleSprite extends Sprite {
       }
       context.strokeStyle = "#684f16";
       context.stroke();
+      /**/
     }
     context.drawDecal(dstx, dsty, this.srcx, this.srcy, this.vw, this.vh, false);
   }

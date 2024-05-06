@@ -4,8 +4,8 @@
 import { Game } from "../Game.js";
 import { DataService } from "../DataService.js";
 import { InputBtn } from "../core/InputManager.js";
+import { TILESIZE } from "../../constants.js";
 
-const TILESIZE = 16;
 const CREDITS_W = 170;
 const CREDITS_MARGIN = 5;
  
@@ -23,6 +23,9 @@ export class VictoryMenu {
     this.pvinput = 0;
     this.clock = 0;
     
+    this.texidCinema = egg.texture_new();
+    if (egg.texture_upload(this.texidCinema, 150, 100, 150*4, 1, null) < 0) egg.log(`Allocate cinema texture failed!`);
+    
     this.credits = []; // {x,tileid[]} one row at a time
     this.appendCredits("Too Heavy", 0);
     this.appendCredits("");
@@ -39,6 +42,14 @@ export class VictoryMenu {
     this.appendCredits("-AK and Dot", 1);
     this.appendCredits("");
     this.appendCredits("Again? Press start.", 0);
+    
+    this.scores = []; // {x,tileid[]} one row at a time
+    this.medals = []; // {dstx,dsty,srcx,srcy}
+  }
+  
+  reset() {
+    this.pvinput = 0;
+    this.clock = 0;
     
     this.scores = []; // {x,tileid[]} one row at a time
     this.appendScores("Time", this.reprTime(this.game.playTime));
@@ -68,21 +79,16 @@ export class VictoryMenu {
   
   /* Caller draws the scene first, and no framing or anything before calling us.
    */
-  render(context, canvas) {
-    const graphics = this.dataService.getResourceSync("image", 1);
-    if (!graphics) return;
+  render(context) {
     
-    context.fillStyle = "#8af";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    
-    context.fillStyle = "#6c7";
-    context.fillRect(0, 0, canvas.width - CREDITS_W, canvas.height);
+    egg.draw_rect(1, 0, 0, context.screenw, context.screenh, 0x80a0ffff);
+    egg.draw_rect(1, 0, 0, context.screenw - CREDITS_W, context.screenh, 0x60c070ff);
     
     const GLYPH_W = 8;
     const GLYPH_H = 8;
-    const creditsLeft = canvas.width - CREDITS_W;
+    const creditsLeft = context.screenw - CREDITS_W;
     const creditsHeight = this.credits.length * GLYPH_H;
-    const creditsTop = (canvas.height >> 1) - (creditsHeight >> 1);
+    const creditsTop = (context.screenh >> 1) - (creditsHeight >> 1);
     for (let y=creditsTop, i=0; i<this.credits.length; i++, y+=GLYPH_H) {
       const row = this.credits[i];
       let x = creditsLeft + row.x;
@@ -115,12 +121,10 @@ export class VictoryMenu {
    ******************************************************************************/
    
   drawCinema(context) {
-    context.save();
-    context.beginPath();
-    context.rect(0, 0, 150, 100);
-    context.clip();
+    context.dsttexid = this.texidCinema;
     this.drawCinemaClipped(context);
-    context.restore();
+    context.dsttexid = 1;
+    egg.draw_decal(1, this.texidCinema, 0, 0, 0, 0, 150, 100, 0);
   }
    
   drawCinemaClipped(context) {
@@ -214,13 +218,8 @@ export class VictoryMenu {
     const dotRadius = 2;
     const dx = (londonx - wichitax) / dotCountMax;
     const dy = (londony - wichitay) / dotCountMax;
-    context.fillStyle = "#fff";
-    context.strokeStyle = "#000";
     for (let i=dotCount, x=wichitax, y=wichitay; i-->0; x+=dx, y+=dy) {
-      // If I do these all in one path, they go screwy. I dunno... just do a separate path for each.
-      context.beginPath();
-      context.ellipse(Math.round(x), Math.round(y), dotRadius, dotRadius, 0, 0, 3 * Math.PI);
-      context.fill();
+      egg.draw_rect(this.texidCinema, x, y, dotRadius, dotRadius, 0xffffffff);
     }
   }
   
@@ -396,3 +395,5 @@ export class VictoryMenu {
     return true;
   }
 }
+
+VictoryMenu.singleton = true;

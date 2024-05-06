@@ -4,8 +4,8 @@
  */
  
 import { HeroSprite } from "./sprites/HeroSprite.js";
+import { TILESIZE } from "../constants.js";
  
-const TILESIZE = 16;
 const UPDATE_LIMIT = 15; // Maximum Manhattan distance change frame to frame before we force lag.
 const LAG_SPEED = 8;
  

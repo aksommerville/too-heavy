@@ -5,8 +5,8 @@
  
 import { Sprite } from "../Sprite.js";
 import { Physics } from "../Physics.js";
+import { TILESIZE } from "../../constants.js";
 
-const TILESIZE = 16;
 const TURNAROUND_WINDOW = 0.500;
 
 export class PlatformSprite extends Sprite {

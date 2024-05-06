@@ -5,11 +5,18 @@
  
 import { Sprite } from "./Sprite.js";
 import { Physics } from "./Physics.js";
-
-const TILESIZE = 16;
+import { TILESIZE } from "../constants.js";
  
 export class Grid {
   constructor(serial) {
+    if (serial instanceof ArrayBuffer) {
+      let s = "";
+      const u8 = new Uint8Array(serial);
+      for (let i=0; i<u8.length; i++) {
+        s += String.fromCharCode(u8[i]);
+      }
+      serial = s;
+    }
     const src = serial.trim();
     let srcp = 0;
     this.v = [];

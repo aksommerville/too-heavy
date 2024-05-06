@@ -3,13 +3,13 @@
  
 export class Injector {
   static getDependencies() { // Not used, just setting a good example;
-    return [Window];
+    return [];//Window];
   }
   constructor(window) {
     this.window = window;
     this.singletons = {
-      Window: window,
-      Document: window.document,
+      //Window: window,
+      //Document: window.document,
       Injector: this,
     };
     this.inProgress = [];

@@ -5,8 +5,7 @@
  
 import { Sprite } from "../Sprite.js";
 import { HeroSprite } from "./HeroSprite.js";
-
-const TILESIZE = 16;
+import { TILESIZE } from "../../constants.js";
 
 const STAGE_IDLE = 0;
 const STAGE_MAIL_ME = 1;

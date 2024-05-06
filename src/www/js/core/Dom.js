@@ -5,15 +5,15 @@ import { Injector } from "./Injector.js";
 
 export class Dom {
   static getDependencies() {
-    return [Injector, Window, Document];
+    return [Injector];//, Window, Document];
   }
   constructor(injector, window, document) {
     this.injector = injector;
     this.window = window;
     this.document = document;
     
-    this.mutationObserver = new this.window.MutationObserver(e => this.onMutation(e));
-    this.mutationObserver.observe(document.body, { childList: true, subtree: true });
+    //this.mutationObserver = new this.window.MutationObserver(e => this.onMutation(e));
+    //this.mutationObserver.observe(document.body, { childList: true, subtree: true });
   }
   
   /* (args) may contain:
@@ -22,6 +22,7 @@ export class Dom {
    *   object => attributes, plus {"on-EVENT":e=>...}
    */
   spawn(parent, tagName, ...args) {
+    /*XXX
     const element = this.document.createElement(tagName);
     for (const arg of args) {
       if (arg instanceof Array) {
@@ -40,9 +41,11 @@ export class Dom {
     }
     parent.appendChild(element);
     return element;
+    /**/
   }
   
   spawnController(parent, clazz, overrides) {
+    /*XXX
     const element = this.spawn(parent, this.tagNameForControllerClass(clazz));
     element.classList.add(clazz.name);
     if (overrides) overrides.push(element);
@@ -50,9 +53,11 @@ export class Dom {
     const controller = this.injector.get(clazz, overrides);
     element.__controller = controller;
     return controller;
+    /**/
   }
   
   tagNameForControllerClass(clazz) {
+    /*XXX
     const htmlClassName = clazz.getDependencies?.().find(c => c.name.startsWith("HTML") && c.name.endsWith("Element"))?.name;
     if (!htmlClassName) return "DIV";
     switch (htmlClassName) { // It's tempting to just strip off "HTML" and "Element" and uppercase what's left, but that's not correct.
@@ -61,9 +66,11 @@ export class Dom {
       //TODO Add others as we discover the need for them.
     }
     return "DIV";
+    /**/
   }
   
   onMutation(records) {
+    /*XXX
     for (const record of records) {
       for (const element of record.removedNodes || []) {
         if (!element.__controller) continue;
@@ -73,6 +80,7 @@ export class Dom {
         controller.onRemoveFromDom?.();
       }
     }
+    /**/
   }
 }
 

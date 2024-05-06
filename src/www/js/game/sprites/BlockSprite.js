@@ -5,8 +5,7 @@
  
 import { Sprite } from "../Sprite.js";
 import { Physics } from "../Physics.js";
-
-const TILESIZE = 16;
+import { TILESIZE } from "../../constants.js";
 
 export class BlockSprite extends Sprite {
   constructor(scene, col, row, args) {

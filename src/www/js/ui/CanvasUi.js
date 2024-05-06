@@ -1,45 +1,41 @@
 /* CanvasUi.js
- * Owns the <canvas> element, and top level of responsbility for rendering.
  */
  
 import { Game } from "../game/Game.js";
 import { WordBubbler } from "./WordBubbler.js";
+import { TILESIZE } from "../constants.js";
 
-const TILESIZE = 16;
 const CHRONFLAKE_COUNT = 100;
 const CHRONFLAKE_TTL = 60; // frames; we don't get real time
 
 export class CanvasUi {
   static getDependencies() {
-    return [HTMLCanvasElement, Game];
+    return [Game];//HTMLCanvasElement, Game];
   }
-  constructor(element, game) {
-    this.element = element;
+  constructor(game) {
     this.game = game;
     
     // RootUi should set this when configuration is in progress.
     this.inputConfigurationContext = null;
     
+    const hdr = egg.texture_get_header(1);
+    this.screenw = hdr.w;
+    this.screenh = hdr.h;
+    this.dsttexid = 1;
+    
     this.wordBubbler = new WordBubbler(this);
-    this.element.width = 320;
-    this.element.height = 160;
-    this.context = this.element.getContext("2d");
-    this.context.drawDecal = (dstx, dsty, srcx, srcy, w, h, flop) => this.drawDecal(dstx, dsty, srcx, srcy, w, h, flop);
-    this.context.drawDialogue = (focusx, focusy, text) => this.wordBubbler.draw(focusx, focusy, text);
+    this.drawDialogue = (focusx, focusy, text) => this.wordBubbler.draw(focusx, focusy, text);
     
     this.chronflakes = []; // {x,y,ttl} when time frozen
+    this.tiles = null; // Uint8Array; allocated lazy
   }
   
   drawDecal(dstx, dsty, srcx, srcy, w, h, flop) {
-    if (flop) {
-      this.context.save();
-      this.context.translate(dstx, dsty);
-      this.context.scale(-1, 1);
-      this.context.drawImage(this.game.graphics, srcx, srcy, w, h, -w, 0, w, h);
-      this.context.restore();
-    } else {
-      this.context.drawImage(this.game.graphics, srcx, srcy, w, h, dstx, dsty, w, h);
-    }
+    egg.draw_decal(
+      this.dsttexid, this.game.graphicsTexid,
+      dstx, dsty, srcx, srcy, w, h,
+      flop ? 0x01 : 0
+    );
   }
   
   renderNow() {
@@ -49,26 +45,8 @@ export class CanvasUi {
         this.fillSceneBackground(worldBounds);
         this.renderGrid(this.game.scene.grid, worldBounds);
         this.renderSprites(this.game.scene.sprites, worldBounds);
-      
-        /*XXX TEMP Show all physical borders *
-        this.context.globalAlpha = 0.75;
-        for (const sprite of this.game.scene.sprites) {
-          if (!sprite.ph) continue;
-          switch (sprite.ph.role) {
-            case "fragile": this.context.fillStyle = "#ff0"; break;
-            case "hazard": this.context.fillStyle = "#f00"; break;
-            case "oneway": this.context.fillStyle = "#00f"; break;
-            case "solid": this.context.fillStyle = "#840"; break;
-            default: this.context.fillStyle = "#0f0"; break;
-          }
-          this.context.fillRect(sprite.ph.x - worldBounds.x + 1, sprite.ph.y - worldBounds.y + 1, sprite.ph.w - 2, sprite.ph.h - 2);
-        }
-        this.context.globalAlpha = 1;
-        /**/
-      
       } else {
-        this.context.fillStyle = "#888";
-        this.context.fillRect(0, 0, this.element.width, this.element.height);
+        egg.draw_rect(1, 0, 0, this.screenw, this.screenh, 0x888888ff);
       }
     }
     
@@ -79,15 +57,13 @@ export class CanvasUi {
     }
     
     if (this.game.menu) {
-      this.game.menu.render(this.context, this.element);
+      this.game.menu.render(this);
     }
     
     if (this.game.paused) {
-      this.context.fillStyle = "#000";
-      this.context.globalAlpha = 0.75;
-      this.context.fillRect(0, 0, this.element.width, this.element.height);
-      this.context.globalAlpha = 1;
+      egg.draw_rect(1, 0, 0, this.screenw, this.screenh, 0x000000c0);
       
+      /*XXX Decide how bad we want this:
       this.context.fillStyle = "#fff";
       this.context.font = "24px sans-serif";
       this.context.textAlign = "center";
@@ -105,6 +81,7 @@ export class CanvasUi {
         this.context.fillText("F1 (at any time) to configure input.", 10, this.element.height - 10);
         this.context.fillText("Click to resume.", 10, this.element.height - 25);
       }
+      /**/
     }
   }
   
@@ -116,15 +93,13 @@ export class CanvasUi {
       (worldBounds.y + worldBounds.h > this.game.scene.worldh)
     ) {
       // Camera goes offscreen. Black for the OOB space, and backgroundColor for the valid space.
-      this.context.fillStyle = "#000";
-      this.context.fillRect(0, 0, this.element.width, this.element.height);
-      this.context.fillStyle = this.game.scene.backgroundColor;
-      this.context.fillRect(-worldBounds.x, -worldBounds.y, this.game.scene.worldw, this.game.scene.worldh);
+      egg.draw_rect(1, 0, 0, this.screenw, this.screenh, 0x000000ff);
+      egg.draw_rect(1, -worldBounds.x, -worldBounds.y, this.game.scene.worldw, this.game.scene.worldh, this.game.scene.backgroundColor);
     } else {
       // Camera fully within the world bounds -- typical -- fill framebuffer with backgroundColor.
-      this.context.fillStyle = this.game.scene.backgroundColor;
-      this.context.fillRect(0, 0, this.element.width, this.element.height);
+      egg.draw_rect(1, 0, 0, this.screenw, this.screenh, this.game.scene.backgroundColor);
     }
+    /**/
   }
   
   renderGrid(grid, worldBounds) {
@@ -132,21 +107,31 @@ export class CanvasUi {
     const rowa = Math.max(0, Math.floor(worldBounds.y / TILESIZE));
     const colz = Math.min(grid.w - 1, Math.floor((worldBounds.x + worldBounds.w) / TILESIZE));
     const rowz = Math.min(grid.h - 1, Math.floor((worldBounds.y + worldBounds.h) / TILESIZE));
-    let dsty = rowa * TILESIZE - worldBounds.y;
-    const dstx0 = cola * TILESIZE - worldBounds.x;
+    const tilec = (colz - cola + 1) * (rowz - rowa + 1);
+    if (tilec < 1) return;
+    this.requireTiles(tilec);
+    let tilesp = 0;
+    let dsty = rowa * TILESIZE - worldBounds.y + (TILESIZE >> 1);
+    const dstx0 = cola * TILESIZE - worldBounds.x + (TILESIZE >> 1);
     let rowp = rowa * grid.w + cola;
     for (let row=rowa; row<=rowz; row++, dsty+=TILESIZE, rowp+=grid.w) {
       for (let col=cola, dstx=dstx0, colp=rowp; col<=colz; col++, dstx+=TILESIZE, colp++) {
         if (!grid.v[colp]) continue; // Tile zero should always be blank, and common. Don't bother rendering.
-        this.renderGridTile(dstx, dsty, grid.v[colp]);
+        this.tiles[tilesp++] = dstx;
+        this.tiles[tilesp++] = dstx >> 8;
+        this.tiles[tilesp++] = dsty;
+        this.tiles[tilesp++] = dsty >> 8;
+        this.tiles[tilesp++] = grid.v[colp];
+        this.tiles[tilesp++] = 0;
       }
     }
+    egg.draw_tile(1, this.game.tilesheetTexid, this.tiles.buffer, tilesp / 6);
   }
   
-  renderGridTile(dstx, dsty, v) {
-    const srcx = (v & 0x0f) * TILESIZE;
-    const srcy = (v >> 4) * TILESIZE;
-    this.context.drawImage(this.game.graphics, srcx, srcy, TILESIZE, TILESIZE, dstx, dsty, TILESIZE, TILESIZE);
+  requireTiles(c) {
+    if (!this.tiles || (c > this.tiles.length / 6)) {
+      this.tiles = new Uint8Array(c * 6);
+    }
   }
   
   renderSprites(sprites, worldBounds) {
@@ -174,42 +159,41 @@ export class CanvasUi {
           if (sbounds.x + sbounds.w <= worldBounds.x) continue;
           if (sbounds.y + sbounds.h <= worldBounds.y) continue;
         }
-        sprite.postRender(this.context, sbounds.x - worldBounds.x, sbounds.y - worldBounds.y, sbounds);
+        sprite.postRender(this, sbounds.x - worldBounds.x, sbounds.y - worldBounds.y, sbounds);
       }
     }
   }
   
   renderSprite(sprite, dstx, dsty, sbounds) {
     if (sprite.render) {
-      sprite.render(this.context, dstx, dsty);
+      sprite.render(this, dstx, dsty);
     } else {
-      if (sprite.flop) {
-        this.context.save();
-        this.context.translate(dstx, dsty);
-        this.context.scale(-1, 1);
-        this.context.drawImage(this.game.graphics, sprite.srcx, sprite.srcy, sbounds.w, sbounds.h, -sbounds.w, 0, sbounds.w, sbounds.h);
-        this.context.restore();
-      } else {
-        this.context.drawImage(this.game.graphics, sprite.srcx, sprite.srcy, sbounds.w, sbounds.h, dstx, dsty, sbounds.w, sbounds.h);
-      }
+      egg.draw_decal(
+        1, this.game.graphicsTexid,
+        dstx, dsty,
+        sprite.srcx, sprite.srcy,
+        sbounds.w, sbounds.h,
+        sprite.flop ? 0x01 : 0
+      );
     }
   }
   
   renderStoppedTime() {
     while (this.chronflakes.length < CHRONFLAKE_COUNT) {
       this.chronflakes.push({
-        x: Math.floor(Math.random() * this.element.width),
-        y: Math.floor(Math.random() * this.element.height),
+        x: Math.floor(Math.random() * this.screenw),
+        y: Math.floor(Math.random() * this.screenh),
         ttl: Math.ceil(Math.random() * CHRONFLAKE_TTL),
       });
     }
     const halfttl = CHRONFLAKE_TTL >> 1;
     const alphamax = 0.5;
     const radius = 2;
-    this.context.fillStyle = "#fff";
+    //this.context.fillStyle = "#fff";
     for (const chronflake of this.chronflakes) {
       if (chronflake.ttl > 0) {
         chronflake.ttl--;
+        /*TODO Imitate this more closely:
         this.context.beginPath();
         this.context.ellipse(chronflake.x, chronflake.y, radius, radius, 0, 0, Math.PI * 2);
         if (chronflake.ttl >= halfttl) {
@@ -218,12 +202,16 @@ export class CanvasUi {
           this.context.globalAlpha = (chronflake.ttl * alphamax) / halfttl;
         }
         this.context.fill();
+        /**/
+        egg.draw_rect(1, chronflake.x, chronflake.y, 3, 3, 0xffffff80);
       } else {
-        chronflake.x = Math.floor(Math.random() * this.element.width);
-        chronflake.y = Math.floor(Math.random() * this.element.height);
+        chronflake.x = Math.floor(Math.random() * this.screenw);
+        chronflake.y = Math.floor(Math.random() * this.screenh);
         chronflake.ttl = CHRONFLAKE_TTL;
       }
     }
-    this.context.globalAlpha = 1.0;
+    //this.context.globalAlpha = 1.0;
   }
 }
+
+CanvasUi.singleton = true;

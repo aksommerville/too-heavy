@@ -41,7 +41,7 @@ export function decodeBase64(src) {
  
 export class DataService {
   static getDependencies() {
-    return [Window];
+    return [];//Window];
   }
   constructor(window) {
     this.window = window;
@@ -53,6 +53,7 @@ export class DataService {
   }
   
   getBestTime() {
+    /*XXX
     if (this.bestTime) return this.bestTime;
     try {
       this.bestTime = JSON.parse(this.window.localStorage.getItem("bestTime"));
@@ -63,24 +64,41 @@ export class DataService {
       this.bestTime = 0;
     }
     if (this.bestTime) return this.bestTime;
+    /**/
     return 999999; // overflow our printing and it will display as "99:99.999"
   }
   
   setBestTimeIfBetter(incoming) {
+    /*XXX
     const previous = this.getBestTime();
     if (incoming < previous) {
       this.bestTime = incoming;
       this.window.localStorage.setItem("bestTime", JSON.stringify(this.bestTime));
     }
+    /**/
   }
   
   getResourceSync(tid, rid) {
-    const file = this.files.find(f => f.tid === tid && f.rid === rid);
-    if (!file) return null;
+    let file = this.files.find(f => f.tid === tid && f.rid === rid);
+    if (!file) {
+      const eggTid = this.eggTidFromThTid(tid);
+      if (!eggTid) return null;
+      const serial = egg.res_get(eggTid, 0, rid);
+      if (!serial) return null;
+      file = { tid, rid, serial };
+      this.files.push(file);
+    }
     if (!file.object) {
       file.object = this.instantiateResource(file.tid, file.serial, file);
     }
     return file.object;
+  }
+  
+  eggTidFromThTid(tid) {
+    switch (tid) {
+      case "map": return 8;
+    }
+    return 0;
   }
   
   instantiateResource(tid, serial, file) {
@@ -91,6 +109,7 @@ export class DataService {
     return serial;
   }
   
+    /*XXX
   load() {
     if (this.loaded) return Promise.resolve();
     for (const element of this.window.document.querySelectorAll("th-res")) {
@@ -117,6 +136,7 @@ export class DataService {
     this.loaded = true;
     return Promise.resolve();
   }
+    /**/
 }
 
 DataService.singleton = true;

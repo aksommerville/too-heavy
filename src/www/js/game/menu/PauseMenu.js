@@ -4,8 +4,8 @@
 import { Game } from "../Game.js";
 import { DataService } from "../DataService.js";
 import { InputBtn } from "../core/InputManager.js";
+import { TILESIZE } from "../../constants.js";
 
-const TILESIZE = 16;
 const HIGHLIGHT_PERIOD =     0.800;
 const HIGHLIGHT_DUTY_CYCLE = 0.600;
  
@@ -56,26 +56,25 @@ export class PauseMenu {
   
   /* Caller draws the scene first, and no framing or anything before calling us.
    */
-  render(context, canvas) {
-    const graphics = this.dataService.getResourceSync("image", 1);
-    if (!graphics) return;
+  render(context) {
+    //const graphics = this.dataService.getResourceSync("image", 1);
+    //if (!graphics) return;
     
     const dstcolc = 7;
     const dstrowc = 7;
     const dstw = dstcolc * TILESIZE;
     const dsth = dstrowc * TILESIZE;
-    const dstx = (canvas.width >> 1) - (dstw >> 1);
-    const dsty = (canvas.height >> 1) - (dsth >> 1);
+    const dstx = (context.screenw >> 1) - (dstw >> 1);
+    const dsty = (context.screenh >> 1) - (dsth >> 1);
     const iconmargin = 6;
     const iconspace = 2;
     
     const frameTile = (dstcol, dstrow, srccol, srcrow) => {
-      context.drawImage(graphics,
-        srccol * TILESIZE,
-        336 + srcrow * TILESIZE,
-        TILESIZE, TILESIZE,
+      context.drawDecal(
         dstx + dstcol * TILESIZE,
         dsty + dstrow * TILESIZE,
+        srccol * TILESIZE,
+        336 + srcrow * TILESIZE,
         TILESIZE, TILESIZE
       );
     };
@@ -98,12 +97,11 @@ export class PauseMenu {
     const srcx0 = 144;
     const srcy0 = 272;
     const itemTile = (col, row) => {
-      context.drawImage(graphics,
-        srcx0 + col * TILESIZE * 2,
-        srcy0 + row * TILESIZE * 2,
-        TILESIZE * 2, TILESIZE * 2,
+      context.drawDecal(
         dstx + iconmargin + col * (TILESIZE * 2 + iconspace),
         dsty + iconmargin + row * (TILESIZE * 2 + iconspace),
+        srcx0 + col * TILESIZE * 2,
+        srcy0 + row * TILESIZE * 2,
         TILESIZE * 2, TILESIZE * 2
       );
     };
@@ -111,11 +109,11 @@ export class PauseMenu {
       for (let col=0; col<3; col++, itemid++) {
         if ((this.game.selectedItem === itemid) && (this.highlightClock <= HIGHLIGHT_DUTY_CYCLE)) {
           // Highlight, even if we don't have it.
-          context.fillStyle = "#080";
-          context.fillRect(
+          egg.draw_rect(1,
             dstx + iconmargin + col * (TILESIZE * 2 + iconspace) - 1,
             dsty + iconmargin + row * (TILESIZE * 2 + iconspace) - 1,
-            TILESIZE * 2 + 2, TILESIZE * 2 + 2
+            TILESIZE * 2 + 2, TILESIZE * 2 + 2,
+            0x008000ff
           );
         }
         if (this.game.inventory[itemid]) {

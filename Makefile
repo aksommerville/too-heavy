@@ -3,6 +3,13 @@ all:
 .SECONDARY:
 PRECMD=echo "  $(@F)" ; mkdir -p $(@D) ;
 
+EGG_SDK:=../egg
+
+DST_ROM:=out/tooheavy.egg
+SRC_ROM:=$(shell find src/www/js src/data -type f)
+$(DST_ROM):$(SRC_ROM);$(PRECMD) $(EGG_SDK)/out/tool/eggrom -c -o$@ src/www/js src/data
+all:$(DST_ROM)
+
 DST_HTML:=out/web/index.html
 SRCFILES:=$(shell find src/www src/data -type f)
 ENCODERBITS:=etc/tool/reencodeSong.js etc/tool/minifyJavascript.js
@@ -17,6 +24,7 @@ all:$(DST_WRAPPER) $(DST_FAVICON)
 
 # `make run` serves the editor too.
 # We could declare DST_WRAPPER and DST_FAVICON as "--makeable" too, but they won't change much so avoid the extra churn.
-run:$(DST_HTML) $(DST_WRAPPER) $(DST_FAVICON);node src/server/main.js src out/web --makeable=$(DST_HTML) --put=src
+#run:$(DST_HTML) $(DST_WRAPPER) $(DST_FAVICON);node src/server/main.js src out/web --makeable=$(DST_HTML) --put=src
+run:$(DST_ROM);$(EGG_SDK)/out/linux/egg $(DST_ROM)
 
 clean:;rm -rf mid out

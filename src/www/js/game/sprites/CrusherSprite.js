@@ -6,8 +6,8 @@
  
 import { Sprite } from "../Sprite.js";
 import { HeroSprite } from "./HeroSprite.js";
+import { TILESIZE } from "../../constants.js";
 
-const TILESIZE = 16;
 const ACCELERATION = 1000;
 const VELOCITY_MAX = 500;
 const STUCK_SAMPLE_WINDOW = 0.100; // Check effective velocity in chunks of this size, to determine whether to turn around.
