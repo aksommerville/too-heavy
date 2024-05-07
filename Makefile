@@ -4,27 +4,23 @@ all:
 PRECMD=echo "  $(@F)" ; mkdir -p $(@D) ;
 
 EGG_SDK:=../egg
+ARCH:=linux
 
 DST_ROM:=out/tooheavy.egg
 SRC_ROM:=$(shell find src/www/js src/data -type f)
 $(DST_ROM):$(SRC_ROM);$(PRECMD) $(EGG_SDK)/out/tool/eggrom -c -o$@ src/www/js src/data
 all:$(DST_ROM)
 
-#DST_HTML:=out/web/index.html
-#SRCFILES:=$(shell find src/www src/data -type f)
-#ENCODERBITS:=etc/tool/reencodeSong.js etc/tool/minifyJavascript.js
-#$(DST_HTML):etc/tool/mkhtml.js $(SRCFILES) $(ENCODERBITS);$(PRECMD) node etc/tool/mkhtml.js $(SRCFILES) -o$@
-#all:$(DST_HTML)
+DST_EXE:=out/$(ARCH)/tooheavy
+LIBEGG:=$(EGG_SDK)/out/$(ARCH)/libegg-bundled.a
+$(DST_EXE):$(DST_ROM) $(LIBEGG);$(PRECMD) $(EGG_SDK)/out/$(ARCH)/egg-bundle.sh -o$@ --rom=$(DST_ROM)
+all:$(DST_EXE)
 
-#DST_WRAPPER:=out/web/wrapper.html
-#DST_FAVICON:=out/web/favicon.ico
-#$(DST_WRAPPER):src/wrapper.html;$(PRECMD) cp $< $@
-#$(DST_FAVICON):src/favicon.ico;$(PRECMD) cp $< $@
-#all:$(DST_WRAPPER) $(DST_FAVICON)
+DST_HTML:=out/tooheavy.html
+HTML_TEMPLATE:=$(EGG_SDK)/out/web/egg-headless.html
+$(DST_HTML):$(DST_ROM) $(HTML_TEMPLATE);$(PRECMD) $(EGG_SDK)/out/tool/webtm -o$@ --html=$(HTML_TEMPLATE) --rom=$(DST_ROM)
+all:$(DST_HTML)
 
-# `make run` serves the editor too.
-# We could declare DST_WRAPPER and DST_FAVICON as "--makeable" too, but they won't change much so avoid the extra churn.
-#run:$(DST_HTML) $(DST_WRAPPER) $(DST_FAVICON);node src/server/main.js src out/web --makeable=$(DST_HTML) --put=src
 run:$(DST_ROM);$(EGG_SDK)/out/linux/egg $(DST_ROM)
 
 serve:$(DST_ROM);make --no-print-directory -C$(EGG_SDK) && $(EGG_SDK)/out/tool/server --port=8080 --htdocs=$(EGG_SDK)/src/web --rom=$(DST_ROM)

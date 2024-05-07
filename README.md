@@ -28,4 +28,4 @@ https://github.com/aksommerville/too-heavy
 - [x] eggrom issues a warning for each map. Can we silence that?
 - [x] Test in web.
 - [ ] Test on Pi.
-- [ ] Bundle web and native apps.
+- [x] Bundle web and native apps.
