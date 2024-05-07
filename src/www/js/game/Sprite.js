@@ -53,9 +53,4 @@ export class Sprite {
   update(elapsed, inputState) {
   }
   /**/
-  
-  // convenience
-  sound(sfxid) {
-    this.scene.game.audioManager.soundEffect(sfxid);
-  }
 }

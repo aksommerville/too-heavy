@@ -1,0 +1,16 @@
+1 English
+
+# Input buttons.
+2 Left
+3 Right
+4 Up
+5 Down
+6 Jump
+7 Action
+8 Pause
+
+# Input config prompts.
+9 Fault! Please press %
+10 Please press %
+11 Press % again
+

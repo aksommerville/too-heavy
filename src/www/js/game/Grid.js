@@ -16,6 +16,12 @@ export class Grid {
         s += String.fromCharCode(u8[i]);
       }
       serial = s;
+    } else if (serial instanceof Uint8Array) {
+      let s = "";
+      for (let i=0; i<serial.length; i++) {
+        s += String.fromCharCode(serial[i]);
+      }
+      serial = s;
     }
     const src = serial.trim();
     let srcp = 0;

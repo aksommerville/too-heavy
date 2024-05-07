@@ -28,7 +28,7 @@ export class BreakableSprite extends Sprite {
   }
   
   onCannonball(hero, distance) {
-    this.sound("cannonballBreak");
+    egg.audio_play_sound(0, 17, 1, 0);
     this.scene.removeSprite(this);
     const midx = this.x + this.vw * 0.5;
     const midy = this.y + this.vh * 0.5;

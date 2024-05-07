@@ -59,7 +59,7 @@ export class SwitchSprite extends Sprite {
   }
   
   onPress() {
-    this.sound("switchOn");
+    egg.audio_play_sound(0, 11, 1, 0);
     this.srcy = 160;
     switch (this.mode) {
       case "treadle": {
@@ -75,7 +75,7 @@ export class SwitchSprite extends Sprite {
   }
   
   onRelease() {
-    this.sound("switchOff");
+    egg.audio_play_sound(0, 12, 1, 0);
     this.srcy = 153;
     switch (this.mode) {
       case "treadle": {

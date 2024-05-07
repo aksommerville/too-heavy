@@ -135,7 +135,7 @@ export class HeroSprite extends Sprite {
     this.scene.physics.warp(this);
     this.interactedSinceSpawn = false;
     this.scene.clearTransientState();
-    this.sound("die");
+    egg.audio_play_sound(0, 9, 1, 0);
     this.scene.game.deathCount++;
     for (const [k, v] of this.scene.setPermanentStateOnDeath) {
       this.scene.game.setPermanentState(k, v);
@@ -222,7 +222,7 @@ export class HeroSprite extends Sprite {
       if (y >= door.y + door.h) continue;
       this.scene.load(door.dstmapid, this, door);
       this.adjustForNewMap(null);
-      this.sound("door");
+      egg.audio_play_sound(0, 31, 1, 0);
       return true;
     }
   }
@@ -345,7 +345,7 @@ export class HeroSprite extends Sprite {
         if (other.onCannonball(this, distance)) ack = true;
       }
     }
-    if (!ack) this.sound("cannonballNoop");
+    if (!ack) egg.audio_play_sound(0, 18, 1, 0);
   }
   
   /* Walk.
@@ -476,12 +476,12 @@ export class HeroSprite extends Sprite {
       this.x -= DASH_DISTANCE * dx;
       const freedom = this.scene.physics.measureFreedom(this, dx, 0, DASH_DISTANCE);
       if (freedom <= 0) {
-        this.sound("dashReject");
+        egg.audio_play_sound(0, 8, 1, 0);
         return;
       }
       this.x += dx * freedom;
     }
-    this.sound("dash");
+    egg.audio_play_sound(0, 7, 1, 0);
     const fireworks = new AnimateOnceSprite(this.scene);
     this.scene.sprites.push(fireworks);
     if (this.flop) {
@@ -528,7 +528,7 @@ export class HeroSprite extends Sprite {
         this.beginLongJump(1);
       } else if (this.scene.physics.bypassOneWays(this)) {
         // Duck jumped thru oneway.
-        this.sound("jumpDown");
+        egg.audio_play_sound(0, 6, 1, 0);
         this.cannonball = true;
         this.cannonballStartY = this.y;
       } else {
@@ -548,9 +548,9 @@ export class HeroSprite extends Sprite {
     }
     
     switch (this.jumpSequence) {
-      case 0: this.sound("jump0"); break;
-      case 1: this.sound("jump1"); this.spawnJumpballs(); break;
-      case 2: this.sound("jump2"); this.spawnJumpballs(); break;
+      case 0: egg.audio_play_sound(0, 1, 1, 0); break;
+      case 1: egg.audio_play_sound(0, 2, 1, 0); this.spawnJumpballs(); break;
+      case 2: egg.audio_play_sound(0, 3, 1, 0); this.spawnJumpballs(); break;
     }
     
     this.jumpDuration = 0;
@@ -588,7 +588,7 @@ export class HeroSprite extends Sprite {
     this.jumpSequencePoison = false;
     this.jumpSequence = 0;
     this.resetAnimation();
-    this.sound("jumpWall");
+    egg.audio_play_sound(0, 4, 1, 0);
   }
   
   beginLongJump(dx) {
@@ -604,7 +604,7 @@ export class HeroSprite extends Sprite {
     this.jumpSequencePoison = false; // duckEnd sets it true, but it should be false -- you can double-jump off a long-jump
     this.jumpSequence = 0;
     this.resetAnimation();
-    this.sound("jumpLong");
+    egg.audio_play_sound(0, 5, 1, 0);
     this.spawnJumpballs((dx < 0) ? 3 : 4);
   }
   
@@ -630,10 +630,10 @@ export class HeroSprite extends Sprite {
         if (this.cannonball) {
           this.cannonball = false;
           if (!this.executeCannonball() && (this.footClock >= 0.100)) {
-            this.sound("land");
+            egg.audio_play_sound(0, 10, 1, 0);
           }
         } else if (this.footClock >= 0.100) {
-          this.sound("land");
+          egg.audio_play_sound(0, 10, 1, 0);
         }
         this.footState = true;
         this.footClock = 0;
@@ -759,7 +759,7 @@ export class HeroSprite extends Sprite {
     this.scene.game.timeFrozen = true;
     this.itemInProgress = 0;
     this.stopwatchSoundClock = STOPWATCH_SOUND_TIME;
-    this.sound("tick");
+    egg.audio_play_sound(0, 20, 1, 0);
   }
   
   stopwatchEnd() {
@@ -770,7 +770,7 @@ export class HeroSprite extends Sprite {
   stopwatchUpdate(elapsed) {
     if ((this.stopwatchSoundClock -= elapsed) <= 0) {
       this.stopwatchSoundClock += STOPWATCH_SOUND_TIME;
-      this.sound("tick");
+      egg.audio_play_sound(0, 20, 1, 0);
     }
   }
   
@@ -820,14 +820,14 @@ export class HeroSprite extends Sprite {
       this.y = selfie.y;
       this.scene.physics.warp(this);
       this.scene.removeSprite(selfie);
-      this.sound("cameraTeleport");
+      egg.audio_play_sound(0, 22, 1, 0);
       return;
     }
     selfie = new SelfieSprite(this.scene);
     this.scene.sprites.push(selfie);
     selfie.x = this.x;
     selfie.y = this.y;
-    this.sound("cameraClick");
+    egg.audio_play_sound(0, 21, 1, 0);
   }
   
   /* Vacuum.
@@ -845,7 +845,7 @@ export class HeroSprite extends Sprite {
     this.resetDustBunnies();
     this.resetAnimation();
     this.vacuumSoundClock = VACUUM_SOUND_TIME_INITIAL;
-    this.sound("vacuum");
+    egg.audio_play_sound(0, 23, 1, 0);
   }
   
   vacuumEnd(inputState) {
@@ -904,7 +904,7 @@ export class HeroSprite extends Sprite {
     // Update sound effect.
     if ((this.vacuumSoundClock -= elapsed) <= 0) {
       this.vacuumSoundClock += VACUUM_SOUND_TIME_REPEAT;
-      this.sound(stuck ? "vacuumMuffled" : "vacuum");
+      egg.audio_play_sound(0, stuck ? 24 : 23, 1, 0);
     }
   }
   
@@ -955,7 +955,7 @@ export class HeroSprite extends Sprite {
    ***********************************************************************/
   
   bellBegin() {
-    this.sound("bell");
+    egg.audio_play_sound(0, 19, 1, 0);
     this.itemInProgress = ITEM_BELL;
     
     // There's only one thing the bell really does: One room in the school, where we teach about each item, you have to ring it.
@@ -986,7 +986,7 @@ export class HeroSprite extends Sprite {
     this.jumping = false;
     this.ph.gravity = false;
     this.resetAnimation();
-    this.sound("umbrellaDeploy");
+    egg.audio_play_sound(0, 25, 1, 0);
   }
   
   umbrellaEnd() {
@@ -994,7 +994,7 @@ export class HeroSprite extends Sprite {
     this.ph.gravity = true;
     this.ph.gravityRate = 0;
     this.resetAnimation();
-    this.sound("umbrellaRetract");
+    egg.audio_play_sound(0, 26, 1, 0);
   }
   
   umbrellaUpdate(elapsed) {
@@ -1014,7 +1014,7 @@ export class HeroSprite extends Sprite {
     this.ph.gravity = false;
     this.resetAnimation();
     this.bootsSoundTime = BOOTS_SOUND_TIME_INITIAL;
-    this.sound("boots");
+    egg.audio_play_sound(0, 27, 1, 0);
   }
   
   bootsEnd() {
@@ -1029,7 +1029,7 @@ export class HeroSprite extends Sprite {
   
     if ((this.bootsSoundTime -= elapsed) <= 0) {
       this.bootsSoundTime += BOOTS_SOUND_TIME_REPEAT;
-      this.sound("boots");
+      egg.audio_play_sound(0, 27, 1, 0);
     }
   
     if (this.y < -30) return; // Maps with open ceiling, stop at some point for sanity's sake.
@@ -1065,7 +1065,7 @@ export class HeroSprite extends Sprite {
     }
     grapple.setup(this, dx, dy);
     this.itemInProgress = ITEM_GRAPPLE;
-    this.sound("grappleThrow");
+    egg.audio_play_sound(0, 28, 1, 0);
   }
   
   grappleEnd(inputState) {
@@ -1114,7 +1114,7 @@ export class HeroSprite extends Sprite {
     }
     raft.y = this.y - raft.vh;
     this.scene.sprites.push(raft);
-    this.sound("raft");
+    egg.audio_play_sound(0, 30, 1, 0);
   }
   
   /* Render.

@@ -64,7 +64,7 @@ export class ChestSprite extends Sprite {
       this.scene.game.inventory[this.scene.game.selectedItem] = false;
       const hero = this.scene.sprites.find(s => s instanceof HeroSprite);
       if (hero && hero.actionEnd) hero.actionEnd();
-      this.sound("deliverItem");
+      egg.audio_play_sound(0, 13, 1, 0);
       if (this.speech && (this.speechClock > 0)) { // if we were saying "Feed me", stop saying that.
         this.speechClock = 0.001;
       }

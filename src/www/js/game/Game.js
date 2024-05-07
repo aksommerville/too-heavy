@@ -9,7 +9,6 @@ import { DataService } from "./DataService.js";
 import { PauseMenu } from "./menu/PauseMenu.js";
 import { VictoryMenu } from "./menu/VictoryMenu.js";
 import { Injector } from "../core/Injector.js";
-import { AudioManager } from "../core/AudioManager.js";
  
 /* The ideal update timing is 16.666 ms.
  * High-frequency monitors may run considerably shorter, and we should skip frames to accomodate, instead of burning the CPU.
@@ -21,17 +20,13 @@ const MAXIMUM_UPDATE_TIME_MS = 25;
  
 export class Game {
   static getDependencies() {
-    return [/*Window,*/ Scene, InputManager, DataService, Injector, AudioManager];
+    return [Scene, InputManager, DataService, Injector];
   }
-  constructor(/*window,*/ scene, inputManager, dataService, injector, audioManager) {
-    //this.window = window;
+  constructor(scene, inputManager, dataService, injector) {
     this.scene = scene;
     this.inputManager = inputManager;
     this.dataService = dataService;
     this.injector = injector;
-    this.audioManager = audioManager;
-    
-    //this.render = () => {}; // RootUi should set.
     
     this.scene.game = this;
     this.loaded = false;
@@ -59,46 +54,31 @@ export class Game {
   
   load() {
     if (this.loaded) return;
-    //this.graphics = this.dataService.getResourceSync("image", 1);
     this.graphicsTexid = egg.texture_new();
     this.tilesheetTexid = egg.texture_new();
     if (egg.texture_load_image(this.graphicsTexid, 0, 1) < 0) throw new Error(`Failed to load image:0:1`);
-    if (egg.texture_load_image(this.tilesheetTexid, 0, 2) < 0) throw new Error(`Failed to load image:0:2`);
+    //if (egg.texture_load_image(this.tilesheetTexid, 0, 2) < 0) throw new Error(`Failed to load image:0:2`);
+    if (egg.texture_upload(this.tilesheetTexid, 256, 256, 1024, 1, null) < 0) throw new Error(`Failed to allocate tilesheet.`);
+    egg.draw_decal(this.tilesheetTexid, this.graphicsTexid, 0, 0, 0, 0, 256, 256, 0);
     this.loaded = true;
     this.paused = true;
-    this.audioManager.playSong(1);
+    egg.audio_play_song(0, 1, 0, 1);
   }
   
   pause() {
     if (!this.loaded) return;
     if (this.paused) return;
-    this.audioManager.stop();
     this.paused = true;
-    /*XXX
-    if (this.pendingAnimationFrame) {
-      this.window.cancelAnimationFrame(this.pendingAnimationFrame);
-      this.pendingAnimationFrame = null;
-    }
-    /**/
-    this.render();
   }
   
   resume() {
     if (!this.loaded) return;
     this.paused = false;
-    /*XXX
-    if (!this.loaded) return;
-    if (!this.paused) return;
-    this.audioManager.reset();
-    this.paused = false;
-    this.lastFrameTime = this.window.Date.now();
-    this.pendingAnimationFrame = this.window.requestAnimationFrame(() => this.update());
-    /**/
   }
   
   updateModel(elapsed) {
     
-    const inputState = this.inputManager.update();
+    const inputState = this.inputManager.update(elapsed);
     if (inputState !== this.pvinput) {
       if ((inputState & InputBtn.PAUSE) && !(this.pvinput & InputBtn.PAUSE)) {
         this.toggleMenu();
@@ -120,16 +100,16 @@ export class Game {
   
   toggleMenu() {
     if (this.menu instanceof PauseMenu) {
-      this.audioManager.soundEffect("resume");
+      egg.audio_play_sound(0, 15, 1, 0);
       this.menu.dismissing();
       this.menu = this.menu.onHold;
     } else if (this.menu instanceof VictoryMenu) {
       this.menu.dismissing();
       this.menu = null;
       this.resetGame();
-      this.audioManager.playSong(1);
+      egg.audio_play_song(0, 1, 0, 1);
     } else {
-      this.audioManager.soundEffect("pause");
+      egg.audio_play_sound(0, 14, 1, 0);
       this.menu = this.injector.get(PauseMenu);
     }
   }
@@ -143,7 +123,7 @@ export class Game {
       menu = menu.onHold;
     }
     if (!menu) return;
-    this.audioManager.soundEffect("resume");
+    egg.audio_play_sound(0, 15, 1, 0);
     if (parent) {
       parent.onHold = controller.onHold;
     } else {
@@ -166,7 +146,7 @@ export class Game {
     this.dataService.setBestTimeIfBetter(this.playTime);
     this.menu = this.injector.get(VictoryMenu);
     this.menu.reset();
-    this.audioManager.playSong(2, false);
+    egg.audio_play_song(0, 2, 0, 0);
   }
 }
 

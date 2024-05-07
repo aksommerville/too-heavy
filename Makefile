@@ -10,21 +10,23 @@ SRC_ROM:=$(shell find src/www/js src/data -type f)
 $(DST_ROM):$(SRC_ROM);$(PRECMD) $(EGG_SDK)/out/tool/eggrom -c -o$@ src/www/js src/data
 all:$(DST_ROM)
 
-DST_HTML:=out/web/index.html
-SRCFILES:=$(shell find src/www src/data -type f)
-ENCODERBITS:=etc/tool/reencodeSong.js etc/tool/minifyJavascript.js
-$(DST_HTML):etc/tool/mkhtml.js $(SRCFILES) $(ENCODERBITS);$(PRECMD) node etc/tool/mkhtml.js $(SRCFILES) -o$@
-all:$(DST_HTML)
+#DST_HTML:=out/web/index.html
+#SRCFILES:=$(shell find src/www src/data -type f)
+#ENCODERBITS:=etc/tool/reencodeSong.js etc/tool/minifyJavascript.js
+#$(DST_HTML):etc/tool/mkhtml.js $(SRCFILES) $(ENCODERBITS);$(PRECMD) node etc/tool/mkhtml.js $(SRCFILES) -o$@
+#all:$(DST_HTML)
 
-DST_WRAPPER:=out/web/wrapper.html
-DST_FAVICON:=out/web/favicon.ico
-$(DST_WRAPPER):src/wrapper.html;$(PRECMD) cp $< $@
-$(DST_FAVICON):src/favicon.ico;$(PRECMD) cp $< $@
-all:$(DST_WRAPPER) $(DST_FAVICON)
+#DST_WRAPPER:=out/web/wrapper.html
+#DST_FAVICON:=out/web/favicon.ico
+#$(DST_WRAPPER):src/wrapper.html;$(PRECMD) cp $< $@
+#$(DST_FAVICON):src/favicon.ico;$(PRECMD) cp $< $@
+#all:$(DST_WRAPPER) $(DST_FAVICON)
 
 # `make run` serves the editor too.
 # We could declare DST_WRAPPER and DST_FAVICON as "--makeable" too, but they won't change much so avoid the extra churn.
 #run:$(DST_HTML) $(DST_WRAPPER) $(DST_FAVICON);node src/server/main.js src out/web --makeable=$(DST_HTML) --put=src
 run:$(DST_ROM);$(EGG_SDK)/out/linux/egg $(DST_ROM)
+
+serve:$(DST_ROM);make --no-print-directory -C$(EGG_SDK) && $(EGG_SDK)/out/tool/server --port=8080 --htdocs=$(EGG_SDK)/src/web --rom=$(DST_ROM)
 
 clean:;rm -rf mid out

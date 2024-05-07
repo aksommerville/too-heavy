@@ -57,7 +57,7 @@ export class GrappleSprite extends Sprite {
     if (this.stage === "fly") {
       if (this.collidesWithWall()) {
         this.stage = "hold";
-        this.sound("grappleCatch");
+        egg.audio_play_sound(0, 29, 1, 0);
       } else {
         if ((this.flyTime += elapsed) >= FLY_LIMIT) {
           // Give up if we've flown too long.
@@ -115,17 +115,15 @@ export class GrappleSprite extends Sprite {
   
   render(context, dstx, dsty) {
     if (this.hero) {
-      /*TODO We don't have anything like this in Egg, not even "trace straight line". Figure something out.
       const ax = Math.round(dstx + this.vw * 0.5);
       const ay = Math.round(dsty + this.vh * 0.5);
       const bx = Math.round(this.hero.x - this.hero.vx + this.hero.vw * 0.5 + dstx - this.x);
       const by = Math.round(this.hero.y - this.hero.vy + this.hero.vh * 0.5 + dsty - this.y);
       const distance = Math.sqrt((bx - ax) ** 2 + (by - ay) ** 2);
-      context.beginPath();
+      const linkCount = Math.ceil(this.lineLength / 3);
       if (distance >= this.lineLength) {
         // When the line is tense, easy, it's a straight line.
-        context.moveTo(ax, ay);
-        context.lineTo(bx, by);
+        this.renderChainStraight(ax, ay, bx, by, linkCount);
       } else {
         // There is slack in the line.
         // The correct way would be a catenary curve between these endpoints, whose length is (this.lineLength).
@@ -134,15 +132,44 @@ export class GrappleSprite extends Sprite {
         // It produces a wildly-incorrect sigmoid when there's just a little slack. I'm not worried about it.
         const midx = (ax + bx) * 0.5;
         const midy = (ay + by) * 0.5 + (this.lineLength - distance);
-        context.beginPath();
-        context.moveTo(ax, ay);
-        context.quadraticCurveTo(ax, midy, midx, midy);
-        context.quadraticCurveTo(bx, midy, bx, by);
+        const ac = linkCount >> 1;
+        const bc = linkCount - ac;
+        this.renderChainCurve(ax, ay, midx, midy, ax, midy, ac);
+        this.renderChainCurve(midx, midy, bx, by, bx, midy, bc);
       }
-      context.strokeStyle = "#684f16";
-      context.stroke();
-      /**/
     }
     context.drawDecal(dstx, dsty, this.srcx, this.srcy, this.vw, this.vh, false);
+  }
+  
+  renderChainStraight(ax, ay, bx, by, linkCount) {
+    let dx = (bx - ax) / linkCount;
+    let dy = (by - ay) / linkCount;
+    let tx = ax + dx * 0.5;
+    let ty = ay + dy * 0.5;
+    for (let i=0; i<linkCount; i++, tx+=dx, ty+=dy) {
+      this.renderChainLink(tx, ty);
+    }
+  }
+  
+  renderChainCurve(ax, ay, bx, by, cx, cy, linkCount) {
+    if (linkCount < 1) return;
+    const acx = (ax + cx) / 2;
+    const acy = (ay + cy) / 2;
+    const cbx = (cx + bx) / 2;
+    const cby = (cy + by) / 2;
+    const mx = (acx + cbx) / 2;
+    const my = (acy + cby) / 2;
+    const halfCount = linkCount >> 1; // Important that it floor.
+    if (linkCount & 1) this.renderChainLink(mx, my);
+    if (halfCount > 0) {
+      this.renderChainCurve(ax, ay, mx, my, acx, acy, halfCount);
+      this.renderChainCurve(mx, my, bx, by, cbx, cby, halfCount);
+    }
+  }
+  
+  renderChainLink(x, y) {
+    x = Math.round(x);
+    y = Math.round(y);
+    egg.draw_rect(1, x, y, 1, 1, 0x000040ff);
   }
 }

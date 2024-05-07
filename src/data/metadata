@@ -1,2 +1,14 @@
 title=Too Heavy!
+author=AK Sommerville
+copyright=(c) 2024 AK Sommerville
+freedom=intact
 framebuffer=320x160
+iconImage=3
+genre=Platformer
+tags=Platform, Female Protagonist, Indie, Cute, Singleplayer, Retro
+language=en
+description=Dot Vine gives away all her things, to shed weight.
+multiplayer=single
+timestamp=2024-05-06
+source=https://github.com/aksommerville/too-heavy
+country=Made in Ohio
