@@ -3,7 +3,7 @@ all:
 .SECONDARY:
 PRECMD=echo "  $(@F)" ; mkdir -p $(@D) ;
 
-EGG_SDK:=../egg
+EGG_SDK:=../egg-202405
 ARCH:=linux
 
 DST_ROM:=out/tooheavy.egg

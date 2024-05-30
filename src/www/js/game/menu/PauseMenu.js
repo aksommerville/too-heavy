@@ -3,7 +3,7 @@
  
 import { Game } from "../Game.js";
 import { DataService } from "../DataService.js";
-import { InputBtn } from "../core/InputManager.js";
+import { InputBtn } from "../../core/InputManager.js";
 import { TILESIZE } from "../../constants.js";
 
 const HIGHLIGHT_PERIOD =     0.800;

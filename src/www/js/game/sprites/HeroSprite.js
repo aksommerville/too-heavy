@@ -8,7 +8,7 @@ import { AnimateOnceSprite } from "./AnimateOnceSprite.js";
 import { SelfieSprite } from "./SelfieSprite.js";
 import { GrappleSprite } from "./GrappleSprite.js";
 import { RaftSprite } from "./RaftSprite.js";
-import { SoulballsSprite } from "./SoulballsSprite.js";
+import { SoulballsSprite } from "./SoulballsSprites.js";
 import { BellRevelatorSprite } from "./BellRevelatorSprite.js";
 import { JumpballsSprite } from "./JumpballsSprite.js";
 

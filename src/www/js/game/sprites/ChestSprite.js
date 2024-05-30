@@ -4,7 +4,7 @@
  */
  
 import { Sprite } from "../Sprite.js";
-import { HeroSprite } from "../HeroSprite.js";
+import { HeroSprite } from "./HeroSprite.js";
 import { TILESIZE } from "../../constants.js";
 
 const BLINK_TIME_CLOSED = 0.200;
