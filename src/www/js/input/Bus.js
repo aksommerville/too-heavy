@@ -15,6 +15,7 @@ export class Bus {
         this.joyTwoState = new JoyTwoState(this);
         this.joyLogical = new JoyLogical(this);
         this.joyQuery = new JoyQuery(this);
+        this.recentDevid = 1;
     }
     /**
      * If you supply a Font, JoyQuery and FakeKeyboard will both use it in preference to fontTilesheet.
@@ -163,6 +164,13 @@ export class Bus {
      */
     onEvent(event) {
         switch (event.eventType) {
+            case 1: /* INPUT */ if (event.v2===1) switch (event.v1) {
+                // A few Linux evdev keysyms, shoehorned in for Too Heavy, after deciding this version of Egg is not the go-forward.
+                case 0x10001: egg.request_termination(); return; // Escape
+                case 0x1003b: this.beginJoyQuery(this.recentDevid); return; // F1
+                case 65835: egg.request_termination(); return; // RP on the My-Power gamepads, sorry for the ugly hacking
+              } break;
+            case 2: /* CONNECT */ this.recentDevid = event.v0; break;
             case 4 /* egg.EventType.HTTP_RSP */:
                 this.onHttpResponse(event.v0, event.v1, event.v2);
                 break;
