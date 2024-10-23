@@ -169,6 +169,8 @@ export class Bus {
                 case 0x10001: egg.request_termination(); return; // Escape
                 case 0x1003b: this.beginJoyQuery(this.recentDevid); return; // F1
                 case 65835: egg.request_termination(); return; // RP on the My-Power gamepads, sorry for the ugly hacking
+                case 65852: egg.request_termination(); return; // Heart on the Evercade, ''
+                //default: egg.log(`button ${event.v1}`);
               } break;
             case 2: /* CONNECT */ this.recentDevid = event.v0; break;
             case 4 /* egg.EventType.HTTP_RSP */:
