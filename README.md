@@ -29,3 +29,7 @@ https://github.com/aksommerville/too-heavy
 - [x] Test in web.
 - [ ] Test on Pi.
 - [x] Bundle web and native apps.
+
+TODO: The Egg port works, but it's egg-202405, a deprecated version which is kind of tricky to build.
+Pull all that, and replace with a native layer using quickjs to run the game.
+The strategy we used for Economy of Motion.
